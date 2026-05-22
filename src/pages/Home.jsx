@@ -29,7 +29,7 @@ const procedures = [
     icon: '✨', name: 'PLLA Threads', duration: '45 min', price: 'PKR 25,000–60,000',
     desc: "Think of this as your skin's personal scaffolding. PLLA threads lift and tighten from within, stimulating your own collagen. No downtime drama.",
     pairs: [mk('Jawline Lift', 1, 0), mk('Cheek Lift', 3, 3)],
-    reviews: [rv('Mariam T.', 5, 'Visible lift after just one session. Dr. Maleeha explained every step and made me feel completely at ease.'), rv('Sara K.', 4, 'Great results on my jawline. Recovery was smooth and much easier than I expected.')],
+    reviews: [rv('Mariam T.', 5, 'Visible lift after just one session. Dr. Maleeha Jawaid explained every step and made me feel completely at ease.'), rv('Sara K.', 4, 'Great results on my jawline. Recovery was smooth and much easier than I expected.')],
   },
   {
     icon: '🧴', name: 'Chemical Peels', duration: '45 min', price: 'PKR 8,000–20,000',
@@ -65,7 +65,7 @@ const procedures = [
     icon: '🩸', name: 'PRP Treatment', duration: '60 min', price: 'PKR 20,000–35,000',
     desc: "Using your own blood's growth factors to heal and rejuvenate your skin. It sounds intense, it really isn't. The results though — chef's kiss.",
     pairs: [mk('Hair Regrowth', 4, 2), mk('Skin Renewal', 0, 3)],
-    reviews: [rv('Khadija A.', 5, 'PRP for hair loss — visible regrowth after just 4 sessions. I was genuinely shocked by how effective it was.'), rv('Fatima A.', 5, 'The vampire facial gave my skin a youthfulness I thought I had lost. Dr. Maleeha is a true artist.')],
+    reviews: [rv('Khadija A.', 5, 'PRP for hair loss — visible regrowth after just 4 sessions. I was genuinely shocked by how effective it was.'), rv('Fatima A.', 5, 'The vampire facial gave my skin a youthfulness I thought I had lost. Dr. Maleeha Jawaid is a true artist.')],
   },
   {
     icon: '👄', name: 'Lip Fillers', duration: '30 min', price: 'PKR 20,000–40,000',
@@ -77,18 +77,73 @@ const procedures = [
     icon: '🌟', name: 'Skin Boosters', duration: '30 min', price: 'PKR 15,000–30,000',
     desc: 'Injectable hyaluronic acid micro-droplets to restore deep skin hydration, luminosity, and the coveted glass-skin effect from within.',
     pairs: [mk('Dehydrated Skin', 0, 4), mk('Dull Complexion', 3, 2)],
-    reviews: [rv('Ayesha M.', 5, 'My skin has not been this dewy since my twenties. The glow is something creams could never give me.'), rv('Hira I.', 5, 'Skin boosters are now my obsession. Dr. Maleeha makes the injections completely painless.')],
+    reviews: [rv('Ayesha M.', 5, 'My skin has not been this dewy since my twenties. The glow is something creams could never give me.'), rv('Hira I.', 5, 'Skin boosters are now my obsession. Dr. Maleeha Jawaid makes the injections completely painless.')],
   },
 ]
 
 const PRODUCTS_KEY = 'drm_products'
 const DEFAULT_PRODUCTS = [
-  { id:'1', name:'Neutrogena Hydro Boost Water Gel',       desc:'Lightweight gel with hyaluronic acid. My go-to for patients with dry or dehydrated skin.',      imageUrl:'https://source.unsplash.com/400x400/?moisturizer,hydration,skincare', pdpLink:'#' },
-  { id:'2', name:'La Roche-Posay Anthelios SPF 50+',       desc:"If I prescribe one thing, it's this. Ultra-light, no white cast, actual sun protection.",        imageUrl:'https://source.unsplash.com/400x400/?sunscreen,spf,skincare',         pdpLink:'#' },
-  { id:'3', name:'CeraVe Foaming Facial Cleanser',         desc:'Ceramides + niacinamide in a gentle foam. The cleanser I personally recommend for sensitive skin.', imageUrl:'https://source.unsplash.com/400x400/?cleanser,facial,skincare',       pdpLink:'#' },
-  { id:'4', name:'The Ordinary Niacinamide 10% + Zinc 1%', desc:'The best bang for your buck for pores and oiliness. I use this myself.',                          imageUrl:'https://source.unsplash.com/400x400/?serum,niacinamide,skincare',      pdpLink:'#' },
-  { id:'5', name:'Bioderma Sensibio H2O Micellar Water',   desc:'Gentle enough for post-procedure skin. No rubbing, no irritation — just clean.',                  imageUrl:'https://source.unsplash.com/400x400/?micellar,cleanser,beauty',        pdpLink:'#' },
-  { id:'6', name:"Pond's Bright Beauty Serum Cream",       desc:"A Pakistani classic with actual niacinamide. Affordable, effective, and I'm not ashamed to love it.", imageUrl:'https://source.unsplash.com/400x400/?brightening,cream,skincare',    pdpLink:'#' },
+  {
+    id: '1', brand: 'Neutrogena', name: 'Neutrogena Hydro Boost Water Gel', shortName: 'Hydro Boost Water Gel',
+    category: 'Moisturizer', priceRange: 'PKR 3,500 – 5,000', skinType: 'Normal to Combination', keyIngredient: 'Hyaluronic Acid',
+    quote: 'My go-to for dehydrated skin — oil-free, absorbs instantly, locks moisture all day.',
+    desc: "My go-to recommendation for anyone who says their skin feels tight or dehydrated. Oil-free, lightweight, absorbs instantly. The hyaluronic acid formula attracts moisture and locks it in all day.",
+    howToUse: 'Apply morning and night on cleansed face and neck with circular movements.',
+    imageUrl: 'https://www.neutrogena.com/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-neutrogena-master-catalog/default/dw8e8c8e8e/images/large/6811045_2.jpg',
+    fallbackGradient: 'linear-gradient(135deg, #bae6fd 0%, #38bdf8 50%, #0284c7 100%)', fallbackIcon: '💧',
+    pdpLink: 'https://www.daraz.pk/catalog/?q=neutrogena+hydro+boost+water+gel',
+    brandLink: 'https://www.neutrogena.com', drCode: 'MALEEHA10', codeDiscount: 10,
+  },
+  {
+    id: '2', brand: 'La Roche-Posay', name: 'La Roche-Posay Anthelios SPF 50+ Sunscreen', shortName: 'Anthelios SPF 50+',
+    category: 'Sunscreen', priceRange: 'PKR 4,500 – 7,000', skinType: 'All Skin Types', keyIngredient: 'Mexoryl SX & XL',
+    quote: 'I prescribe sunscreen to every single patient. This one is my absolute top pick.',
+    desc: "I prescribe sunscreen to literally every single patient. This one is my top pick — broad spectrum, no white cast, and it doesn't break you out. Non-negotiable in your routine.",
+    howToUse: 'Apply generously 15 minutes before sun exposure, reapply every 2 hours.',
+    imageUrl: '', fallbackGradient: 'linear-gradient(135deg, #fed7aa 0%, #fb923c 50%, #ea580c 100%)', fallbackIcon: '☀️',
+    pdpLink: 'https://www.daraz.pk/catalog/?q=la+roche+posay+anthelios+spf+50',
+    brandLink: 'https://www.laroche-posay.com', drCode: 'MALEEHA15', codeDiscount: 15,
+  },
+  {
+    id: '3', brand: 'CeraVe', name: 'CeraVe Foaming Facial Cleanser', shortName: 'Foaming Facial Cleanser',
+    category: 'Cleanser', priceRange: 'PKR 2,500 – 4,000', skinType: 'Normal to Oily', keyIngredient: 'Ceramides + Niacinamide',
+    quote: 'Gentle enough for sensitive skin, effective enough to actually clean your face.',
+    desc: "Gentle enough for sensitive skin, effective enough to actually clean your face. Contains ceramides to protect the skin barrier — something most Pakistani cleansers completely ignore.",
+    howToUse: 'Apply to wet skin, massage gently, rinse thoroughly. Use twice daily.',
+    imageUrl: '', fallbackGradient: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #93c5fd 100%)', fallbackIcon: '🫧',
+    pdpLink: 'https://www.daraz.pk/catalog/?q=cerave+foaming+facial+cleanser',
+    brandLink: 'https://www.cerave.com', drCode: null, codeDiscount: null,
+  },
+  {
+    id: '4', brand: 'The Ordinary', name: 'The Ordinary Niacinamide 10% + Zinc 1%', shortName: 'Niacinamide 10% + Zinc 1%',
+    category: 'Serum', priceRange: 'PKR 2,000 – 3,500', skinType: 'Oily / Acne-prone', keyIngredient: 'Niacinamide + Zinc',
+    quote: 'If you have pores, acne, or oily skin — this is your best friend. Affordable and evidence-backed.',
+    desc: "If you have pores, acne, or oily skin — this is your best friend. Affordable, effective, and one of the most evidence-backed serums out there. I recommend it constantly.",
+    howToUse: 'Apply a few drops before moisturizer, morning and/or evening.',
+    imageUrl: '', fallbackGradient: 'linear-gradient(135deg, #1c1c1c 0%, #374151 50%, #6b7280 100%)', fallbackIcon: '🔬',
+    pdpLink: 'https://www.daraz.pk/catalog/?q=the+ordinary+niacinamide',
+    brandLink: 'https://theordinary.com', drCode: 'MALEEHA10', codeDiscount: 10,
+  },
+  {
+    id: '5', brand: 'Bioderma', name: 'Bioderma Sensibio H2O Micellar Water', shortName: 'Sensibio H2O Micellar Water',
+    category: 'Makeup Remover', priceRange: 'PKR 3,000 – 5,000', skinType: 'Sensitive Skin', keyIngredient: 'Cucumber Extract + Micellar Technology',
+    quote: 'The gentlest way to remove makeup — no irritation, no rubbing, just clean skin.',
+    desc: "The gentlest way to remove makeup without irritating your skin. I recommend this especially to patients with rosacea or reactive skin who can't tolerate most cleansers.",
+    howToUse: 'Soak a cotton pad and gently wipe across face. No rinsing needed.',
+    imageUrl: '', fallbackGradient: 'linear-gradient(135deg, #fce7f3 0%, #f9a8d4 50%, #ec4899 100%)', fallbackIcon: '🌸',
+    pdpLink: 'https://www.daraz.pk/catalog/?q=bioderma+sensibio',
+    brandLink: 'https://www.bioderma.com', drCode: null, codeDiscount: null,
+  },
+  {
+    id: '6', brand: "Pond's", name: "Pond's Bright Beauty Serum Cream", shortName: 'Bright Beauty Serum Cream',
+    category: 'Brightening', priceRange: 'PKR 800 – 1,500', skinType: 'All Skin Types', keyIngredient: 'Niacinamide + Vitamin B3',
+    quote: "An affordable brightener that actually works. My go-to when budget is a concern.",
+    desc: "An affordable option that actually works for brightening. If budget is a concern, this is what I tell my patients to start with. Widely available everywhere in Pakistan.",
+    howToUse: 'Apply on face and neck morning and night after cleansing.',
+    imageUrl: '', fallbackGradient: 'linear-gradient(135deg, #fef9c3 0%, #fde047 50%, #ca8a04 100%)', fallbackIcon: '✨',
+    pdpLink: 'https://www.daraz.pk/catalog/?q=ponds+bright+beauty+serum',
+    brandLink: 'https://www.ponds.com', drCode: null, codeDiscount: null,
+  },
 ]
 const scrollTo = id => {
   const el = document.getElementById(id)
@@ -180,7 +235,7 @@ function ProcedureCard({ proc, onBook, onOpen }) {
 
 const PLACEHOLDER_REVIEWS = [
   { name: 'Fatima A.', stars: 5, text: 'Absolutely love this product — my skin has never felt better.' },
-  { name: 'Nadia H.', stars: 5, text: 'Dr. Maleeha recommended this and I am never going back to anything else.' },
+  { name: 'Nadia H.', stars: 5, text: 'Dr. Maleeha Jawaid recommended this and I am never going back to anything else.' },
   { name: 'Sara K.', stars: 4, text: 'Great quality. Noticed a visible difference within two weeks.' },
   { name: 'Ayesha M.', stars: 5, text: 'Worth every rupee. My go-to skincare essential now.' },
 ]
@@ -402,7 +457,7 @@ export default function Home() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
             <div style={{ width: 36, height: 36, borderRadius: 9, background: `linear-gradient(135deg,${C.teal},#0891b2)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.white, fontWeight: 800, fontSize: 13 }}>Dr</div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: C.white, lineHeight: 1.2 }}>Dr. Maleeha</div>
+              <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: C.white, lineHeight: 1.2 }}>Dr. Maleeha Jawaid</div>
               <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>In Your Face by Maleeha</div>
             </div>
           </div>
@@ -439,7 +494,8 @@ export default function Home() {
             📸 @inyourfacebymaleeha
           </a>
 
-          <h1 style={{ fontSize: 'clamp(2.5rem,9vw,5rem)', fontWeight: 900, color: C.white, margin: '0 0 0.625rem', letterSpacing: '-0.04em', lineHeight: 1.0 }}>Dr. Maleeha</h1>
+          <h1 style={{ fontSize: 'clamp(2.5rem,9vw,5rem)', fontWeight: 900, color: C.white, margin: '0 0 0.375rem', letterSpacing: '-0.04em', lineHeight: 1.0 }}>Dr. Maleeha Jawaid</h1>
+          <p style={{ fontSize: 'clamp(0.875rem,1.8vw,1.0625rem)', color: C.tealRing, fontWeight: 600, margin: '0 0 0.625rem', letterSpacing: '0.02em' }}>Clinical &amp; Aesthetics Dermatologist</p>
 
           <div style={{ fontSize: 'clamp(1rem,2.5vw,1.375rem)', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: '0.5rem', letterSpacing: '-0.01em', transition: 'opacity 0.5s' }}>
             {SLIDES[slide].caption}
@@ -453,7 +509,7 @@ export default function Home() {
           </div>
 
           <p style={{ fontSize: 'clamp(0.875rem,1.5vw,1rem)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 1.75rem' }}>
-            I'm Dr. Maleeha — a dermatologist who believes great skin isn't about perfection, it's about feeling confident in your own. From Botox to basics, I'm here to give it to you straight. No fluff, no filters — just honest advice and results that last.
+            I'm Dr. Maleeha Jawaid — a dermatologist who believes great skin isn't about perfection, it's about feeling confident in your own. From Botox to basics, I'm here to give it to you straight. No fluff, no filters — just honest advice and results that last.
           </p>
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}>
@@ -523,7 +579,7 @@ export default function Home() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
             <div style={{ width: 40, height: 40, borderRadius: '50%', background: `linear-gradient(135deg,${C.teal},#0891b2)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, color: C.white, flexShrink: 0 }}>Dr</div>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: C.white }}>Dr. Maleeha</div>
+              <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: C.white }}>Dr. Maleeha Jawaid</div>
               <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>MCPS Dermatology · Fellowship · PAADS</div>
             </div>
           </div>
@@ -661,7 +717,7 @@ export default function Home() {
         <div style={{ padding: '3rem 1.5rem 2rem', borderBottom: '1px solid rgba(255,255,255,0.12)', textAlign: 'center', position: 'relative' }}>
           <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 500, height: 500, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: 'clamp(2.5rem,8vw,4.5rem)', fontWeight: 900, color: C.white, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '0.5rem' }}>Dr. Maleeha</div>
+            <div style={{ fontSize: 'clamp(2.5rem,8vw,4.5rem)', fontWeight: 900, color: C.white, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '0.5rem' }}>Dr. Maleeha Jawaid</div>
             <p style={{ fontSize: '0.8125rem', color: C.tealRing, marginBottom: '0.375rem', fontWeight: 600, letterSpacing: '0.02em' }}>In Your Face by Maleeha</p>
             <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)', marginBottom: '1.25rem', letterSpacing: '0.01em' }}>MBBS · MCPS Dermatology (PNS Shifa) · Fellowship · PAADS Member · Islamabad</p>
             <a href="https://instagram.com/inyourfacebymaleeha" target="_blank" rel="noopener noreferrer"
@@ -707,7 +763,7 @@ export default function Home() {
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', margin: 0 }}>© 2026 Dr. Maleeha · In Your Face by Maleeha — Honest skincare. Real results. No filters.</p>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', margin: 0 }}>© 2026 Dr. Maleeha Jawaid · In Your Face by Maleeha — Honest skincare. Real results. No filters.</p>
             <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', margin: 0 }}>Islamabad · Karachi · Lahore · Online</p>
           </div>
         </div>

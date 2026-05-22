@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import AIAssistant from './AIAssistant'
 
 const C = {
   teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
@@ -48,7 +49,7 @@ const MOCK = [
 const FULL_DAYS = new Set(['2026-05-25', '2026-05-28'])
 
 const PRE_CONSULT = {
-  3:  { description: "I've had recurring acne for 3 years, mostly on my forehead and chin. It worsens before my period and leaves dark marks. OTC cleansers dry my skin without fixing the breakouts.", voiceTranscript: "Hi Dr. Maleeha, I break out every month before my cycle. The marks left behind take months to fade. I've tried salicylic acid and benzoyl peroxide but they just dry my skin. I need a proper treatment plan.", photos: 3 },
+  3:  { description: "I've had recurring acne for 3 years, mostly on my forehead and chin. It worsens before my period and leaves dark marks. OTC cleansers dry my skin without fixing the breakouts.", voiceTranscript: "Hi Dr. Maleeha Jawaid, I break out every month before my cycle. The marks left behind take months to fade. I've tried salicylic acid and benzoyl peroxide but they just dry my skin. I need a proper treatment plan.", photos: 3 },
   7:  { description: "Patchy hyperpigmentation on both cheeks appeared after my second pregnancy and worsens in sun. Vitamin C serum for 4 months showed minimal improvement. Possibly melasma.", voiceTranscript: "My dark patches came after childbirth. I live in Lahore so it's very sunny. Creams aren't working. I'm 32 and otherwise healthy. Wondering if this is melasma and what can actually treat it.", photos: 1 },
   10: { description: "Significant hair thinning and shedding (~200 hairs/day) for 8 months. Scalp tightness and itching. Thyroid tested and normal. Onset after a high-stress period at work.", voiceTranscript: "I'm losing a lot of hair, mostly from the top and temples. My previous dermatologist said it was telogen effluvium but it's been 8 months and it hasn't stopped. I'm getting very worried about it.", photos: 2 },
 }
@@ -483,7 +484,7 @@ function PatientPanel({ appt, onClose, onApprove, onReject }) {
               )}
 
               <p style={{ fontSize: '0.4375rem', fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 0.3rem' }}>Quick Message</p>
-              <a href={`https://wa.me/${appt.phone.replace(/\D/g,'')}?text=${encodeURIComponent(`Dear ${appt.name}, this is a message from Dr. Maleeha's clinic regarding your appointment on ${appt.date} at ${appt.time}.`)}`}
+              <a href={`https://wa.me/${appt.phone.replace(/\D/g,'')}?text=${encodeURIComponent(`Dear ${appt.name}, this is a message from Dr. Maleeha Jawaid's clinic regarding your appointment on ${appt.date} at ${appt.time}.`)}`}
                 target="_blank" rel="noopener noreferrer"
                 style={{ display: 'block', padding: '0.45rem', background: '#dcfce7', color: '#16a34a', textDecoration: 'none', fontWeight: 700, fontSize: '0.5rem', borderRadius: 7, textAlign: 'center', marginBottom: '0.625rem' }}>
                 💬 WhatsApp {appt.name.split(' ')[0]}
@@ -526,7 +527,7 @@ function PatientPanel({ appt, onClose, onApprove, onReject }) {
                 </div>
               )}
 
-              <p style={{ fontSize: '0.4375rem', fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0.25rem 0 0.3rem' }}>Upload Photos (Dr. Maleeha)</p>
+              <p style={{ fontSize: '0.4375rem', fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0.25rem 0 0.3rem' }}>Upload Photos (Dr. Maleeha Jawaid)</p>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', border: `1.5px dashed ${C.tealRing}`, borderRadius: 8, padding: '0.5rem 0.75rem', cursor: 'pointer', background: C.tealLight }}>
                 <input type="file" accept="image/*" multiple onChange={e => setUploadedBefore(p => [...p, ...Array.from(e.target.files)])} style={{ display: 'none' }} />
                 <span style={{ fontSize: '0.9rem' }}>📎</span>
@@ -734,7 +735,7 @@ function AiBriefModal({ appt, onClose }) {
 // ── Delay Modal ───────────────────────────────────────────────────────────
 function DelayModal({ todayAppts, onClose }) {
   const msg = (name, time) =>
-    encodeURIComponent(`Dear ${name},\n\nDr. Maleeha's clinic is experiencing a delay in today's appointments. Your ${time} slot may be pushed back by 30–60 minutes. We sincerely apologise for the inconvenience and will keep you updated.\n\nThank you for your patience.\n— Dr. Maleeha Clinic`)
+    encodeURIComponent(`Dear ${name},\n\nDr. Maleeha Jawaid's clinic is experiencing a delay in today's appointments. Your ${time} slot may be pushed back by 30–60 minutes. We sincerely apologise for the inconvenience and will keep you updated.\n\nThank you for your patience.\n— Dr. Maleeha Jawaid Clinic`)
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -745,7 +746,7 @@ function DelayModal({ todayAppts, onClose }) {
         </div>
         <div style={{ background: C.bg, borderRadius: 9, padding: '0.625rem', marginBottom: '0.75rem', fontSize: '0.5625rem', color: C.muted, lineHeight: 1.6 }}>
           <strong style={{ color: C.text, display: 'block', marginBottom: '0.2rem' }}>Message template:</strong>
-          "Dear [Name], Dr. Maleeha's clinic is experiencing a delay today. Your [Time] appointment may be pushed back 30–60 mins. We apologise and will keep you updated."
+          "Dear [Name], Dr. Maleeha Jawaid's clinic is experiencing a delay today. Your [Time] appointment may be pushed back 30–60 mins. We apologise and will keep you updated."
         </div>
         {todayAppts.length === 0 ? (
           <p style={{ color: C.muted, textAlign: 'center', fontSize: '0.6875rem', padding: '0.75rem' }}>No appointments today.</p>
@@ -790,6 +791,7 @@ export default function Dashboard() {
   const [editingProd, setEditingProd] = useState(null)
   const [prodForm,    setProdForm]    = useState({ name:'', desc:'', imageUrl:'', pdpLink:'' })
   const [showShop,    setShowShop]    = useState(false)
+  const [activeView,  setActiveView]  = useState('calendar')
 
   const setStatus = (id, status) => setAppointments(p => p.map(a => a.id === id ? { ...a, status } : a))
 
@@ -827,14 +829,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: 'system-ui,-apple-system,sans-serif' }}>
+    <div style={{ background: C.bg, fontFamily: 'system-ui,-apple-system,sans-serif' }}>
 
       {/* ── Compact Header ── */}
       <div style={{ background: `linear-gradient(135deg,#0f766e,${C.teal})`, padding: '0.75rem 1.125rem', color: C.white }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
           <div>
             <p style={{ fontSize: '0.4rem', opacity: 0.7, margin: '0 0 0.08rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Admin · In Your Face by Maleeha</p>
-            <h1 style={{ fontSize: '0.875rem', fontWeight: 800, color: C.white, margin: 0, letterSpacing: '-0.01em' }}>Dr. Maleeha — Dashboard</h1>
+            <h1 style={{ fontSize: '0.875rem', fontWeight: 800, color: C.white, margin: 0, letterSpacing: '-0.01em' }}>Dr. Maleeha Jawaid — Dashboard</h1>
           </div>
           <div style={{ display: 'flex', gap: '0.275rem' }}>
             {[['Total',counts.total,'rgba(255,255,255,0.15)'],['Pending',counts.pending,'rgba(251,191,36,0.25)'],['Confirmed',counts.confirmed,'rgba(52,211,153,0.25)'],['Rejected',counts.rejected,'rgba(248,113,113,0.25)']].map(([l,v,bg]) => (
@@ -852,7 +854,23 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Two-column body ── */}
+      {/* ── View tabs ── */}
+      <div style={{ background: C.white, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.125rem', display: 'flex' }}>
+          {[['calendar','📅 Calendar'],['ai','🤖 AI Assistant']].map(([v,label]) => (
+            <button key={v} onClick={() => setActiveView(v)} style={{
+              padding: '0.5rem 0.875rem', border: 'none', background: 'none',
+              borderBottom: `2px solid ${activeView === v ? C.teal : 'transparent'}`,
+              color: activeView === v ? C.teal : C.muted,
+              fontWeight: activeView === v ? 700 : 400, fontSize: '0.5875rem',
+              cursor: 'pointer', transition: 'all 0.15s',
+            }}>{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {activeView === 'calendar' && (
+      <>{/* ── Two-column body ── */}
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0.75rem 1.125rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
 
         {/* Left 60%: Calendar */}
@@ -980,6 +998,9 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      </>)}
+
+      {activeView === 'ai' && <AIAssistant />}
 
       {/* Overlays */}
       {detailAppt  && <PatientPanel appt={detailAppt}  onClose={() => setDetailAppt(null)} onApprove={() => { setStatus(detailAppt.id,'confirmed'); setDetailAppt(null) }} onReject={() => { setStatus(detailAppt.id,'rejected'); setDetailAppt(null) }} />}

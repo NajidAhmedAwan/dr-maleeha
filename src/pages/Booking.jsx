@@ -10,10 +10,51 @@ const C = {
 }
 
 const LOCATIONS = [
-  { name: 'Islamabad',           landmark: 'Faisal Mosque',   address: 'F-7 Markaz, Islamabad',      days: 'Tue, Thu, Sat · 11 AM – 5 PM', icon: '🕌', gradient: 'linear-gradient(135deg, #1a3a52 0%, #1a7aaa 50%, #26c6b8 100%)' },
-  { name: 'Karachi',             landmark: 'Mazar-e-Quaid',   address: 'DHA Phase 6, Karachi',       days: 'Mon–Sat · 10 AM – 7 PM',       icon: '🏙️', gradient: 'linear-gradient(135deg, #2e0a52 0%, #4d30a0 50%, #3a8fde 100%)' },
-  { name: 'Lahore',              landmark: 'Badshahi Mosque', address: 'Gulberg III, Lahore',         days: 'Mon, Wed, Fri · 12 – 7 PM',    icon: '🦁', gradient: 'linear-gradient(135deg, #1a4d2a 0%, #2e8f44 50%, #d4a020 100%)' },
-  { name: 'Online Consultation', landmark: 'WhatsApp · Zoom', address: 'WhatsApp / Zoom Video Call', days: 'Mon–Sun · By appointment',      icon: '💻', gradient: 'linear-gradient(135deg, #1a4d4d 0%, #1aacac 50%, #26c6b8 100%)' },
+  {
+    name: 'Islamabad',
+    image: '/images/cities/islamabad.jpg',
+    accent: '#00d4aa',
+    subtitle: 'Dr. Maleeha Jawaid Clinic',
+    address: 'Faisal Market, F-7/1, Islamabad',
+    days: 'Tue, Thu, Sat · 11 AM – 5 PM',
+    landmark: 'Faisal Mosque',
+    icon: '🕌',
+    gradient: 'linear-gradient(135deg, #1a3a52 0%, #1a7aaa 50%, #26c6b8 100%)',
+  },
+  {
+    name: 'Karachi',
+    image: '/images/cities/karachi.jpg',
+    accent: '#9333ea',
+    subtitle: 'R5 Aesthetics',
+    address: 'DHA Phase 6, Karachi · (021)35170881',
+    days: 'Mon–Sat · 10 AM – 7 PM',
+    landmark: 'R5 Aesthetics',
+    icon: '🏙️',
+    gradient: 'linear-gradient(135deg, #2e0a52 0%, #4d30a0 50%, #3a8fde 100%)',
+  },
+  {
+    name: 'Lahore',
+    image: '/images/cities/lahore.jpg',
+    accent: '#f59e0b',
+    subtitle: 'Coming Soon',
+    address: 'Gulberg III, Lahore',
+    days: 'Stay tuned for updates',
+    landmark: 'Badshahi Mosque',
+    icon: '🦁',
+    comingSoon: true,
+    gradient: 'linear-gradient(135deg, #1a4d2a 0%, #2e8f44 50%, #d4a020 100%)',
+  },
+  {
+    name: 'Online Consultation',
+    image: '/images/cities/online.jpg',
+    accent: '#0d9488',
+    subtitle: 'WhatsApp · Zoom · Video',
+    address: null,
+    days: null,
+    landmark: 'WhatsApp · Zoom',
+    icon: '💻',
+    gradient: 'linear-gradient(135deg, #1a4d4d 0%, #1aacac 50%, #26c6b8 100%)',
+  },
 ]
 
 const ONLINE_CONCERNS = [
@@ -41,7 +82,9 @@ const PROCEDURES = [
   { name: 'Hydrafacial',     note: 'Deep cleanse & hydration',   price: 'From PKR 9,000'  },
   { name: 'PRP Treatment',   note: 'Platelet-rich plasma',       price: 'From PKR 28,000' },
   { name: 'Lip Fillers',     note: 'Volume & definition',        price: 'From PKR 30,000' },
-  { name: 'Skin Boosters',   note: 'Deep skin hydration',        price: 'From PKR 15,000' },
+  { name: 'Skin Boosters',      note: 'Deep skin hydration',        price: 'From PKR 15,000' },
+  { name: 'Acne Treatment',    note: 'Breakouts & active acne',    price: 'From PKR 5,000'  },
+  { name: 'Acne Scar Treatment', note: 'Resurfacing & scar repair', price: 'From PKR 10,000' },
 ]
 
 const COUNTRY_CODES = [
@@ -238,7 +281,7 @@ export default function Booking() {
           <div style={{ background: C.tealLight, border: `1px solid ${C.tealRing}`, borderRadius: 12, padding: '0.875rem', marginBottom: '1.75rem', fontSize: '0.8125rem', color: C.tealDark, lineHeight: 1.65 }}>
             {isOnline
               ? <>A video call link will be sent to <strong>{form.countryCode} {form.phone}</strong> within 24 hours.</>
-              : <>Dr. Maleeha's team will confirm via WhatsApp at <strong>{form.countryCode} {form.phone}</strong> within 24 hours.</>
+              : <>Dr. Maleeha Jawaid's team will confirm via WhatsApp at <strong>{form.countryCode} {form.phone}</strong> within 24 hours.</>
             }
           </div>
           <button onClick={() => navigate('/')} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.875rem 2rem', borderRadius: 11, fontWeight: 700, cursor: 'pointer', fontSize: '0.9375rem', width: '100%' }}>
@@ -260,7 +303,7 @@ export default function Booking() {
           ←
         </button>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'rgba(255,255,255,0.9)', letterSpacing: '-0.01em' }}>Book with Dr. Maleeha</div>
+          <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'rgba(255,255,255,0.9)', letterSpacing: '-0.01em' }}>Book with Dr. Maleeha Jawaid</div>
           <div style={{ fontSize: '0.5625rem', color: 'rgba(255,255,255,0.38)', marginTop: 2, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{STEP_LABELS[step - 1]}</div>
         </div>
         {/* Pill toggle */}
@@ -316,38 +359,81 @@ export default function Booking() {
                     onClick={() => { set('location', loc.name); set('procedure', '') }}
                     onMouseEnter={() => setHovLoc(loc.name)}
                     onMouseLeave={() => setHovLoc(null)}
-                    style={{ position: 'relative', height: 220, padding: 0, overflow: 'hidden', border: `2px solid ${sel ? C.teal : hov ? 'rgba(13,148,136,0.5)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 16, cursor: 'pointer', background: loc.gradient, transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.18s', transform: hov && !sel ? 'scale(1.02)' : 'scale(1)', boxShadow: sel ? '0 0 0 3px rgba(13,148,136,0.28), 0 12px 40px rgba(0,0,0,0.65)' : hov ? '0 8px 32px rgba(0,0,0,0.55)' : '0 2px 14px rgba(0,0,0,0.45)' }}>
+                    style={{
+                      position: 'relative', height: 380, padding: 0, overflow: 'hidden',
+                      border: `${sel ? '3px' : '1.5px'} solid ${sel ? loc.accent : hov ? loc.accent : `${loc.accent}55`}`,
+                      borderRadius: 16, cursor: 'pointer', background: loc.gradient,
+                      transition: 'border 0.2s, box-shadow 0.2s, transform 0.18s',
+                      transform: hov && !sel ? 'scale(1.01)' : 'scale(1)',
+                      boxShadow: sel
+                        ? `0 0 0 1px ${loc.accent}44, 0 0 28px ${loc.accent}55, 0 12px 40px rgba(0,0,0,0.7)`
+                        : hov
+                          ? `0 0 0 1px ${loc.accent}22, 0 0 18px ${loc.accent}33, 0 8px 32px rgba(0,0,0,0.55)`
+                          : '0 2px 14px rgba(0,0,0,0.45)',
+                    }}>
 
-                    {/* Subtle diagonal texture */}
-                    <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 10px)', pointerEvents: 'none' }} />
+                    {/* Real photo background */}
+                    <img src={loc.image} alt={loc.name}
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: hov ? 1 : 0.88, transition: 'opacity 0.25s' }}
+                      onError={e => { e.target.style.display = 'none' }}
+                    />
 
-                    {/* Hover brightness layer */}
-                    <div style={{ position: 'absolute', inset: 0, background: hov ? 'rgba(255,255,255,0.07)' : 'transparent', transition: 'background 0.2s', pointerEvents: 'none' }} />
+                    {/* Dark gradient overlay — heavy at bottom for text legibility */}
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.48) 45%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0.04) 100%)', pointerEvents: 'none' }} />
 
-                    {/* Bottom vignette for text readability */}
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 45%, transparent 72%)', pointerEvents: 'none' }} />
+                    {/* Accent tint on selected */}
+                    {sel && <div style={{ position: 'absolute', inset: 0, background: `${loc.accent}18`, pointerEvents: 'none' }} />}
 
-                    {/* Teal wash on selected */}
-                    {sel && <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,148,136,0.14)', pointerEvents: 'none' }} />}
+                    {/* Top-left icon badge */}
+                    <div style={{ position: 'absolute', top: 14, left: 14, pointerEvents: 'none' }}>
+                      {loc.name === 'Karachi' ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(147,51,234,0.3)', border: '1px solid rgba(147,51,234,0.6)', borderRadius: 9, padding: '0.3rem 0.55rem', backdropFilter: 'blur(4px)' }}>
+                          <span style={{ fontSize: '0.875rem' }}>👑</span>
+                          <span style={{ fontWeight: 900, fontSize: '0.9375rem', color: '#e0aaff', letterSpacing: '-0.01em' }}>R5</span>
+                        </div>
+                      ) : (
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${loc.accent}22`, border: `1.5px solid ${loc.accent}66`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.125rem', backdropFilter: 'blur(4px)' }}>
+                          {loc.icon}
+                        </div>
+                      )}
+                    </div>
 
-                    {/* Emoji icon top-right (hidden when selected, replaced by checkmark) */}
-                    {!sel && <div style={{ position: 'absolute', top: 14, right: 14, fontSize: '1.625rem', lineHeight: 1, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))', pointerEvents: 'none' }}>{loc.icon}</div>}
-
-                    {/* Checkmark badge top-right (selected state) */}
+                    {/* Checkmark badge top-right (selected) */}
                     {sel && (
-                      <div style={{ position: 'absolute', top: 10, right: 10, width: 26, height: 26, borderRadius: '50%', background: C.teal, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-                        <svg width="12" height="9" viewBox="0 0 12 9" fill="none"><path d="M1 4L4.5 7.5L11 1" stroke="white" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <div style={{ position: 'absolute', top: 12, right: 12, width: 30, height: 30, borderRadius: '50%', background: loc.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 2px 14px ${loc.accent}99`, pointerEvents: 'none' }}>
+                        <svg width="13" height="10" viewBox="0 0 12 9" fill="none"><path d="M1 4L4.5 7.5L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
                     )}
 
                     {/* Text — bottom-left */}
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1rem 0.875rem 0.875rem', textAlign: 'left', pointerEvents: 'none' }}>
-                      <div style={{ fontWeight: 800, fontSize: '1.25rem', color: '#fff', letterSpacing: '-0.025em', lineHeight: 1.05, textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>{loc.name}</div>
-                      <div style={{ fontSize: '0.5625rem', color: 'rgba(255,255,255,0.65)', marginTop: '0.275rem', letterSpacing: '0.03em', fontWeight: 400 }}>{loc.landmark}</div>
-                      <div style={{ fontSize: '0.4375rem', color: 'rgba(255,255,255,0.42)', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.2rem', letterSpacing: '0.02em' }}>
-                        <svg width="7" height="7" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.3" style={{ flexShrink: 0 }}><circle cx="5" cy="5" r="4"/><path d="M5 2.5V5L6.5 6.5" strokeLinecap="round"/></svg>
-                        {loc.days}
-                      </div>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.25rem 1rem 1rem', textAlign: 'left', pointerEvents: 'none' }}>
+                      <div style={{ fontWeight: 900, fontSize: '2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.0, textShadow: '0 2px 18px rgba(0,0,0,0.95)', marginBottom: '0.25rem' }}>{loc.name}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: loc.accent, marginBottom: '0.4rem', textShadow: '0 1px 8px rgba(0,0,0,0.9)', letterSpacing: '0.01em' }}>{loc.subtitle}</div>
+
+                      {loc.address && (
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.3rem', marginBottom: '0.3rem' }}>
+                          <svg width="9" height="11" viewBox="0 0 9 11" fill="none" style={{ flexShrink: 0, marginTop: '0.1rem' }}>
+                            <path d="M4.5 0C2.015 0 0 2.015 0 4.5 0 7.875 4.5 11 4.5 11S9 7.875 9 4.5C9 2.015 6.985 0 4.5 0zm0 6.125a1.625 1.625 0 1 1 0-3.25 1.625 1.625 0 0 1 0 3.25z" fill="rgba(255,255,255,0.85)"/>
+                          </svg>
+                          <span style={{ fontSize: '0.5625rem', color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 6px rgba(0,0,0,0.8)', lineHeight: 1.45 }}>{loc.address}</span>
+                        </div>
+                      )}
+
+                      {loc.name === 'Online Consultation' ? (
+                        <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.25rem' }}>
+                          {[['💬','Chat'],['📅','Book']].map(([icon, label]) => (
+                            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.3rem 0.75rem', border: '1px solid rgba(255,255,255,0.35)', borderRadius: 100, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(4px)' }}>
+                              <span style={{ fontSize: '0.6875rem' }}>{icon}</span>
+                              <span style={{ fontSize: '0.5rem', color: '#fff', fontWeight: 600 }}>{label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : loc.days && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.3" style={{ flexShrink: 0 }}><circle cx="5" cy="5" r="4"/><path d="M5 2.5V5L6.5 6.5" strokeLinecap="round"/></svg>
+                          <span style={{ fontSize: '0.5625rem', color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{loc.days}</span>
+                        </div>
+                      )}
                     </div>
                   </button>
                 )
@@ -531,7 +617,7 @@ export default function Booking() {
               Describe Your Concern <span style={{ fontWeight: 400, textTransform: 'none', fontSize: '0.6875rem', color: C.muted }}>(optional)</span>
             </label>
             <textarea value={form.concern} onChange={e => set('concern', e.target.value)}
-              placeholder="Tell Dr. Maleeha about your skin concern or reason for this visit…" rows={3}
+              placeholder="Tell Dr. Maleeha Jawaid about your skin concern or reason for this visit…" rows={3}
               style={{ width: '100%', padding: '0.8125rem 0.875rem', border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: '0.875rem', color: C.text, background: C.white, boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }} />
           </div>
 
@@ -569,8 +655,8 @@ export default function Booking() {
             <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 800, color: '#475569', marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Payment Screenshot</label>
             <div style={{ background: C.tealLight, border: `1px solid ${C.tealRing}`, borderRadius: 11, padding: '0.875rem', marginBottom: '0.75rem', fontSize: '0.8125rem', color: C.tealDark, lineHeight: 1.7 }}>
               {isOnline
-                ? <><strong>Online fee: PKR 2,500</strong> · Transfer to HBL Account <strong>1234-5678-9012</strong> (Dr. Maleeha)</>
-                : <>Transfer to <strong>HBL</strong> · Account <strong>1234-5678-9012</strong> · Name: <strong>Dr. Maleeha</strong></>
+                ? <><strong>Online fee: PKR 2,500</strong> · Transfer to HBL Account <strong>1234-5678-9012</strong> (Dr. Maleeha Jawaid)</>
+                : <>Transfer to <strong>HBL</strong> · Account <strong>1234-5678-9012</strong> · Name: <strong>Dr. Maleeha Jawaid</strong></>
               }
             </div>
             <label style={{ display: 'block', cursor: 'pointer' }}>
