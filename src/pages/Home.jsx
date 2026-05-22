@@ -233,84 +233,135 @@ function ProcedureCard({ proc, onBook, onOpen }) {
   )
 }
 
-const PLACEHOLDER_REVIEWS = [
-  { name: 'Fatima A.', stars: 5, text: 'Absolutely love this product — my skin has never felt better.' },
-  { name: 'Nadia H.', stars: 5, text: 'Dr. Maleeha Jawaid recommended this and I am never going back to anything else.' },
-  { name: 'Sara K.', stars: 4, text: 'Great quality. Noticed a visible difference within two weeks.' },
-  { name: 'Ayesha M.', stars: 5, text: 'Worth every rupee. My go-to skincare essential now.' },
-]
+function ProductCard({ product, onClick }) {
+  const [imgErr, setImgErr] = useState(false)
+  return (
+    <div onClick={onClick}
+      style={{ background: C.white, border: '1px solid #e8ddd4', borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,0.07)', cursor: 'pointer', transition: 'box-shadow 0.2s, transform 0.15s' }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(13,148,136,0.18)'; e.currentTarget.style.transform = 'translateY(-3px)' }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.07)'; e.currentTarget.style.transform = 'translateY(0)' }}>
+      {/* Image */}
+      <div style={{ height: 200, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+        {!imgErr && product.imageUrl ? (
+          <img src={product.imageUrl} alt={product.name} onError={() => setImgErr(true)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', background: product.fallbackGradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '3.5rem' }}>{product.fallbackIcon}</span>
+          </div>
+        )}
+        <span style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(255,255,255,0.93)', color: C.tealDark, fontSize: '0.5625rem', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.05em', backdropFilter: 'blur(4px)' }}>{product.category}</span>
+      </div>
+      {/* Content */}
+      <div style={{ padding: '0.875rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <p style={{ margin: 0, fontSize: '0.6rem', color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{product.brand}</p>
+        <p style={{ margin: 0, fontWeight: 800, fontSize: '0.9375rem', color: C.text, lineHeight: 1.3 }}>{product.shortName}</p>
+        <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 700, color: C.teal }}>{product.priceRange}</p>
+        <p style={{ margin: '0.3rem 0 0', fontSize: '0.8125rem', color: '#475569', lineHeight: 1.55, fontStyle: 'italic', flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>"{product.quote}"</p>
+        <button style={{ marginTop: '0.75rem', background: C.teal, color: C.white, border: 'none', borderRadius: 10, padding: '0.625rem', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', width: '100%' }}>
+          View Product →
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function ProductModal({ product, onClose }) {
-  const [imgFull, setImgFull] = useState(false)
+  const [imgErr, setImgErr] = useState(false)
+  const [copied, setCopied] = useState(false)
   if (!product) return null
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(product.drCode).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2200)
+    }).catch(() => {})
+  }
+
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(7,26,46,0.75)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0' }}>
-      <div style={{ background: C.white, borderRadius: '22px 22px 0 0', width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 -8px 40px rgba(0,0,0,0.25)' }}>
-        {/* Drag handle */}
-        <div style={{ width: 40, height: 4, background: C.border, borderRadius: 2, margin: '0.875rem auto 0' }} />
+      style={{ position: 'fixed', inset: 0, background: 'rgba(7,26,46,0.82)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', animation: 'modal-in 0.2s ease-out' }}>
+      <div style={{ background: C.white, borderRadius: 20, width: '100%', maxWidth: 800, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 80px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column' }}>
 
-        {/* Image */}
-        <div style={{ position: 'relative', height: 240, background: C.tealLight, overflow: 'hidden', margin: '0.75rem 1.25rem 0', borderRadius: 14, cursor: 'zoom-in' }}
-          onClick={() => setImgFull(true)}>
-          <img src={product.imageUrl || 'https://source.unsplash.com/400x400/?skincare'} alt={product.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(0,0,0,0.5)', color: C.white, borderRadius: 6, padding: '0.25rem 0.5rem', fontSize: '0.625rem', fontWeight: 600 }}>
-            Tap to expand
+        {/* Sticky header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.875rem 1.25rem', borderBottom: `1px solid ${C.border}`, position: 'sticky', top: 0, background: C.white, zIndex: 1 }}>
+          <div>
+            <p style={{ margin: 0, fontSize: '0.625rem', color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{product.brand}</p>
+            <h2 style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 800, color: C.text, letterSpacing: '-0.01em' }}>{product.shortName}</h2>
           </div>
+          <button onClick={onClose} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, width: 36, height: 36, cursor: 'pointer', color: C.muted, fontSize: '1.125rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
         </div>
 
-        <div style={{ padding: '1.125rem 1.25rem 2.5rem' }}>
-          {/* Name + close */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-            <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: C.text, letterSpacing: '-0.02em', lineHeight: 1.3, flex: 1, paddingRight: '0.75rem' }}>{product.name}</h2>
-            <button onClick={onClose} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, width: 32, height: 32, cursor: 'pointer', color: C.muted, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
-          </div>
+        {/* Body — two columns */}
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
 
-          {/* Stars + rating */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.875rem' }}>
-            <Stars n={5} />
-            <span style={{ fontSize: '0.75rem', color: C.muted, fontWeight: 600 }}>4.9 · {PLACEHOLDER_REVIEWS.length} reviews</span>
-          </div>
-
-          {/* Description */}
-          <p style={{ fontSize: '0.9375rem', color: '#334155', lineHeight: 1.7, marginBottom: '1.25rem' }}>{product.desc}</p>
-
-          {/* External links */}
-          <div style={{ display: 'flex', gap: '0.625rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <a href={product.pdpLink && product.pdpLink !== '#' ? product.pdpLink : '#'} target="_blank" rel="noopener noreferrer"
-              style={{ flex: 1, minWidth: 120, padding: '0.75rem', background: C.teal, color: C.white, textAlign: 'center', borderRadius: 10, fontWeight: 700, fontSize: '0.875rem', textDecoration: 'none', display: 'block' }}>
-              🛒 View on Daraz
-            </a>
-            <a href={product.pdpLink && product.pdpLink !== '#' ? product.pdpLink : '#'} target="_blank" rel="noopener noreferrer"
-              style={{ flex: 1, minWidth: 120, padding: '0.75rem', background: C.tealLight, color: C.tealDark, textAlign: 'center', borderRadius: 10, fontWeight: 700, fontSize: '0.875rem', border: `1px solid ${C.tealRing}`, textDecoration: 'none', display: 'block' }}>
-              🌐 View on Website
-            </a>
-          </div>
-
-          {/* Reviews */}
-          <p style={{ fontSize: '0.625rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#475569', marginBottom: '0.75rem' }}>Patient Reviews</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {PLACEHOLDER_REVIEWS.map((r, i) => (
-              <div key={i} style={{ paddingBottom: i < PLACEHOLDER_REVIEWS.length - 1 ? '0.75rem' : 0, borderBottom: i < PLACEHOLDER_REVIEWS.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
-                  <Stars n={r.stars} />
-                  <span style={{ fontWeight: 700, fontSize: '0.8125rem', color: C.text }}>{r.name}</span>
+          {/* Left: image + tags */}
+          <div style={{ width: 280, flexShrink: 0, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderRight: `1px solid ${C.border}` }}>
+            <div style={{ borderRadius: 14, overflow: 'hidden', height: 260 }}>
+              {!imgErr && product.imageUrl ? (
+                <img src={product.imageUrl} alt={product.name} onError={() => setImgErr(true)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '100%', height: '100%', background: product.fallbackGradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '4.5rem' }}>{product.fallbackIcon}</span>
                 </div>
-                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#334155', lineHeight: 1.6, fontStyle: 'italic' }}>"{r.text}"</p>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.6875rem', background: C.tealLight, color: C.tealDark, padding: '0.2rem 0.5rem', borderRadius: 20, fontWeight: 700 }}>🧴 {product.category}</span>
+                <span style={{ fontSize: '0.6875rem', background: '#f0fdf4', color: '#15803d', padding: '0.2rem 0.5rem', borderRadius: 20, fontWeight: 700 }}>💰 {product.priceRange}</span>
               </div>
-            ))}
+              {product.skinType && <span style={{ fontSize: '0.6875rem', background: '#fef3c7', color: '#92400e', padding: '0.25rem 0.5625rem', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>👤 {product.skinType}</span>}
+              {product.keyIngredient && <span style={{ fontSize: '0.6875rem', background: '#ede9fe', color: '#5b21b6', padding: '0.25rem 0.5625rem', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>🔬 {product.keyIngredient}</span>}
+            </div>
+          </div>
+
+          {/* Right: details */}
+          <div style={{ flex: 1, minWidth: 260, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+            {/* Dr. Maleeha Jawaid says */}
+            <div style={{ background: C.tealLight, borderLeft: `4px solid ${C.teal}`, borderRadius: '0 12px 12px 0', padding: '0.875rem 1rem' }}>
+              <p style={{ margin: '0 0 0.375rem', fontSize: '0.5625rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: C.tealDark }}>Dr. Maleeha Jawaid Says:</p>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: C.tealDark, lineHeight: 1.65, fontStyle: 'italic' }}>"{product.desc}"</p>
+            </div>
+
+            {/* How to use */}
+            <div>
+              <p style={{ margin: '0 0 0.375rem', fontSize: '0.5625rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#475569' }}>How to Use</p>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#334155', lineHeight: 1.65 }}>{product.howToUse}</p>
+            </div>
+
+            {/* Discount code */}
+            {product.drCode && (
+              <div style={{ background: '#fdf4ff', border: '1.5px dashed #a855f7', borderRadius: 12, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.625rem', flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ margin: 0, fontSize: '0.5625rem', fontWeight: 700, color: '#6b21a8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Dr. Maleeha's Code — {product.codeDiscount}% off</p>
+                  <p style={{ margin: 0, fontSize: '1.125rem', fontWeight: 800, color: '#7c3aed', letterSpacing: '0.12em' }}>{product.drCode}</p>
+                </div>
+                <button onClick={copyCode} style={{ background: copied ? '#10b981' : '#7c3aed', color: C.white, border: 'none', borderRadius: 8, padding: '0.5rem 1rem', fontWeight: 700, fontSize: '0.8125rem', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0, minWidth: 100 }}>
+                  {copied ? '✓ Copied!' : 'Copy Code'}
+                </button>
+              </div>
+            )}
+
+            {/* CTAs */}
+            <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
+              <a href={product.pdpLink || '#'} target="_blank" rel="noopener noreferrer"
+                style={{ flex: 1, minWidth: 130, padding: '0.75rem', background: C.teal, color: C.white, textAlign: 'center', borderRadius: 10, fontWeight: 700, fontSize: '0.875rem', textDecoration: 'none', display: 'block' }}>
+                Buy on Daraz →
+              </a>
+              <a href={product.brandLink || '#'} target="_blank" rel="noopener noreferrer"
+                style={{ flex: 1, minWidth: 130, padding: '0.75rem', background: C.tealLight, color: C.tealDark, textAlign: 'center', borderRadius: 10, fontWeight: 700, fontSize: '0.875rem', border: `1px solid ${C.tealRing}`, textDecoration: 'none', display: 'block' }}>
+                Visit Brand Website →
+              </a>
+            </div>
+
+            {/* Disclaimer */}
+            <p style={{ margin: 0, fontSize: '0.6875rem', color: C.muted, lineHeight: 1.55, fontStyle: 'italic', paddingTop: '0.5rem', borderTop: `1px solid ${C.border}` }}>
+              * These recommendations are based on Dr. Maleeha Jawaid's personal clinical experience. Individual results may vary. Always patch-test new products. Prices are indicative and may vary by retailer.
+            </p>
           </div>
         </div>
       </div>
-
-      {/* Full-screen image */}
-      {imgFull && (
-        <div onClick={() => setImgFull(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
-          <img src={product.imageUrl} alt={product.name} style={{ maxWidth: '94vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 12 }} />
-          <button onClick={() => setImgFull(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, width: 36, height: 36, color: C.white, fontSize: '1.125rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-        </div>
-      )}
     </div>
   )
 }
@@ -595,22 +646,10 @@ export default function Home() {
       <section id="shop" style={{ padding: '3.5rem 1.5rem', background: '#fdf8f3', borderTop: '3px solid #e8ddd4', width: '100%', display: 'block' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: C.text, textAlign: 'center', marginBottom: '0.375rem', letterSpacing: '-0.02em' }}>Products I Actually Use & Recommend</h2>
-          <p style={{ fontSize: '0.875rem', color: '#475569', textAlign: 'center', marginBottom: '2rem' }}>No paid placements. These are the products I prescribe to my patients and use myself.</p>
+          <p style={{ fontSize: '0.875rem', color: '#475569', textAlign: 'center', marginBottom: '2rem' }}>No paid placements. These are the products I prescribe to my patients and use myself. — Dr. Maleeha Jawaid</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: '1.25rem' }}>
             {products.map(p => (
-              <div key={p.id} style={{ background: C.white, border: '1px solid #e8ddd4', borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
-                <div style={{ height: 180, background: C.tealLight, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-                  <img src={p.imageUrl || 'https://source.unsplash.com/400x400/?skincare,beauty,serum'} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <p style={{ fontWeight: 800, fontSize: '0.9375rem', color: C.text, lineHeight: 1.3 }}>{p.name}</p>
-                  <p style={{ fontSize: '0.8125rem', color: '#334155', lineHeight: 1.6, flex: 1 }}>{p.desc}</p>
-                  <button onClick={() => setSelectedProduct(p)}
-                    style={{ display: 'block', width: '100%', marginTop: '0.5rem', background: C.teal, color: C.white, border: 'none', textAlign: 'center', padding: '0.5625rem', borderRadius: 8, fontWeight: 700, fontSize: '0.8125rem', cursor: 'pointer', transition: 'opacity 0.15s' }}>
-                    View Product →
-                  </button>
-                </div>
-              </div>
+              <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
             ))}
           </div>
         </div>
