@@ -829,7 +829,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ background: C.bg, fontFamily: 'system-ui,-apple-system,sans-serif' }}>
+    <div style={{ background: C.bg, fontFamily: 'system-ui,-apple-system,sans-serif', minHeight: '100vh' }}>
 
       {/* ── Compact Header ── */}
       <div style={{ background: `linear-gradient(135deg,#0f766e,${C.teal})`, padding: '0.75rem 1.125rem', color: C.white }}>

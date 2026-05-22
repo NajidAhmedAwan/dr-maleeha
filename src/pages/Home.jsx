@@ -500,7 +500,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div style={{ fontFamily: 'system-ui,-apple-system,sans-serif', color: C.text, background: C.bg, minHeight: '100vh', width: '100%', display: 'block' }}>
+    <div style={{ fontFamily: 'system-ui,-apple-system,sans-serif', color: C.text, background: C.bg, width: '100%', display: 'block' }}>
 
       {/* ── Nav (glassmorphism, fixed over hero) ── */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? 'rgba(7,26,46,0.96)' : 'rgba(7,26,46,0.45)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: scrolled ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.04)', transition: 'background 0.3s, border-color 0.3s' }}>

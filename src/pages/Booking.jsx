@@ -372,11 +372,77 @@ export default function Booking() {
                           : '0 2px 14px rgba(0,0,0,0.45)',
                     }}>
 
-                    {/* Real photo background */}
-                    <img src={loc.image} alt={loc.name}
-                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: hov ? 1 : 0.88, transition: 'opacity 0.25s' }}
-                      onError={e => { e.target.style.display = 'none' }}
-                    />
+                    {/* City silhouette SVG overlay */}
+                    {loc.name === 'Islamabad' && (
+                      <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMax meet" style={{ position: 'absolute', inset: 0, width: '100%', height: '75%', top: '10%', opacity: 0.13, pointerEvents: 'none' }} fill="white">
+                        {/* Faisal Mosque — triangular shell + minarets */}
+                        <polygon points="150,40 200,130 100,130" />
+                        <rect x="145" y="120" width="10" height="30" />
+                        <rect x="80" y="70" width="8" height="65" rx="4" />
+                        <polygon points="80,70 84,55 88,70" />
+                        <rect x="212" y="70" width="8" height="65" rx="4" />
+                        <polygon points="212,70 216,55 220,70" />
+                        <rect x="60" y="90" width="8" height="45" rx="4" />
+                        <polygon points="60,90 64,78 68,90" />
+                        <rect x="232" y="90" width="8" height="45" rx="4" />
+                        <polygon points="232,90 236,78 240,90" />
+                        <rect x="0" y="148" width="300" height="6" rx="2" />
+                        <rect x="20" y="130" width="40" height="18" rx="2" />
+                        <rect x="240" y="130" width="40" height="18" rx="2" />
+                      </svg>
+                    )}
+                    {loc.name === 'Karachi' && (
+                      <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMax meet" style={{ position: 'absolute', inset: 0, width: '100%', height: '75%', top: '10%', opacity: 0.13, pointerEvents: 'none' }} fill="white">
+                        {/* City skyline — varied height towers */}
+                        <rect x="10" y="100" width="28" height="80" rx="2" />
+                        <rect x="42" y="70" width="22" height="110" rx="2" />
+                        <rect x="68" y="50" width="30" height="130" rx="2" />
+                        <rect x="102" y="80" width="18" height="100" rx="2" />
+                        <rect x="124" y="30" width="35" height="150" rx="2" />
+                        <rect x="163" y="60" width="26" height="120" rx="2" />
+                        <rect x="193" y="85" width="20" height="95" rx="2" />
+                        <rect x="217" y="45" width="32" height="135" rx="2" />
+                        <rect x="253" y="75" width="24" height="105" rx="2" />
+                        <rect x="0" y="175" width="300" height="6" rx="2" />
+                        {/* Antenna tops */}
+                        <rect x="135" y="18" width="3" height="14" />
+                        <rect x="226" y="33" width="3" height="14" />
+                        <rect x="76" y="38" width="3" height="14" />
+                      </svg>
+                    )}
+                    {loc.name === 'Lahore' && (
+                      <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMax meet" style={{ position: 'absolute', inset: 0, width: '100%', height: '75%', top: '10%', opacity: 0.13, pointerEvents: 'none' }} fill="white">
+                        {/* Badshahi Mosque dome + minarets */}
+                        <ellipse cx="150" cy="95" rx="52" ry="42" />
+                        <rect x="130" y="95" width="40" height="55" />
+                        <rect x="60" y="60" width="12" height="100" rx="6" />
+                        <ellipse cx="66" cy="58" rx="9" ry="14" />
+                        <rect x="228" y="60" width="12" height="100" rx="6" />
+                        <ellipse cx="234" cy="58" rx="9" ry="14" />
+                        <rect x="95" y="90" width="10" height="70" rx="5" />
+                        <ellipse cx="100" cy="88" rx="7" ry="11" />
+                        <rect x="195" y="90" width="10" height="70" rx="5" />
+                        <ellipse cx="200" cy="88" rx="7" ry="11" />
+                        <rect x="0" y="158" width="300" height="6" rx="2" />
+                        <rect x="20" y="140" width="55" height="18" rx="2" />
+                        <rect x="225" y="140" width="55" height="18" rx="2" />
+                      </svg>
+                    )}
+                    {loc.name === 'Online Consultation' && (
+                      <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid meet" style={{ position: 'absolute', inset: 0, width: '100%', height: '80%', top: '8%', opacity: 0.13, pointerEvents: 'none' }} fill="none" stroke="white" strokeWidth="6">
+                        {/* Laptop outline */}
+                        <rect x="60" y="55" width="180" height="115" rx="10" />
+                        <line x1="40" y1="170" x2="260" y2="170" />
+                        <line x1="40" y1="170" x2="20" y2="190" />
+                        <line x1="260" y1="170" x2="280" y2="190" />
+                        <line x1="20" y1="190" x2="280" y2="190" />
+                        {/* Screen content lines */}
+                        <line x1="90" y1="90" x2="210" y2="90" strokeWidth="4" />
+                        <line x1="90" y1="108" x2="175" y2="108" strokeWidth="4" />
+                        <line x1="90" y1="126" x2="190" y2="126" strokeWidth="4" />
+                        <circle cx="150" cy="155" r="5" fill="white" stroke="none" />
+                      </svg>
+                    )}
 
                     {/* Dark gradient overlay — heavy at bottom for text legibility */}
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.48) 45%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0.04) 100%)', pointerEvents: 'none' }} />
