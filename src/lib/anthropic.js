@@ -1,33 +1,18 @@
-const MODEL = 'claude-sonnet-4-20250514'
-
-function getKey() {
-  const key = import.meta.env.VITE_ANTHROPIC_API_KEY
-  if (!key) throw new Error('VITE_ANTHROPIC_API_KEY is not set. Add it to .env and restart the dev server.')
-  return key
-}
-
-async function post(body, withSearch = false) {
-  const headers = {
-    'x-api-key': getKey(),
-    'anthropic-version': '2023-06-01',
-    'content-type': 'application/json',
-    'anthropic-dangerous-direct-browser-access': 'true',
-  }
-  if (withSearch) headers['anthropic-beta'] = 'web-search-2025-03-05'
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+async function post(body) {
+  const res = await fetch('/api/anthropic', {
     method: 'POST',
-    headers,
-    body: JSON.stringify({ model: MODEL, ...body }),
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err.error?.message || `API error ${res.status}`)
+    throw new Error(err.error?.message || err.error || `API error ${res.status}`)
   }
   return res.json()
 }
 
 export async function chat(messages, system, maxTokens = 1500) {
-  const data = await post({ max_tokens: maxTokens, system, messages })
+  const data = await post({ messages, system, max_tokens: maxTokens })
   return data.content.find(b => b.type === 'text')?.text ?? ''
 }
 
@@ -35,7 +20,7 @@ export async function chatWithSearch(messages, system, maxTokens = 2000) {
   const tools = [{ type: 'web_search_20250305', name: 'web_search' }]
   let current = [...messages]
   for (let i = 0; i < 8; i++) {
-    const data = await post({ max_tokens: maxTokens, system, messages: current, tools }, true)
+    const data = await post({ messages: current, system, max_tokens: maxTokens, tools, withSearch: true })
     const text = data.content.find(b => b.type === 'text')
     if (data.stop_reason === 'end_turn') return text?.text ?? ''
     if (data.stop_reason === 'tool_use') {
@@ -52,4 +37,4 @@ export async function chatWithSearch(messages, system, maxTokens = 2000) {
   throw new Error('Exceeded maximum search iterations.')
 }
 
-export const hasKey = () => !!import.meta.env.VITE_ANTHROPIC_API_KEY
+export const hasKey = () => true
