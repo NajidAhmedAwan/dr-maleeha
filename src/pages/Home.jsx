@@ -443,7 +443,7 @@ function ProcedureModal({ proc, onClose, onBook }) {
 }
 
 const SLIDES = [
-  { img: 'https://source.unsplash.com/1600x900/?dermatologist,skincare,clinic',    caption: 'Honest skincare. Real results.', sub: 'Dermatologist · Islamabad · Karachi · Lahore' },
+  { img: 'https://source.unsplash.com/1600x900/?dermatologist,skincare,clinic',    caption: 'Honest skincare. Real results.', sub: 'Dermatologist · Islamabad · Karachi · Online' },
   { img: 'https://source.unsplash.com/1600x900/?botox,aesthetic,beauty,face',      caption: "Botox that looks natural", sub: "Not frozen. Just refreshed. In and out in 20 minutes." },
   { img: 'https://source.unsplash.com/1600x900/?skincare,serum,glow,radiant',      caption: 'Great skin at every age', sub: 'Personalised to you, not a template' },
   { img: 'https://source.unsplash.com/1600x900/?facial,hydrafacial,spa,treatment', caption: 'The Hydrafacial glow', sub: 'Cleanse. Extract. Hydrate. Walk out glowing.' },
@@ -539,7 +539,7 @@ export default function Home() {
         ))}
 
         {/* Content */}
-        <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 1.5rem', textAlign: 'center' }}>
+        <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '72px 1.5rem 0', textAlign: 'center' }}>
           <a href="https://instagram.com/inyourfacebymaleeha" target="_blank" rel="noopener noreferrer"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.8)', borderRadius: 100, padding: '0.3rem 0.875rem', fontSize: '0.75rem', fontWeight: 600, marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.15)', textDecoration: 'none' }}>
             📸 @inyourfacebymaleeha
@@ -598,6 +598,31 @@ export default function Home() {
           style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 40, height: 40, color: C.white, fontSize: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>›</button>
       </section>
 
+      {/* ── How It Works ── */}
+      <section id="how-it-works" style={{ padding: '3.5rem 1.5rem', background: `linear-gradient(135deg,#0d9488 0%,#0f766e 100%)`, borderTop: '3px solid #0f766e', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
+        <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 820, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', textAlign: 'center', marginBottom: '0.375rem', letterSpacing: '-0.02em' }}>Booking with me is easy</h2>
+          <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: '2.5rem' }}>Three steps. Under three minutes. No phone calls needed.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1.25rem' }}>
+            {[
+              { step: '01', icon: '📱', title: 'Pick your slot', desc: 'Choose your location, pick a procedure, and grab a time that works for you. No phone calls, no waiting on hold.' },
+              { step: '02', icon: '✅', title: "I'll confirm", desc: "My team will confirm your booking via WhatsApp within 24 hours. Simple, direct, no faff." },
+              { step: '03', icon: '🏥', title: "Show up & glow", desc: "Come in at your time. We'll assess, treat, and walk you through aftercare — all in one visit." },
+            ].map(({ step, icon, title, desc }) => (
+              <div key={step} style={{ background: C.white, border: `1px solid ${C.tealRing}`, borderRadius: 16, padding: '1.75rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: -18, right: -10, fontSize: '4rem', fontWeight: 900, color: C.teal, opacity: 0.06, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>{step}</div>
+                <div style={{ width: 50, height: 50, background: C.tealLight, border: `1.5px solid ${C.tealRing}`, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.375rem', marginBottom: '1rem' }}>{icon}</div>
+                <div style={{ display: 'inline-block', background: C.teal, color: C.white, fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', borderRadius: 100, padding: '0.2rem 0.5rem', marginBottom: '0.625rem' }}>Step {step}</div>
+                <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: C.text, marginBottom: '0.5rem', letterSpacing: '-0.01em' }}>{title}</h3>
+                <p style={{ fontSize: '0.8125rem', color: '#334155', lineHeight: 1.65 }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Procedures ── */}
       <section id="procedures" style={{ padding: '3rem 1.5rem', background: '#f1f5f9', width: '100%', display: 'block' }}>
         <div style={{ maxWidth: 1140, margin: '0 auto' }}>
@@ -617,30 +642,6 @@ export default function Home() {
           </p>
         </div>
       </section>
-
-      {/* ── Quote Banner ── */}
-      <div style={{ background: `linear-gradient(135deg,${C.dark} 0%,#0a3830 50%,${C.tealDark} 100%)`, padding: '3.5rem 1.5rem', textAlign: 'center', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
-        <div style={{ position: 'absolute', top: -60, left: -60, width: 280, height: 280, borderRadius: '50%', background: 'rgba(13,148,136,0.12)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'rgba(13,148,136,0.09)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 720, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <div style={{ fontSize: '3rem', lineHeight: 1, marginBottom: '1.25rem', opacity: 0.5, color: C.white }}>"</div>
-          <p style={{ fontSize: 'clamp(1.125rem,3vw,1.5rem)', fontWeight: 700, color: C.white, lineHeight: 1.55, letterSpacing: '-0.02em', margin: '0 0 1.5rem' }}>
-            Beauty comes in all shapes,<br />colours and sizes.
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: `linear-gradient(135deg,${C.teal},#0891b2)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, color: C.white, flexShrink: 0 }}>Dr</div>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: C.white }}>Dr. Maleeha Jawaid</div>
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>MCPS Dermatology · Fellowship · PAADS</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '2rem' }}>
-            {['500+ patients treated', '⭐ 4.9 / 5 rating', '5+ years experience'].map(t => (
-              <span key={t} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 100, padding: '0.3125rem 0.875rem', fontSize: '0.78rem', color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>{t}</span>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* ── Shop ── */}
       <section id="shop" style={{ padding: '3.5rem 1.5rem', background: '#fdf8f3', borderTop: '3px solid #e8ddd4', width: '100%', display: 'block' }}>
@@ -686,31 +687,6 @@ export default function Home() {
                     style={{ width: '100%', padding: '0.4375rem 0.5rem', border: `1px solid ${igUrls[i] ? C.teal : 'rgba(255,255,255,0.2)'}`, borderRadius: 7, fontSize: '0.6875rem', color: igUrls[i] ? C.text : 'rgba(255,255,255,0.8)', boxSizing: 'border-box', background: igUrls[i] ? C.tealLight : 'rgba(255,255,255,0.08)' }}
                   />
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── How It Works ── */}
-      <section id="how-it-works" style={{ padding: '3.5rem 1.5rem', background: 'linear-gradient(135deg,#0d9488 0%,#0f766e 100%)', borderTop: '3px solid #0f766e', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
-        <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 820, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', textAlign: 'center', marginBottom: '0.375rem', letterSpacing: '-0.02em' }}>Booking with me is easy</h2>
-          <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: '2.5rem' }}>Three steps. Under three minutes. No phone calls needed.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1.25rem' }}>
-            {[
-              { step: '01', icon: '📱', title: 'Pick your slot', desc: 'Choose your location, pick a procedure, and grab a time that works for you. No phone calls, no waiting on hold.' },
-              { step: '02', icon: '✅', title: "I'll confirm", desc: "My team will confirm your booking via WhatsApp within 24 hours. Simple, direct, no faff." },
-              { step: '03', icon: '🏥', title: "Show up & glow", desc: "Come in at your time. We'll assess, treat, and walk you through aftercare — all in one visit." },
-            ].map(({ step, icon, title, desc }) => (
-              <div key={step} style={{ background: C.white, border: `1px solid ${C.tealRing}`, borderRadius: 16, padding: '1.75rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: -18, right: -10, fontSize: '4rem', fontWeight: 900, color: C.teal, opacity: 0.06, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>{step}</div>
-                <div style={{ width: 50, height: 50, background: C.tealLight, border: `1.5px solid ${C.tealRing}`, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.375rem', marginBottom: '1rem' }}>{icon}</div>
-                <div style={{ display: 'inline-block', background: C.teal, color: C.white, fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', borderRadius: 100, padding: '0.2rem 0.5rem', marginBottom: '0.625rem' }}>Step {step}</div>
-                <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: C.text, marginBottom: '0.5rem', letterSpacing: '-0.01em' }}>{title}</h3>
-                <p style={{ fontSize: '0.8125rem', color: '#334155', lineHeight: 1.65 }}>{desc}</p>
               </div>
             ))}
           </div>
@@ -772,7 +748,7 @@ export default function Home() {
             {/* Locations */}
             <div>
               <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Clinic Locations</p>
-              {[['📍','DHA Phase 6, Karachi'],['📍','F-7 Markaz, Islamabad'],['📍','Gulberg III, Lahore'],['💻','Online · WhatsApp / Zoom']].map(([icon, loc]) => (
+              {[['📍','DHA Phase 6, Karachi'],['📍','F-7 Markaz, Islamabad'],['💻','Online · WhatsApp / Zoom']].map(([icon, loc]) => (
                 <div key={loc} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.625rem', alignItems: 'flex-start' }}>
                   <span style={{ fontSize: '0.875rem', flexShrink: 0, marginTop: 1 }}>{icon}</span>
                   <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.45 }}>{loc}</p>
@@ -782,7 +758,7 @@ export default function Home() {
             {/* Hours */}
             <div>
               <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Clinic Hours</p>
-              {[['Karachi','Mon – Sat · 10 AM – 7 PM'],['Islamabad','Tue, Thu, Sat · 11 AM – 5 PM'],['Lahore','Mon, Wed, Fri · 12 – 7 PM'],['Online','Mon – Sun · By appointment']].map(([city, hrs]) => (
+              {[['Karachi','Mon – Sat · 10 AM – 7 PM'],['Islamabad','Tue, Thu, Sat · 11 AM – 5 PM'],['Online','Mon – Sun · By appointment']].map(([city, hrs]) => (
                 <div key={city} style={{ marginBottom: '0.625rem' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.tealRing }}>{city}</div>
                   <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>{hrs}</div>
@@ -803,7 +779,7 @@ export default function Home() {
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', margin: 0 }}>© 2026 Dr. Maleeha Jawaid · In Your Face by Maleeha — Honest skincare. Real results. No filters.</p>
-            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', margin: 0 }}>Islamabad · Karachi · Lahore · Online</p>
+            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', margin: 0 }}>Islamabad · Karachi · Online</p>
           </div>
         </div>
       </footer>

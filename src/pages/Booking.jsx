@@ -45,7 +45,7 @@ const LOCATIONS = [
     address: '(021) 35170881',
     days: 'Mon–Sat · 10 AM–7 PM',
     icon: '🏙️',
-    image: '/images/cities/karachi.jpg',
+    image: '/images/cities/karachi.png',
     gradient: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%)',
   },
   {
@@ -57,7 +57,7 @@ const LOCATIONS = [
     days: 'Coming soon',
     icon: '🦁',
     comingSoon: true,
-    image: '/images/cities/lahore.jpg',
+    image: '/images/cities/lahore.png',
     gradient: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%)',
   },
   {
@@ -68,7 +68,7 @@ const LOCATIONS = [
     address: 'Anywhere',
     days: 'Flexible scheduling',
     icon: '💻',
-    image: '/images/cities/online.jpg',
+    image: '/images/cities/online.png',
     gradient: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%)',
   },
 ]

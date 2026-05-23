@@ -455,8 +455,8 @@ function PatientPanel({ appt, onClose, onApprove, onReject }) {
               <div style={{ display:'inline-flex', background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:100, padding:'0.1rem 0.4rem', marginBottom:'0.3rem' }}>
                 <span style={{ fontSize:'0.4375rem', color:'#99f6e4', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase' }}>Patient Profile</span>
               </div>
-              <p style={{ fontWeight:800, fontSize:'0.8125rem', color:C.white, margin:0 }}>{appt.name}</p>
-              <p style={{ fontSize:'0.5625rem', color:'rgba(255,255,255,0.7)', margin:0 }}>{appt.phone} · {appt.location}</p>
+              <p style={{ fontWeight:800, fontSize:'0.975rem', color:C.white, margin:0 }}>{appt.name}</p>
+              <p style={{ fontSize:'0.675rem', color:'rgba(255,255,255,0.8)', margin:0 }}>{appt.phone} · {appt.location}</p>
             </div>
             <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:6, width:26, height:26, cursor:'pointer', color:C.white, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.75rem' }}>✕</button>
           </div>
@@ -487,8 +487,8 @@ function PatientPanel({ appt, onClose, onApprove, onReject }) {
               <div style={{ background:C.bg, border:`1px solid ${C.border}`, borderRadius:8, padding:'0.5rem 0.625rem', marginBottom:'0.625rem' }}>
                 {[['Procedure',appt.procedure],['Date',appt.date],['Time',appt.time],['Location',appt.location]].map(([l,v]) => (
                   <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'0.175rem 0', borderBottom:`1px solid ${C.border}` }}>
-                    <span style={{ fontSize:'0.45rem', color:C.muted, fontWeight:600 }}>{l}</span>
-                    <span style={{ fontSize:'0.45rem', color:C.text, fontWeight:700 }}>{v}</span>
+                    <span style={{ fontSize:'0.54rem', color:C.muted, fontWeight:600 }}>{l}</span>
+                    <span style={{ fontSize:'0.54rem', color:C.text, fontWeight:700 }}>{v}</span>
                   </div>
                 ))}
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'0.3rem' }}>
@@ -656,11 +656,11 @@ function ApptCard({ appt, onApprove, onReject, onAiBrief, onViewDetails, onDelay
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.25rem' }}>
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:'0.2rem', flexWrap:'wrap' }}>
-            <p style={{ fontWeight:800, fontSize:'0.65rem', color:C.text, margin:0 }}>{appt.name}</p>
-            {returning && <span style={{ fontSize:'0.375rem', background:C.tealLight, color:C.teal, borderRadius:3, padding:'0.05rem 0.22rem', fontWeight:700 }}>RETURNING</span>}
-            {appt.waitlist && <span style={{ fontSize:'0.375rem', background:'#fef3c7', color:'#d97706', borderRadius:3, padding:'0.05rem 0.22rem', fontWeight:800 }}>WAITLIST #{appt.waitlistPos}</span>}
+            <p style={{ fontWeight:800, fontSize:'0.78rem', color:C.text, margin:0 }}>{appt.name}</p>
+            {returning && <span style={{ fontSize:'0.45rem', background:C.tealLight, color:C.teal, borderRadius:3, padding:'0.05rem 0.25rem', fontWeight:700 }}>RETURNING</span>}
+            {appt.waitlist && <span style={{ fontSize:'0.45rem', background:'#fef3c7', color:'#d97706', borderRadius:3, padding:'0.05rem 0.25rem', fontWeight:800 }}>WAITLIST #{appt.waitlistPos}</span>}
           </div>
-          <p style={{ fontSize:'0.5rem', color:C.muted, margin:0 }}>{appt.procedure} · 📍 {appt.location}</p>
+          <p style={{ fontSize:'0.6rem', color:'#475569', margin:0 }}>{appt.procedure} · 📍 {appt.location}</p>
         </div>
         <div style={{ display:'flex', gap:'0.175rem', flexShrink:0 }}>
           <span style={{ padding:'0.08rem 0.3rem', borderRadius:4, fontSize:'0.45rem', fontWeight:700, background:st.bg, color:st.color }}>{st.label}</span>
@@ -669,24 +669,24 @@ function ApptCard({ appt, onApprove, onReject, onAiBrief, onViewDetails, onDelay
       </div>
       <div style={{ display:'flex', flexWrap:'wrap', gap:'0.2rem 0.625rem', marginBottom:'0.3rem' }}>
         {[['🕐', appt.time],['📱', appt.phone]].map(([icon, text]) => (
-          <span key={text} style={{ fontSize:'0.4625rem', color:C.muted, display:'flex', alignItems:'center', gap:'0.125rem' }}><span>{icon}</span>{text}</span>
+          <span key={text} style={{ fontSize:'0.555rem', color:'#475569', display:'flex', alignItems:'center', gap:'0.125rem' }}><span>{icon}</span>{text}</span>
         ))}
       </div>
       <div style={{ display:'flex', gap:'0.2rem', flexWrap:'wrap' }}>
-        <button onClick={onViewDetails} style={{ padding:'0.25rem 0.425rem', border:`1px solid ${C.tealRing}`, borderRadius:5, background:C.tealLight, color:C.tealDark, fontWeight:700, fontSize:'0.45rem', cursor:'pointer' }}>View Details</button>
+        <button onClick={onViewDetails} style={{ padding:'0.3rem 0.5rem', border:`1px solid ${C.tealRing}`, borderRadius:5, background:C.tealLight, color:C.tealDark, fontWeight:700, fontSize:'0.54rem', cursor:'pointer' }}>View Details</button>
         {appt.location === 'Online' && PRE_CONSULT[appt.id] && (
-          <button onClick={onAiBrief} style={{ padding:'0.25rem 0.425rem', border:`1px solid ${C.tealRing}`, borderRadius:5, background:C.tealLight, color:C.tealDark, fontWeight:700, fontSize:'0.45rem', cursor:'pointer' }}>✦ AI Brief</button>
+          <button onClick={onAiBrief} style={{ padding:'0.3rem 0.5rem', border:`1px solid ${C.tealRing}`, borderRadius:5, background:C.tealLight, color:C.tealDark, fontWeight:700, fontSize:'0.54rem', cursor:'pointer' }}>✦ AI Brief</button>
         )}
         {appt.status === 'pending' && (
           <>
-            <button onClick={onApprove} style={{ padding:'0.25rem 0.425rem', border:'none', borderRadius:5, background:'#dcfce7', color:'#16a34a', fontWeight:700, fontSize:'0.45rem', cursor:'pointer' }}>✓ Approve</button>
-            <button onClick={onReject}  style={{ padding:'0.25rem 0.425rem', border:'none', borderRadius:5, background:'#fee2e2', color:'#dc2626', fontWeight:700, fontSize:'0.45rem', cursor:'pointer' }}>✕ Reject</button>
+            <button onClick={onApprove} style={{ padding:'0.3rem 0.5rem', border:'none', borderRadius:5, background:'#dcfce7', color:'#16a34a', fontWeight:700, fontSize:'0.54rem', cursor:'pointer' }}>✓ Approve</button>
+            <button onClick={onReject}  style={{ padding:'0.3rem 0.5rem', border:'none', borderRadius:5, background:'#fee2e2', color:'#dc2626', fontWeight:700, fontSize:'0.54rem', cursor:'pointer' }}>✕ Reject</button>
             <a href={`https://wa.me/${appt.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
-              style={{ padding:'0.25rem 0.425rem', borderRadius:5, background:'#dcfce7', color:'#16a34a', textDecoration:'none', fontWeight:700, fontSize:'0.45rem', display:'flex', alignItems:'center' }}>💬</a>
+              style={{ padding:'0.3rem 0.5rem', borderRadius:5, background:'#dcfce7', color:'#16a34a', textDecoration:'none', fontWeight:700, fontSize:'0.54rem', display:'flex', alignItems:'center' }}>💬</a>
           </>
         )}
         {appt.status === 'confirmed' && (
-          <button onClick={onDelay} style={{ padding:'0.25rem 0.425rem', border:'1px solid #fcd34d', borderRadius:5, background:'#fef3c7', color:'#d97706', fontWeight:700, fontSize:'0.45rem', cursor:'pointer' }}>📢 Delay</button>
+          <button onClick={onDelay} style={{ padding:'0.3rem 0.5rem', border:'1px solid #fcd34d', borderRadius:5, background:'#fef3c7', color:'#d97706', fontWeight:700, fontSize:'0.54rem', cursor:'pointer' }}>📢 Delay</button>
         )}
       </div>
     </div>
@@ -930,7 +930,7 @@ export default function Dashboard() {
 
   // Counts per location for tab badges
   const locCounts = { All:appointments.length }
-  for (const loc of ['Karachi','Islamabad','Lahore','Online']) {
+  for (const loc of ['Karachi','Islamabad','Online']) {
     locCounts[loc] = appointments.filter(a => loc === 'Online' ? a.location === 'Online' : a.location === loc).length
   }
 
@@ -964,12 +964,16 @@ export default function Dashboard() {
 
       {/* ── View Tabs ── */}
       <div style={{ background:C.white, borderBottom:`1px solid ${C.border}` }}>
-        <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 1.125rem', display:'flex' }}>
-          {[['calendar','📅 Calendar'],['ai','🤖 AI Assistant']].map(([v, label]) => (
-            <button key={v} onClick={() => setActiveView(v)} style={{ padding:'0.5rem 0.875rem', border:'none', background:'none', borderBottom:`2px solid ${activeView===v ? C.teal : 'transparent'}`, color: activeView===v ? C.teal : C.muted, fontWeight: activeView===v ? 700 : 400, fontSize:'0.5875rem', cursor:'pointer', transition:'all 0.15s' }}>
-              {label}
-            </button>
-          ))}
+        <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.5rem 1.125rem', display:'flex', gap:'0.5rem' }}>
+          {[['calendar','📅','Calendar'],['ai','✦','AI Assistant']].map(([v, icon, label]) => {
+            const active = activeView === v
+            return (
+              <button key={v} onClick={() => setActiveView(v)} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.625rem 1.375rem', border:`2px solid ${active ? C.teal : C.border}`, borderRadius:10, background: active ? C.teal : C.white, color: active ? C.white : C.muted, fontWeight: active ? 700 : 500, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.18s', boxShadow: active ? '0 2px 12px rgba(13,148,136,0.3)' : 'none' }}>
+                <span style={{ fontSize:'0.9375rem' }}>{icon}</span>
+                <span>{label}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -982,7 +986,7 @@ export default function Dashboard() {
           {/* ── Location Tabs ── */}
           <div style={{ marginTop:'1rem', marginBottom:'0.75rem' }}>
             <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
-              {[['All','🌐'],['Karachi','🏙️'],['Islamabad','🕌'],['Lahore','🦁'],['Online','💻']].map(([loc, icon]) => {
+              {[['All','🌐'],['Karachi','🏙️'],['Islamabad','🕌'],['Online','💻']].map(([loc, icon]) => {
                 const active = locFilter === loc
                 return (
                   <button key={loc} onClick={() => setLocFilter(loc)}
