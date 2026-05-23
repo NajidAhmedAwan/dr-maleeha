@@ -34,7 +34,7 @@ const LOCATIONS = [
     address: 'Faisal Market, F-7/1',
     days: 'Tue, Thu, Sat · 11 AM–5 PM',
     icon: '🕌',
-    image: '/images/cities/islamabad.jpg',
+    image: '/images/cities/islamabad.png',
     gradient: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%)',
   },
   {
