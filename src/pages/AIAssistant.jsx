@@ -7,22 +7,22 @@ const C = {
 
 // ── Appointment data ───────────────────────────────────────────────────────
 const MOCK = [
-  { id:0,  name:'Rida Qureshi',   procedure:'Consultation',   date:'2026-05-21', time:'9:00 AM',  status:'confirmed', phone:'+92 300 9876543', location:'Islamabad', paid:'paid' },
-  { id:1,  name:'Fatima Ahmed',   procedure:'Botox',          date:'2026-05-21', time:'11:00 AM', status:'pending',   phone:'+92 300 1234567', location:'Islamabad', paid:'paid' },
-  { id:2,  name:'Sara Khan',      procedure:'Chemical Peel',  date:'2026-05-22', time:'11:00 AM', status:'confirmed', phone:'+92 321 9876543', location:'Karachi',   paid:'paid' },
-  { id:3,  name:'Ayesha Malik',   procedure:'Consultation',   date:'2026-05-23', time:'2:00 PM',  status:'pending',   phone:'+92 333 5554321', location:'Online',    paid:'pending' },
-  { id:4,  name:'Noor Hussain',   procedure:'PLLA Threads',   date:'2026-05-23', time:'4:00 PM',  status:'pending',   phone:'+92 311 7778888', location:'Islamabad', paid:'paid' },
-  { id:5,  name:'Zara Siddiqui',  procedure:'Botox',          date:'2026-05-24', time:'9:00 AM',  status:'confirmed', phone:'+92 345 6667777', location:'Karachi',   paid:'paid' },
-  { id:6,  name:'Hira Iqbal',     procedure:'Chemical Peel',  date:'2026-05-25', time:'3:00 PM',  status:'rejected',  phone:'+92 301 2223334', location:'Lahore',    paid:'refunded' },
-  { id:7,  name:'Mahnoor Butt',   procedure:'Consultation',   date:'2026-05-26', time:'12:00 PM', status:'pending',   phone:'+92 322 4445556', location:'Online',    paid:'pending' },
-  { id:8,  name:'Sana Raza',      procedure:'Microneedling',  date:'2026-05-27', time:'10:00 AM', status:'pending',   phone:'+92 333 1112222', location:'Islamabad', paid:'paid' },
-  { id:9,  name:'Amna Zahid',     procedure:'Hydrafacial',    date:'2026-05-28', time:'2:00 PM',  status:'confirmed', phone:'+92 321 3334444', location:'Lahore',    paid:'paid' },
-  { id:10, name:'Khadija Ali',    procedure:'PRP Treatment',  date:'2026-05-29', time:'11:00 AM', status:'pending',   phone:'+92 345 5556666', location:'Online',    paid:'pending' },
-  { id:11, name:'Mariam Tariq',   procedure:'Lip Fillers',    date:'2026-05-29', time:'3:00 PM',  status:'confirmed', phone:'+92 300 7778889', location:'Islamabad', paid:'paid' },
-  { id:12, name:'Noor Fatima',    procedure:'Skin Boosters',  date:'2026-05-30', time:'10:00 AM', status:'pending',   phone:'+92 311 2223335', location:'Lahore',    paid:'pending' },
-  { id:13, name:'Fatima Ahmed',   procedure:'Consultation',   date:'2026-06-02', time:'11:00 AM', status:'confirmed', phone:'+92 300 1234567', location:'Online',    paid:'paid' },
-  { id:14, name:'Sara Khan',      procedure:'Botox',          date:'2026-06-03', time:'2:00 PM',  status:'pending',   phone:'+92 321 9876543', location:'Karachi',   paid:'pending' },
-  { id:15, name:'Zara Siddiqui',  procedure:'Hydrafacial',    date:'2026-06-04', time:'10:00 AM', status:'pending',   phone:'+92 345 6667777', location:'Online',    paid:'pending' },
+  { id:0,  name:'Rida Qureshi',   procedure:'Consultation',   date:'2026-05-21', time:'9:00 AM',  status:'confirmed', phone:'+92 300 9876543', location:'Islamabad', revenue:3000  },
+  { id:1,  name:'Fatima Ahmed',   procedure:'Botox',          date:'2026-05-21', time:'11:00 AM', status:'pending',   phone:'+92 300 1234567', location:'Islamabad', revenue:28000 },
+  { id:2,  name:'Sara Khan',      procedure:'Chemical Peel',  date:'2026-05-22', time:'11:00 AM', status:'confirmed', phone:'+92 321 9876543', location:'Karachi',   revenue:8000  },
+  { id:3,  name:'Ayesha Malik',   procedure:'Consultation',   date:'2026-05-23', time:'2:00 PM',  status:'pending',   phone:'+92 333 5554321', location:'Online',    revenue:3000  },
+  { id:4,  name:'Noor Hussain',   procedure:'PLLA Threads',   date:'2026-05-23', time:'4:00 PM',  status:'pending',   phone:'+92 311 7778888', location:'Islamabad', revenue:35000 },
+  { id:5,  name:'Zara Siddiqui',  procedure:'Botox',          date:'2026-05-24', time:'9:00 AM',  status:'confirmed', phone:'+92 345 6667777', location:'Karachi',   revenue:18000 },
+  { id:6,  name:'Hira Iqbal',     procedure:'Chemical Peel',  date:'2026-05-25', time:'3:00 PM',  status:'rejected',  phone:'+92 301 2223334', location:'Lahore',    revenue:0     },
+  { id:7,  name:'Mahnoor Butt',   procedure:'Consultation',   date:'2026-05-26', time:'12:00 PM', status:'pending',   phone:'+92 322 4445556', location:'Online',    revenue:3000  },
+  { id:8,  name:'Sana Raza',      procedure:'Microneedling',  date:'2026-05-27', time:'10:00 AM', status:'pending',   phone:'+92 333 1112222', location:'Islamabad', revenue:12000 },
+  { id:9,  name:'Amna Zahid',     procedure:'Hydrafacial',    date:'2026-05-28', time:'2:00 PM',  status:'confirmed', phone:'+92 321 3334444', location:'Lahore',    revenue:9000  },
+  { id:10, name:'Khadija Ali',    procedure:'PRP Treatment',  date:'2026-05-29', time:'11:00 AM', status:'pending',   phone:'+92 345 5556666', location:'Online',    revenue:28000 },
+  { id:11, name:'Mariam Tariq',   procedure:'Lip Fillers',    date:'2026-05-29', time:'3:00 PM',  status:'confirmed', phone:'+92 300 7778889', location:'Islamabad', revenue:30000 },
+  { id:12, name:'Noor Fatima',    procedure:'Skin Boosters',  date:'2026-05-30', time:'10:00 AM', status:'pending',   phone:'+92 311 2223335', location:'Lahore',    revenue:15000 },
+  { id:13, name:'Fatima Ahmed',   procedure:'Consultation',   date:'2026-06-02', time:'11:00 AM', status:'confirmed', phone:'+92 300 1234567', location:'Online',    revenue:3000  },
+  { id:14, name:'Sara Khan',      procedure:'Botox',          date:'2026-06-03', time:'2:00 PM',  status:'pending',   phone:'+92 321 9876543', location:'Karachi',   revenue:18000 },
+  { id:15, name:'Zara Siddiqui',  procedure:'Hydrafacial',    date:'2026-06-04', time:'10:00 AM', status:'pending',   phone:'+92 345 6667777', location:'Online',    revenue:9000  },
 ]
 
 // ── Patient records ────────────────────────────────────────────────────────
@@ -240,27 +240,186 @@ const NEWS_CARDS = [
   },
 ]
 
-// ── Mock chat response engine ──────────────────────────────────────────────
-function formatPatientCard(name, d) {
-  const visits = d.visits.map((v, i) =>
-    `   ${i + 1}. ${v.date} — ${v.procedure} — PKR ${v.amount.toLocaleString()} ${v.paid ? '✓' : '⏳'}\n      Note: ${v.notes}`
-  ).join('\n\n')
-  return `👤 **${name}**
-📞 ${d.phone} · Age: ${d.age} · ${d.location}
-🧴 Skin type: ${d.skinType} · Allergies: ${d.allergies}
+// ── Appointment card (inline in chat) ─────────────────────────────────────
+function AppointmentCard({ appt, onStatusChange }) {
+  const [localStatus, setLocalStatus] = useState(appt.status)
 
-📋 **Visit History (${d.visits.length} visits · PKR ${d.totalSpent.toLocaleString()} total)**
+  const handleAction = (newStatus) => {
+    setLocalStatus(newStatus)
+    onStatusChange?.(appt.id, newStatus)
+  }
 
-${visits}
+  const statusColor = localStatus === 'confirmed' ? '#16a34a' : localStatus === 'rejected' ? '#dc2626' : '#d97706'
+  const statusBg    = localStatus === 'confirmed' ? '#dcfce7'  : localStatus === 'rejected' ? '#fee2e2'  : '#fef3c7'
 
-📝 **Doctor's Notes:**
-${d.notes}
+  return (
+    <div style={{
+      background: C.white, border: `1px solid ${C.border}`, borderRadius: 9,
+      padding: '0.625rem 0.75rem', marginBottom: '0.375rem',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.3rem' }}>
+        <p style={{ fontWeight: 700, fontSize: '0.5625rem', color: C.text, margin: 0 }}>{appt.name}</p>
+        <span style={{ fontSize: '0.4375rem', fontWeight: 700, color: statusColor, background: statusBg, padding: '0.15rem 0.4rem', borderRadius: 4 }}>
+          {localStatus === 'confirmed' ? '✓ Confirmed' : localStatus === 'rejected' ? '✗ Rejected' : localStatus === 'waitlisted' ? '⏳ Waitlisted' : '● Pending'}
+        </span>
+      </div>
 
-📅 **Upcoming:** ${d.upcoming.date} — ${d.upcoming.procedure} (${d.upcoming.status})`
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem 0.75rem', marginBottom: '0.35rem' }}>
+        <span style={{ fontSize: '0.475rem', color: C.muted }}>💉 {appt.procedure}</span>
+        <span style={{ fontSize: '0.475rem', color: C.muted }}>📍 {appt.location}</span>
+        <span style={{ fontSize: '0.475rem', color: C.muted }}>📅 {appt.date}</span>
+        <span style={{ fontSize: '0.475rem', color: C.muted }}>🕐 {appt.time}</span>
+        {appt.phone && <span style={{ fontSize: '0.475rem', color: C.muted }}>📞 {appt.phone}</span>}
+      </div>
+
+      {localStatus === 'pending' && (
+        <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.375rem' }}>
+          <button onClick={() => handleAction('confirmed')} style={{
+            flex: 1, background: '#16a34a', color: '#fff', border: 'none',
+            padding: '0.3rem 0', borderRadius: 6, fontSize: '0.5rem', fontWeight: 700,
+            cursor: 'pointer', transition: 'opacity 0.15s',
+          }}>✓ Confirm</button>
+          <button onClick={() => handleAction('rejected')} style={{
+            flex: 1, background: '#dc2626', color: '#fff', border: 'none',
+            padding: '0.3rem 0', borderRadius: 6, fontSize: '0.5rem', fontWeight: 700,
+            cursor: 'pointer', transition: 'opacity 0.15s',
+          }}>✗ Reject</button>
+        </div>
+      )}
+    </div>
+  )
 }
 
-function getMockResponse(text, lastPatient) {
-  const msg = text.toLowerCase()
+// ── Rich patient card (inline in chat) ────────────────────────────────────
+function PatientDataCard({ name, data }) {
+  const [expanded, setExpanded] = useState(false)
+  const lastVisit = data.visits[data.visits.length - 1]
+
+  return (
+    <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden', marginTop: '0.25rem' }}>
+      <div style={{ background: `linear-gradient(135deg, ${C.tealDark}, ${C.teal})`, padding: '0.625rem 0.75rem', color: C.white }}>
+        <p style={{ fontWeight: 800, fontSize: '0.5625rem', margin: '0 0 0.2rem' }}>👤 {name}</p>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.4375rem', background: 'rgba(255,255,255,0.18)', padding: '0.1rem 0.35rem', borderRadius: 4 }}>Age {data.age}</span>
+          <span style={{ fontSize: '0.4375rem', background: 'rgba(255,255,255,0.18)', padding: '0.1rem 0.35rem', borderRadius: 4 }}>{data.skinType}</span>
+          <span style={{ fontSize: '0.4375rem', background: 'rgba(255,255,255,0.18)', padding: '0.1rem 0.35rem', borderRadius: 4 }}>{data.location}</span>
+        </div>
+      </div>
+
+      <div style={{ padding: '0.625rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: '0.4rem', color: C.muted, margin: '0 0 0.1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Phone</p>
+            <p style={{ fontSize: '0.5rem', color: C.text, margin: 0, fontWeight: 600 }}>{data.phone}</p>
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: '0.4rem', color: C.muted, margin: '0 0 0.1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total Spent</p>
+            <p style={{ fontSize: '0.5rem', color: C.tealDark, margin: 0, fontWeight: 700 }}>PKR {data.totalSpent.toLocaleString()}</p>
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: '0.4rem', color: C.muted, margin: '0 0 0.1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Visits</p>
+            <p style={{ fontSize: '0.5rem', color: C.text, margin: 0, fontWeight: 600 }}>{data.visits.length}</p>
+          </div>
+        </div>
+
+        {data.allergies && data.allergies !== 'None known' && data.allergies !== 'None' && (
+          <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 5, padding: '0.25rem 0.5rem' }}>
+            <p style={{ fontSize: '0.45rem', color: '#92400e', margin: 0, fontWeight: 600 }}>⚠️ Allergies: {data.allergies}</p>
+          </div>
+        )}
+
+        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: '0.4rem 0.5rem' }}>
+          <p style={{ fontSize: '0.4rem', color: C.muted, margin: '0 0 0.15rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Last Visit — {lastVisit.date}</p>
+          <p style={{ fontSize: '0.5rem', color: C.text, margin: '0 0 0.1rem', fontWeight: 600 }}>{lastVisit.procedure} · PKR {lastVisit.amount.toLocaleString()}</p>
+          <p style={{ fontSize: '0.4375rem', color: C.muted, margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>"{lastVisit.notes}"</p>
+        </div>
+
+        <div style={{ background: C.tealLight, border: `1px solid ${C.tealRing}`, borderRadius: 6, padding: '0.4rem 0.5rem' }}>
+          <p style={{ fontSize: '0.4rem', color: C.tealDark, margin: '0 0 0.1rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Upcoming</p>
+          <p style={{ fontSize: '0.5rem', color: C.tealDark, margin: 0, fontWeight: 600 }}>
+            {data.upcoming.date} — {data.upcoming.procedure}
+            <span style={{ fontWeight: 400, marginLeft: 4, opacity: 0.8 }}>({data.upcoming.status})</span>
+          </p>
+        </div>
+
+        <button onClick={() => setExpanded(e => !e)} style={{
+          background: 'none', border: `1px solid ${C.border}`, borderRadius: 6,
+          padding: '0.3rem 0.5rem', fontSize: '0.4375rem', color: C.tealDark,
+          fontWeight: 600, cursor: 'pointer', textAlign: 'left',
+        }}>
+          {expanded ? '▲ Hide' : '▼ Show'} full history ({data.visits.length} visits)
+        </button>
+
+        {expanded && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            {data.visits.map((v, i) => (
+              <div key={i} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: '0.4rem 0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.1rem' }}>
+                  <p style={{ fontSize: '0.4375rem', color: C.text, margin: 0, fontWeight: 700 }}>{v.date} — {v.procedure}</p>
+                  <span style={{ fontSize: '0.4rem', color: v.paid ? '#16a34a' : C.muted, fontWeight: 600 }}>PKR {v.amount.toLocaleString()} {v.paid ? '✓' : '⏳'}</span>
+                </div>
+                <p style={{ fontSize: '0.4rem', color: C.muted, margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>"{v.notes}"</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {data.notes && (
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: '0.375rem' }}>
+            <p style={{ fontSize: '0.4rem', color: C.muted, margin: '0 0 0.1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Doctor's Notes</p>
+            <p style={{ fontSize: '0.4375rem', color: C.text, margin: 0, lineHeight: 1.65 }}>{data.notes}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Revenue summary card (inline in chat) ─────────────────────────────────
+function RevenueCard({ appointments }) {
+  const allAppts = appointments.length > 0 ? appointments : MOCK
+  const earning   = allAppts.filter(a => a.status !== 'rejected')
+  const totalRev  = earning.reduce((s, a) => s + (a.revenue || 0), 0)
+  const monthRev  = earning.filter(a => a.date?.startsWith('2026-05')).reduce((s, a) => s + (a.revenue || 0), 0)
+  const prevMonth = earning.filter(a => a.date?.startsWith('2026-04')).reduce((s, a) => s + (a.revenue || 0), 0)
+  const growth    = prevMonth > 0 ? Math.round(((monthRev - prevMonth) / prevMonth) * 100) : 28
+  const avg       = earning.length > 0 ? Math.round(totalRev / earning.length) : 0
+  const confirmed = allAppts.filter(a => a.status === 'confirmed').length
+  const pending   = allAppts.filter(a => a.status === 'pending').length
+
+  const Row = ({ label, value, accent }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.35rem 0', borderBottom: `1px solid ${C.border}` }}>
+      <span style={{ fontSize: '0.4375rem', color: C.muted }}>{label}</span>
+      <span style={{ fontSize: '0.5rem', fontWeight: 700, color: accent || C.text }}>{value}</span>
+    </div>
+  )
+
+  return (
+    <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden', marginTop: '0.25rem' }}>
+      <div style={{ background: `linear-gradient(135deg, ${C.tealDark}, ${C.teal})`, padding: '0.625rem 0.75rem', color: C.white }}>
+        <p style={{ fontWeight: 800, fontSize: '0.5625rem', margin: '0 0 0.15rem' }}>💰 Revenue Summary</p>
+        <p style={{ fontSize: '0.4375rem', opacity: 0.85, margin: 0 }}>All locations · May 2026</p>
+      </div>
+      <div style={{ padding: '0.5rem 0.75rem' }}>
+        <Row label="Total Revenue (all time)" value={`PKR ${totalRev.toLocaleString()}`} accent={C.tealDark} />
+        <Row label="May 2026 Revenue" value={`PKR ${monthRev.toLocaleString()}`} accent={C.tealDark} />
+        <Row label="Month-on-Month Growth" value={`${growth > 0 ? '+' : ''}${growth}%`} accent={growth >= 0 ? '#16a34a' : '#dc2626'} />
+        <Row label="Avg Revenue per Patient" value={`PKR ${avg.toLocaleString()}`} />
+        <Row label="Confirmed Appointments" value={confirmed} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.35rem' }}>
+          <span style={{ fontSize: '0.4375rem', color: C.muted }}>Pending Confirmation</span>
+          <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#d97706' }}>{pending}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Mock chat response engine ──────────────────────────────────────────────
+function getMockResponse(text, lastPatient, appointments = []) {
+  const msg      = text.toLowerCase()
+  const allAppts = appointments.length > 0 ? appointments : MOCK
 
   // Patient name lookup
   for (const [name, data] of Object.entries(PATIENT_DB)) {
@@ -268,16 +427,16 @@ function getMockResponse(text, lastPatient) {
     if (parts.some(p => msg.includes(p))) {
       if (msg.includes('last') || msg.includes('used') || msg.includes('previous') || msg.includes('procedure')) {
         const v = data.visits[data.visits.length - 1]
-        return [name, `Last visit for **${name}** was **${v.date}**.\n\n💉 Procedure: ${v.procedure}\n💰 Amount: PKR ${v.amount.toLocaleString()} ${v.paid ? '(paid ✓)' : '(pending)'}\n\n📋 Note: "${v.notes}"`]
+        return [name, { type: 'text', text: `Last visit for **${name}** was **${v.date}**.\n\n💉 Procedure: ${v.procedure}\n💰 Amount: PKR ${v.amount.toLocaleString()} ${v.paid ? '(paid ✓)' : '(pending)'}\n\n📋 Note: "${v.notes}"` }]
       }
       if (msg.includes('upcoming') || msg.includes('next') || msg.includes('appointment')) {
         const a = data.upcoming
-        return [name, `📅 ${name}'s next appointment:\n\n**${a.date}** — ${a.procedure}\nStatus: ${a.status.charAt(0).toUpperCase() + a.status.slice(1)}\n📞 ${data.phone}`]
+        return [name, { type: 'text', text: `📅 ${name}'s next appointment:\n\n**${a.date}** — ${a.procedure}\nStatus: ${a.status.charAt(0).toUpperCase() + a.status.slice(1)}\n📞 ${data.phone}` }]
       }
-      if (msg.includes('spend') || msg.includes('total') || msg.includes('revenue') || msg.includes('paid')) {
-        return [name, `💰 **${name}** has spent a total of **PKR ${data.totalSpent.toLocaleString()}** across ${data.visits.length} visits.\n\nBreakdown:\n${data.visits.map(v => `• ${v.date}: ${v.procedure} — PKR ${v.amount.toLocaleString()}`).join('\n')}`]
+      if (msg.includes('spend') || msg.includes('total') || msg.includes('paid')) {
+        return [name, { type: 'text', text: `💰 **${name}** has spent **PKR ${data.totalSpent.toLocaleString()}** across ${data.visits.length} visits.\n\nBreakdown:\n${data.visits.map(v => `• ${v.date}: ${v.procedure} — PKR ${v.amount.toLocaleString()}`).join('\n')}` }]
       }
-      return [name, formatPatientCard(name, data)]
+      return [name, { type: 'patient', name, data }]
     }
   }
 
@@ -286,50 +445,59 @@ function getMockResponse(text, lastPatient) {
     const data = PATIENT_DB[lastPatient]
     if (data) {
       const v = data.visits[data.visits.length - 1]
-      return [lastPatient, `For **${lastPatient}**, the last treatment was **${v.procedure}** on ${v.date}.\n\n📋 Doctor's notes from that visit: "${v.notes}"\n\n💰 Amount: PKR ${v.amount.toLocaleString()}`]
+      return [lastPatient, { type: 'text', text: `For **${lastPatient}**, the last treatment was **${v.procedure}** on ${v.date}.\n\n📋 Doctor's notes: "${v.notes}"\n\n💰 Amount: PKR ${v.amount.toLocaleString()}` }]
     }
   }
 
-  // Today's appointments
-  if (msg.includes('today')) {
-    const today = MOCK.filter(a => a.date === '2026-05-22')
-    return [null, `📅 **Today's Schedule — May 22, 2026**\n\n${today.map(a => `• **${a.time}** — ${a.name}\n  ${a.procedure} · ${a.location} · ${a.status.charAt(0).toUpperCase() + a.status.slice(1)}\n  📞 ${a.phone}`).join('\n\n')}`]
+  // Revenue / earnings
+  if (msg.includes('revenue') || msg.includes('earnings') || msg.includes('revenue this month')) {
+    return [null, { type: 'revenue' }]
+  }
+
+  // Pending confirmations — returns interactive appointment cards
+  if (msg.includes('pending') || msg.includes('unconfirmed') || msg.includes('show pending')) {
+    const pending = allAppts.filter(a => a.status === 'pending')
+    return [null, { type: 'appointments', items: pending, headerText: `⏳ Pending Confirmations — ${pending.length} awaiting your action` }]
+  }
+
+  // Today's schedule
+  if (msg.includes('today') || msg.includes("today's schedule")) {
+    const todayStr = '2026-05-23'
+    const today = allAppts.filter(a => a.date === todayStr)
+    const lines = today.length === 0
+      ? 'No appointments scheduled for today.'
+      : today.map(a => `• **${a.time}** — ${a.name}\n  ${a.procedure} · ${a.location} · ${a.status.charAt(0).toUpperCase() + a.status.slice(1)}\n  📞 ${a.phone}`).join('\n\n')
+    return [null, { type: 'text', text: `📅 **Today's Schedule — May 23, 2026**\n\n${lines}` }]
   }
 
   // Online appointments
   if (msg.includes('online') || msg.includes('virtual')) {
-    const online = MOCK.filter(a => a.location === 'Online')
-    return [null, `💻 **Online Consultations (${online.length} total)**\n\n${online.map(a => `• **${a.date} ${a.time}** — ${a.name}\n  ${a.procedure} · Status: ${a.status}`).join('\n\n')}`]
-  }
-
-  // Pending
-  if (msg.includes('pending') || msg.includes('unconfirmed') || msg.includes('confirm')) {
-    const pending = MOCK.filter(a => a.status === 'pending')
-    return [null, `⏳ **Pending Confirmations (${pending.length})**\n\n${pending.map(a => `• ${a.name} | ${a.procedure} | ${a.date} ${a.time} | ${a.location}`).join('\n')}`]
+    const online = allAppts.filter(a => a.location === 'Online')
+    return [null, { type: 'text', text: `💻 **Online Consultations (${online.length} total)**\n\n${online.map(a => `• **${a.date} ${a.time}** — ${a.name}\n  ${a.procedure} · Status: ${a.status}`).join('\n\n')}` }]
   }
 
   // City filter
   for (const city of ['karachi', 'islamabad', 'lahore']) {
     if (msg.includes(city)) {
-      const cityAppts = MOCK.filter(a => a.location.toLowerCase() === city)
-      return [null, `📍 **${city.charAt(0).toUpperCase() + city.slice(1)} Appointments (${cityAppts.length})**\n\n${cityAppts.map(a => `• ${a.date} ${a.time} — ${a.name} | ${a.procedure} | ${a.status}`).join('\n')}`]
+      const cityAppts = allAppts.filter(a => a.location?.toLowerCase() === city)
+      return [null, { type: 'text', text: `📍 **${city.charAt(0).toUpperCase() + city.slice(1)} Appointments (${cityAppts.length})**\n\n${cityAppts.map(a => `• ${a.date} ${a.time} — ${a.name} | ${a.procedure} | ${a.status}`).join('\n')}` }]
     }
   }
 
-  // This week
+  // This week / schedule
   if (msg.includes('week') || msg.includes('schedule')) {
-    const week = MOCK.filter(a => a.date >= '2026-05-22' && a.date <= '2026-05-28')
-    return [null, `📅 **This Week's Appointments (May 22–28)**\n\n${week.map(a => `• **${a.date} ${a.time}** — ${a.name} | ${a.procedure} | ${a.location} | ${a.status}`).join('\n')}`]
+    const week = allAppts.filter(a => a.date >= '2026-05-23' && a.date <= '2026-05-29')
+    return [null, { type: 'text', text: `📅 **This Week's Appointments (May 23–29)**\n\n${week.map(a => `• **${a.date} ${a.time}** — ${a.name} | ${a.procedure} | ${a.location} | ${a.status}`).join('\n')}` }]
   }
 
-  // Total/stats
+  // Total / stats
   if (msg.includes('total') || msg.includes('how many') || msg.includes('stats') || msg.includes('count')) {
-    const confirmed = MOCK.filter(a => a.status === 'confirmed').length
-    const pending = MOCK.filter(a => a.status === 'pending').length
-    return [null, `📊 **Appointment Overview**\n\n• Total: ${MOCK.length} appointments\n• Confirmed: ${confirmed}\n• Pending: ${pending}\n• Rejected/Cancelled: ${MOCK.filter(a => a.status === 'rejected').length}\n\n📍 By Location:\n• Islamabad: ${MOCK.filter(a => a.location === 'Islamabad').length}\n• Karachi: ${MOCK.filter(a => a.location === 'Karachi').length}\n• Lahore: ${MOCK.filter(a => a.location === 'Lahore').length}\n• Online: ${MOCK.filter(a => a.location === 'Online').length}`]
+    const confirmed = allAppts.filter(a => a.status === 'confirmed').length
+    const pending   = allAppts.filter(a => a.status === 'pending').length
+    return [null, { type: 'text', text: `📊 **Appointment Overview**\n\n• Total: ${allAppts.length} appointments\n• Confirmed: ${confirmed}\n• Pending: ${pending}\n• Rejected: ${allAppts.filter(a => a.status === 'rejected').length}\n\n📍 By Location:\n• Islamabad: ${allAppts.filter(a => a.location === 'Islamabad').length}\n• Karachi: ${allAppts.filter(a => a.location === 'Karachi').length}\n• Lahore: ${allAppts.filter(a => a.location === 'Lahore').length}\n• Online: ${allAppts.filter(a => a.location === 'Online').length}` }]
   }
 
-  return [null, `I can help with patient records and appointment data. Try asking:\n\n• **"Sara Khan's full history"** — patient record\n• **"Who's coming in today?"** — today's schedule\n• **"Online appointments this week"** — virtual consults\n• **"Pending confirmations"** — unpaid / unconfirmed\n• **"Karachi schedule"** — by location\n\nPatients on file: Sara Khan, Fatima Ahmed, Ayesha Malik, Noor Hussain, Zara Siddiqui and more.`]
+  return [null, { type: 'text', text: `I can help with patient records and appointment data. Try asking:\n\n• **"Show pending appointments"** — interactive confirm/reject cards\n• **"Sara Khan's history"** — full patient record\n• **"Today's schedule"** — today's appointments\n• **"Revenue this month"** — earnings summary\n• **"Karachi schedule"** — by location\n\nPatients on file: Sara Khan, Fatima Ahmed, Ayesha Malik, Noor Hussain, Zara Siddiqui.` }]
 }
 
 // ── Loading dots ──────────────────────────────────────────────────────────
@@ -347,96 +515,157 @@ function LoadingDots() {
   )
 }
 
+// ── AI message bubble wrapper ─────────────────────────────────────────────
+function AIBubble({ children }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '0.5rem', alignItems: 'flex-start' }}>
+      <div style={{
+        width: 26, height: 26, borderRadius: '50%', background: C.teal,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: C.white, fontSize: '0.5rem', fontWeight: 800, flexShrink: 0, marginTop: 18,
+      }}>✦</div>
+      <div style={{ maxWidth: '78%' }}>
+        <p style={{ fontSize: '0.4rem', fontWeight: 700, color: C.tealDark, margin: '0 0 0.2rem 0', letterSpacing: '0.02em' }}>DR. MALEEHA AI</p>
+        <div style={{
+          padding: '0.5rem 0.75rem',
+          borderRadius: '12px 12px 12px 2px',
+          background: '#f1f5f9',
+          borderLeft: `3px solid ${C.teal}`,
+          color: C.text,
+          fontSize: '0.625rem', lineHeight: 1.65,
+        }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── PatientChat ───────────────────────────────────────────────────────────
-function PatientChat() {
-  const GREETING = { role: 'assistant', text: "Hello! I'm Dr. Maleeha Jawaid's clinic assistant. I have access to all appointment data and patient records.\n\nTry asking about a patient by name, today's schedule, or pending confirmations." }
-  const [msgs, setMsgs] = useState([GREETING])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
+function PatientChat({ appointments = [], onStatusChange }) {
+  const GREETING = {
+    role: 'assistant',
+    type: 'text',
+    text: "Hello! I'm Dr. Maleeha Jawaid's clinic assistant. I have access to all appointment data and patient records.\n\nTry asking about pending confirmations, a patient by name, or today's schedule.",
+  }
+  const [msgs, setMsgs]             = useState([GREETING])
+  const [input, setInput]           = useState('')
+  const [loading, setLoading]       = useState(false)
   const [lastPatient, setLastPatient] = useState(null)
-  const bottomRef = useRef(null)
+  const bottomRef   = useRef(null)
   const textareaRef = useRef(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [msgs, loading])
 
-  const sendMessage = () => {
-    const text = input.trim()
+  const sendMessage = (overrideText) => {
+    const text = (overrideText ?? input).trim()
     if (!text || loading) return
     setInput('')
-    setMsgs(prev => [...prev, { role: 'user', text }])
+    setMsgs(prev => [...prev, { role: 'user', type: 'text', text }])
     setLoading(true)
-    // Simulate typing delay
     setTimeout(() => {
-      const [newLastPatient, reply] = getMockResponse(text, lastPatient)
+      const [newLastPatient, reply] = getMockResponse(text, lastPatient, appointments)
       if (newLastPatient) setLastPatient(newLastPatient)
-      setMsgs(prev => [...prev, { role: 'assistant', text: reply }])
+      setMsgs(prev => [...prev, { role: 'assistant', ...reply }])
       setLoading(false)
-    }, 1200 + Math.random() * 600)
+    }, 1500)
   }
 
   const handleKey = e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
   }
 
-  const CHIPS = ["Sara Khan's history", "Who's coming in today?", "Fatima Ahmed's last procedure", "Pending confirmations", "Online appointments this week"]
+  const CHIPS = [
+    'Show pending appointments',
+    "Sara Khan's history",
+    "Today's schedule",
+    'Revenue this month',
+  ]
+
+  const renderMsgContent = (m) => {
+    if (m.type === 'appointments') {
+      return (
+        <div>
+          <p style={{ fontSize: '0.5625rem', fontWeight: 700, margin: '0 0 0.5rem', color: C.text }}>{m.headerText}</p>
+          {m.items.length === 0
+            ? <p style={{ fontSize: '0.5rem', color: C.muted, margin: 0 }}>No pending appointments at the moment.</p>
+            : m.items.map(appt => (
+                <AppointmentCard key={appt.id} appt={appt} onStatusChange={onStatusChange} />
+              ))
+          }
+        </div>
+      )
+    }
+    if (m.type === 'patient') {
+      return <PatientDataCard name={m.name} data={m.data} />
+    }
+    if (m.type === 'revenue') {
+      return <RevenueCard appointments={appointments} />
+    }
+    return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.text}</span>
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 640, background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden' }}>
+      {/* Header */}
       <div style={{ padding: '0.75rem 1rem', borderBottom: `1px solid ${C.border}`, background: C.tealLight, display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-        <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.teal, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.white, fontWeight: 800, fontSize: '0.75rem' }}>AI</div>
+        <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.teal, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.white, fontWeight: 800, fontSize: '0.875rem' }}>✦</div>
         <div>
-          <p style={{ fontWeight: 700, fontSize: '0.7rem', color: C.text, margin: 0 }}>Clinic Assistant</p>
-          <p style={{ fontSize: '0.5rem', color: C.teal, margin: 0 }}>Patient records · Appointment data</p>
+          <p style={{ fontWeight: 700, fontSize: '0.7rem', color: C.text, margin: 0 }}>Dr. Maleeha AI</p>
+          <p style={{ fontSize: '0.5rem', color: C.teal, margin: 0 }}>Patient records · Appointment data · Revenue</p>
         </div>
       </div>
 
+      {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {msgs.map((m, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', gap: '0.5rem', alignItems: 'flex-end' }}>
-            {m.role === 'assistant' && (
-              <div style={{ width: 26, height: 26, borderRadius: '50%', background: C.teal, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.white, fontSize: '0.5rem', fontWeight: 800, flexShrink: 0, marginBottom: 2 }}>AI</div>
-            )}
-            <div style={{
-              maxWidth: '72%', padding: '0.5rem 0.75rem',
-              borderRadius: m.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-              background: m.role === 'user' ? C.teal : '#f1f5f9',
-              color: m.role === 'user' ? C.white : C.text,
-              fontSize: '0.625rem', lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-            }}>
-              {m.text}
+          m.role === 'user' ? (
+            <div key={i} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{
+                maxWidth: '72%', padding: '0.5rem 0.75rem',
+                borderRadius: '12px 12px 2px 12px',
+                background: C.teal, color: C.white,
+                fontSize: '0.625rem', lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              }}>
+                {m.text}
+              </div>
             </div>
-          </div>
+          ) : (
+            <AIBubble key={i}>
+              {renderMsgContent(m)}
+            </AIBubble>
+          )
         ))}
+
         {loading && (
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
-            <div style={{ width: 26, height: 26, borderRadius: '50%', background: C.teal, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.white, fontSize: '0.5rem', fontWeight: 800, flexShrink: 0 }}>AI</div>
-            <div style={{ background: '#f1f5f9', padding: '0.5rem 0.75rem', borderRadius: '12px 12px 12px 2px' }}>
-              <LoadingDots />
-            </div>
-          </div>
+          <AIBubble>
+            <LoadingDots />
+          </AIBubble>
         )}
         <div ref={bottomRef} />
       </div>
 
+      {/* Quick chips */}
       <div style={{ padding: '0.375rem 1rem 0.25rem', display: 'flex', gap: '0.375rem', flexWrap: 'wrap', borderTop: `1px solid ${C.border}` }}>
         {CHIPS.map(chip => (
-          <button key={chip} onClick={() => { setInput(chip); textareaRef.current?.focus() }} style={{
+          <button key={chip} onClick={() => sendMessage(chip)} style={{
             padding: '0.2rem 0.5rem', border: `1px solid ${C.tealRing}`, borderRadius: 20,
             background: C.tealLight, color: C.tealDark, fontSize: '0.5rem', fontWeight: 600, cursor: 'pointer',
           }}>{chip}</button>
         ))}
       </div>
 
+      {/* Input */}
       <div style={{ padding: '0.5rem 1rem 0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
         <textarea
           ref={textareaRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
-          placeholder="Ask about patients, appointments, history..." rows={1}
+          placeholder="Ask about patients, appointments, revenue..." rows={1}
           style={{ flex: 1, resize: 'none', border: `1px solid ${C.border}`, borderRadius: 20, padding: '0.5rem 0.75rem', fontSize: '0.625rem', fontFamily: 'inherit', lineHeight: 1.5, overflowY: 'hidden', background: C.bg, color: C.text, outline: 'none' }}
           onInput={e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px' }}
         />
-        <button onClick={sendMessage} disabled={!input.trim() || loading} style={{
+        <button onClick={() => sendMessage()} disabled={!input.trim() || loading} style={{
           width: 36, height: 36, borderRadius: '50%', border: input.trim() ? 'none' : `1px solid ${C.border}`,
           background: input.trim() ? C.teal : 'transparent', color: input.trim() ? C.white : C.muted,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -783,7 +1012,7 @@ function Benchmarking() {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────
-export default function AIAssistant() {
+export default function AIAssistant({ appointments = [], onStatusChange }) {
   const [subTab, setSubTab] = useState('chat')
 
   const TABS = [
@@ -810,7 +1039,7 @@ export default function AIAssistant() {
         ))}
       </div>
 
-      {subTab === 'chat'       && <PatientChat />}
+      {subTab === 'chat'       && <PatientChat appointments={appointments} onStatusChange={onStatusChange} />}
       {subTab === 'preconsult' && <PreConsult />}
       {subTab === 'newsletter' && <Newsletter />}
       {subTab === 'benchmark'  && <Benchmarking />}

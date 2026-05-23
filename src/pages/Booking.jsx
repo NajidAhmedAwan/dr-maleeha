@@ -34,7 +34,8 @@ const LOCATIONS = [
     address: 'Faisal Market, F-7/1',
     days: 'Tue, Thu, Sat · 11 AM–5 PM',
     icon: '🕌',
-    gradient: 'linear-gradient(135deg, #0d2035 0%, #0a4a6e 55%, #0d9488 100%)',
+    image: '/images/cities/islamabad.jpg',
+    gradient: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%)',
   },
   {
     id: 'karachi',
@@ -44,7 +45,8 @@ const LOCATIONS = [
     address: '(021) 35170881',
     days: 'Mon–Sat · 10 AM–7 PM',
     icon: '🏙️',
-    gradient: 'linear-gradient(135deg, #1a0a38 0%, #4a1d96 55%, #6d28d9 100%)',
+    image: '/images/cities/karachi.jpg',
+    gradient: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%)',
   },
   {
     id: 'lahore',
@@ -55,7 +57,8 @@ const LOCATIONS = [
     days: 'Coming soon',
     icon: '🦁',
     comingSoon: true,
-    gradient: 'linear-gradient(135deg, #1c1004 0%, #78350f 55%, #d97706 100%)',
+    image: '/images/cities/lahore.jpg',
+    gradient: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%)',
   },
   {
     id: 'online',
@@ -65,7 +68,8 @@ const LOCATIONS = [
     address: 'Anywhere',
     days: 'Flexible scheduling',
     icon: '💻',
-    gradient: 'linear-gradient(135deg, #022c22 0%, #065f46 55%, #0d9488 100%)',
+    image: '/images/cities/online.jpg',
+    gradient: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.1) 100%)',
   },
 ]
 
@@ -519,37 +523,43 @@ export default function Booking() {
                   <button key={loc.name}
                     onClick={() => { if (loc.comingSoon) return; set('city', loc.name); set('procedure','') }}
                     style={{
-                      position:'relative', padding:'0.875rem', textAlign:'left', cursor: loc.comingSoon ? 'default' : 'pointer',
-                      background: sel ? loc.gradient : N.card,
+                      position:'relative', padding:0, textAlign:'left', cursor: loc.comingSoon ? 'default' : 'pointer',
                       border:`${sel?'2px':'1.5px'} solid ${sel ? loc.accent : N.border}`,
-                      borderRadius:12, transition:'all 0.18s',
-                      boxShadow: sel ? `0 0 20px ${loc.accent}33, 0 4px 24px rgba(0,0,0,0.5)` : '0 2px 8px rgba(0,0,0,0.3)',
-                      opacity: loc.comingSoon && !sel ? 0.6 : 1,
+                      borderRadius:14, transition:'all 0.18s', height:160,
+                      boxShadow: sel ? `0 0 0 3px ${loc.accent}44, 0 8px 32px rgba(0,0,0,0.6)` : '0 2px 10px rgba(0,0,0,0.35)',
+                      opacity: loc.comingSoon && !sel ? 0.65 : 1,
                       overflow:'hidden',
                     }}>
 
-                    {/* Gradient overlay for non-selected */}
-                    {!sel && <div style={{ position:'absolute', inset:0, background:loc.gradient, opacity:0.18, pointerEvents:'none', borderRadius:11 }} />}
+                    {/* Background photo */}
+                    <div style={{ position:'absolute', inset:0, backgroundImage:`url(${loc.image})`, backgroundSize:'cover', backgroundPosition:'center', transition:'transform 0.3s' }} />
 
-                    {/* City icon */}
-                    <div style={{ fontSize:'1.5rem', marginBottom:'0.4rem', lineHeight:1 }}>{loc.icon}</div>
+                    {/* Gradient overlay */}
+                    <div style={{ position:'absolute', inset:0, background:loc.gradient, pointerEvents:'none' }} />
 
-                    {/* Name */}
-                    <div style={{ fontWeight:800, fontSize:'0.9375rem', color: sel ? '#fff' : N.text, lineHeight:1.2, marginBottom:'0.2rem' }}>{loc.name}</div>
-                    <div style={{ fontSize:'0.5625rem', color: sel ? `${loc.accent}` : N.muted, fontWeight:600, marginBottom:'0.3rem' }}>{loc.subtitle}</div>
-                    {loc.address && <div style={{ fontSize:'0.5rem', color: sel ? 'rgba(255,255,255,0.6)' : N.muted }}>{loc.address}</div>}
-                    {loc.days && <div style={{ fontSize:'0.45rem', color: sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)', marginTop:'0.2rem' }}>{loc.days}</div>}
+                    {/* Selected tint */}
+                    {sel && <div style={{ position:'absolute', inset:0, background:`${loc.accent}18`, pointerEvents:'none' }} />}
+
+                    {/* Text content */}
+                    <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'0.75rem', textAlign:'left' }}>
+                      <div style={{ fontWeight:900, fontSize:'1.125rem', color:'#fff', lineHeight:1.1, marginBottom:'0.2rem', textShadow:'0 2px 12px rgba(0,0,0,0.9)' }}>{loc.name}</div>
+                      <div style={{ fontSize:'0.5rem', color:loc.accent, fontWeight:700, marginBottom:'0.15rem', textShadow:'0 1px 6px rgba(0,0,0,0.9)' }}>{loc.subtitle}</div>
+                      {loc.address && <div style={{ fontSize:'0.45rem', color:'rgba(255,255,255,0.7)', textShadow:'0 1px 4px rgba(0,0,0,0.9)' }}>{loc.address}</div>}
+                    </div>
+
+                    {/* City icon badge top-left */}
+                    <div style={{ position:'absolute', top:8, left:8, width:28, height:28, borderRadius:'50%', background:'rgba(0,0,0,0.5)', backdropFilter:'blur(4px)', border:'1px solid rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.875rem' }}>{loc.icon}</div>
 
                     {/* Selected checkmark */}
                     {sel && (
-                      <div style={{ position:'absolute', top:10, right:10, width:22, height:22, borderRadius:'50%', background:loc.accent, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                        <svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <div style={{ position:'absolute', top:8, right:8, width:24, height:24, borderRadius:'50%', background:loc.accent, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 2px 8px ${loc.accent}88` }}>
+                        <svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
                     )}
 
                     {/* Coming soon badge */}
                     {loc.comingSoon && (
-                      <div style={{ position:'absolute', top:8, right:8, background:N.amber, color:'#000', fontSize:'0.4rem', fontWeight:800, padding:'0.15rem 0.4rem', borderRadius:20, textTransform:'uppercase', letterSpacing:'0.06em' }}>Soon</div>
+                      <div style={{ position:'absolute', top:8, right:8, background:N.amber, color:'#000', fontSize:'0.4rem', fontWeight:800, padding:'0.2rem 0.5rem', borderRadius:20, textTransform:'uppercase', letterSpacing:'0.06em' }}>Soon</div>
                     )}
                   </button>
                 )
