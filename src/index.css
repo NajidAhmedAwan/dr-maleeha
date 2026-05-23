@@ -133,3 +133,18 @@ input:focus, select:focus, textarea:focus {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes panel-slide-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes panel-slide-back {
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes rec-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
