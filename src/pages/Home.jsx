@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import ChatbotWidget from '../components/ChatbotWidget'
 import { Z_INDEX } from '../constants/zIndex'
 
@@ -783,7 +783,10 @@ export default function Home() {
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', margin: 0 }}>© 2026 Dr. Maleeha Jawaid · In Your Face by Maleeha — Honest skincare. Real results. No filters.</p>
-            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', margin: 0 }}>Islamabad · Karachi · Online</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+              <Link to="/brands" style={{ color: '#99f6e4', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Work with Dr. Maleeha →</Link>
+              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', margin: 0 }}>Islamabad · Karachi · Online</p>
+            </div>
           </div>
         </div>
       </footer>
