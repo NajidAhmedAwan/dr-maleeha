@@ -26,6 +26,13 @@ const tToMin = t => {
   if (m[3].toUpperCase() === 'AM' && h === 12) h = 0
   return h * 60 + mn
 }
+const fmt24toAMPM = t => {
+  if (!t) return ''
+  const [h, mn] = t.split(':').map(Number)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const h12 = h % 12 || 12
+  return `${h12}:${String(mn).padStart(2,'0')} ${ampm}`
+}
 
 // ── Extended mock data with revenue + waitlist ────────────────────────────────
 const MOCK = [
@@ -166,18 +173,127 @@ function KPISection({ appointments }) {
   )
 }
 
-// ── Date Detail Modal (calendar date click) ───────────────────────────────────
-function DateDetailModal({ date, appointments, onClose, onApprove, onReject }) {
+// ── Add Event Modal ───────────────────────────────────────────────────────────
+const ADD_PROCEDURES = ['Consultation','Botox','Chemical Peel','Microneedling','Hydrafacial','PRP Treatment','Lip Fillers','Skin Boosters','PLLA Threads','Acne Treatment']
+const ADD_LOCATIONS  = ['Islamabad','Karachi','Lahore','Online']
+
+function AddEventModal({ date, onClose, onSave }) {
+  const [form,   setForm]   = useState({ name:'', procedure:'', time:'', location:'Islamabad', notes:'' })
+  const [errors, setErrors] = useState({})
+
+  const handleSave = () => {
+    const e = {}
+    if (!form.name.trim())      e.name      = 'Patient name is required'
+    if (!form.procedure)        e.procedure = 'Procedure is required'
+    if (!form.time)             e.time      = 'Time is required'
+    setErrors(e)
+    if (Object.keys(e).length) return
+    onSave({
+      id:        Date.now(),
+      name:      form.name.trim(),
+      procedure: form.procedure,
+      date,
+      time:      fmt24toAMPM(form.time),
+      location:  form.location,
+      notes:     form.notes.trim(),
+      status:    'pending',
+      phone:     '',
+      paid:      'pending',
+      revenue:   0,
+      method:    'Cash',
+    })
+    onClose()
+  }
+
+  const field = (label, key, required) => (
+    <div style={{ marginBottom:'0.625rem' }}>
+      <label style={{ display:'block', fontSize:'0.5625rem', fontWeight:700, color:C.text, marginBottom:'0.25rem' }}>
+        {label}{required && <span style={{ color:'#dc2626' }}> *</span>}
+      </label>
+      <input type="text" value={form[key]} onChange={e => { setForm(f => ({ ...f, [key]:e.target.value })); setErrors(p => ({ ...p, [key]:undefined })) }}
+        placeholder={label.replace(' *','')}
+        style={{ width:'100%', padding:'0.5rem 0.625rem', border:`1.5px solid ${errors[key] ? '#dc2626' : C.border}`, borderRadius:8, fontSize:'0.5625rem', color:C.text, boxSizing:'border-box' }} />
+      {errors[key] && <p style={{ fontSize:'0.4375rem', color:'#dc2626', margin:'0.2rem 0 0' }}>{errors[key]}</p>}
+    </div>
+  )
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:700, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+      <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.4)' }} />
+      <div style={{ position:'relative', background:C.white, borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.25)', width:'100%', maxWidth:440, animation:'modal-in 0.2s ease', zIndex:1, overflow:'hidden' }}>
+        {/* Header */}
+        <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div>
+            <div style={{ fontSize:'0.4375rem', color:'#99f6e4', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:'0.25rem' }}>New Appointment</div>
+            <div style={{ fontWeight:800, fontSize:'0.875rem', color:C.white }}>{fmtS(toD(date))}</div>
+          </div>
+          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:6, width:28, height:28, cursor:'pointer', color:C.white, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.75rem' }}>✕</button>
+        </div>
+
+        {/* Form */}
+        <div style={{ padding:'1rem' }}>
+          {field('Patient Name', 'name', true)}
+
+          {/* Procedure */}
+          <div style={{ marginBottom:'0.625rem' }}>
+            <label style={{ display:'block', fontSize:'0.5625rem', fontWeight:700, color:C.text, marginBottom:'0.25rem' }}>Procedure <span style={{ color:'#dc2626' }}>*</span></label>
+            <select value={form.procedure} onChange={e => { setForm(f => ({ ...f, procedure:e.target.value })); setErrors(p => ({ ...p, procedure:undefined })) }}
+              style={{ width:'100%', padding:'0.5rem 0.625rem', border:`1.5px solid ${errors.procedure ? '#dc2626' : C.border}`, borderRadius:8, fontSize:'0.5625rem', color:C.text, background:C.white, cursor:'pointer', boxSizing:'border-box' }}>
+              <option value="">Select a procedure…</option>
+              {ADD_PROCEDURES.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            {errors.procedure && <p style={{ fontSize:'0.4375rem', color:'#dc2626', margin:'0.2rem 0 0' }}>{errors.procedure}</p>}
+          </div>
+
+          {/* Time + Location */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem', marginBottom:'0.625rem' }}>
+            <div>
+              <label style={{ display:'block', fontSize:'0.5625rem', fontWeight:700, color:C.text, marginBottom:'0.25rem' }}>Time <span style={{ color:'#dc2626' }}>*</span></label>
+              <input type="time" value={form.time} onChange={e => { setForm(f => ({ ...f, time:e.target.value })); setErrors(p => ({ ...p, time:undefined })) }}
+                style={{ width:'100%', padding:'0.5rem 0.625rem', border:`1.5px solid ${errors.time ? '#dc2626' : C.border}`, borderRadius:8, fontSize:'0.5625rem', color:C.text, boxSizing:'border-box' }} />
+              {errors.time && <p style={{ fontSize:'0.4375rem', color:'#dc2626', margin:'0.2rem 0 0' }}>{errors.time}</p>}
+            </div>
+            <div>
+              <label style={{ display:'block', fontSize:'0.5625rem', fontWeight:700, color:C.text, marginBottom:'0.25rem' }}>Location</label>
+              <select value={form.location} onChange={e => setForm(f => ({ ...f, location:e.target.value }))}
+                style={{ width:'100%', padding:'0.5rem 0.625rem', border:`1px solid ${C.border}`, borderRadius:8, fontSize:'0.5625rem', color:C.text, background:C.white, cursor:'pointer', boxSizing:'border-box' }}>
+                {ADD_LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div style={{ marginBottom:'0.875rem' }}>
+            <label style={{ display:'block', fontSize:'0.5625rem', fontWeight:700, color:C.text, marginBottom:'0.25rem' }}>Notes</label>
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes:e.target.value }))}
+              placeholder="Any additional notes…"
+              rows={2}
+              style={{ width:'100%', padding:'0.5rem 0.625rem', border:`1px solid ${C.border}`, borderRadius:8, fontSize:'0.5625rem', fontFamily:'inherit', resize:'none', color:C.text, lineHeight:1.6, boxSizing:'border-box' }} />
+          </div>
+
+          <div style={{ display:'flex', gap:'0.5rem' }}>
+            <button onClick={onClose} style={{ flex:1, padding:'0.5rem', border:`1px solid ${C.border}`, borderRadius:8, background:C.white, color:C.muted, fontWeight:600, fontSize:'0.5625rem', cursor:'pointer' }}>Cancel</button>
+            <button onClick={handleSave} style={{ flex:2, padding:'0.5rem', border:'none', borderRadius:8, background:C.teal, color:C.white, fontWeight:700, fontSize:'0.5625rem', cursor:'pointer' }}>Save Appointment</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Date Side Panel (calendar date click) ─────────────────────────────────────
+function DateSidePanel({ date, appointments, onClose, onApprove, onReject, onAddEvent }) {
+  const [showAdd, setShowAdd] = useState(false)
   const sorted = [...appointments].sort((a, b) => tToMin(a.time) - tToMin(b.time))
   const holidayName = PK_HOLIDAY_NAMES[date]
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:600, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
-      <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)' }} />
-      <div style={{ position:'relative', background:C.white, borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.25)', width:'100%', maxWidth:480, maxHeight:'80vh', display:'flex', flexDirection:'column', animation:'modal-in 0.2s ease', zIndex:1 }}>
+    <div style={{ position:'fixed', inset:0, zIndex:500, display:'flex', justifyContent:'flex-end' }}>
+      <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)' }} />
+      <div style={{ position:'relative', width:380, maxWidth:'95vw', background:C.white, boxShadow:'-4px 0 40px rgba(0,0,0,0.18)', display:'flex', flexDirection:'column', zIndex:1 }}>
         {/* Header */}
-        <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', borderRadius:'16px 16px 0 0', flexShrink:0 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', flexShrink:0 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.5rem' }}>
             <div>
               <div style={{ fontWeight:800, fontSize:'0.875rem', color:C.white }}>{fmtS(toD(date))}</div>
               {holidayName && <div style={{ fontSize:'0.5rem', color:'#99f6e4', fontWeight:700, marginTop:2 }}>🎌 {holidayName}</div>}
@@ -185,6 +301,10 @@ function DateDetailModal({ date, appointments, onClose, onApprove, onReject }) {
             </div>
             <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:6, width:28, height:28, cursor:'pointer', color:C.white, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.75rem' }}>✕</button>
           </div>
+          <button onClick={() => setShowAdd(true)}
+            style={{ width:'100%', padding:'0.425rem', background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.35)', borderRadius:7, color:C.white, fontWeight:700, fontSize:'0.5625rem', cursor:'pointer' }}>
+            + Add Event
+          </button>
         </div>
 
         {/* Content */}
@@ -193,31 +313,45 @@ function DateDetailModal({ date, appointments, onClose, onApprove, onReject }) {
             <div style={{ textAlign:'center', padding:'2rem', color:C.muted }}>
               <div style={{ fontSize:'2rem', marginBottom:'0.5rem' }}>📭</div>
               <div style={{ fontSize:'0.625rem', fontWeight:600 }}>{holidayName ? `Holiday — ${holidayName}` : 'No appointments on this day'}</div>
+              <div style={{ fontSize:'0.5rem', marginTop:'0.375rem' }}>Click "+ Add Event" to schedule one</div>
             </div>
           ) : sorted.map(a => {
             const st = STATUS_STYLE[a.status] || STATUS_STYLE.pending
             return (
               <div key={a.id} style={{ background:C.bg, border:`1px solid ${C.border}`, borderRadius:9, padding:'0.5rem 0.625rem', marginBottom:'0.375rem', borderLeft:`3px solid ${st.color}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.25rem' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'0.375rem' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'0.375rem', flexWrap:'wrap' }}>
                     <span style={{ fontWeight:700, fontSize:'0.5rem', color:C.teal, background:C.tealLight, padding:'0.1rem 0.3rem', borderRadius:4 }}>{a.time}</span>
                     <span style={{ fontWeight:700, fontSize:'0.5625rem', color:C.text }}>{a.name}</span>
                     {a.waitlist && <span style={{ fontSize:'0.375rem', background:'#fef3c7', color:'#d97706', fontWeight:800, padding:'0.05rem 0.25rem', borderRadius:3 }}>WAITLIST #{a.waitlistPos}</span>}
                   </div>
                   <span style={{ padding:'0.1rem 0.3rem', borderRadius:4, fontSize:'0.4375rem', fontWeight:700, background:st.bg, color:st.color }}>{st.label}</span>
                 </div>
-                <div style={{ fontSize:'0.475rem', color:C.muted }}>{a.procedure} · 📍{a.location} · 📱{a.phone}</div>
+                <div style={{ fontSize:'0.475rem', color:C.muted }}>{a.procedure} · 📍{a.location}{a.phone ? ` · 📱${a.phone}` : ''}</div>
+                {a.notes && <div style={{ fontSize:'0.45rem', color:C.text, marginTop:'0.2rem', fontStyle:'italic' }}>📝 {a.notes}</div>}
                 {a.status === 'pending' && (
                   <div style={{ display:'flex', gap:'0.25rem', marginTop:'0.375rem' }}>
-                    <button onClick={() => { onApprove(a.id,'confirmed'); }} style={{ padding:'0.2rem 0.5rem', border:'none', borderRadius:5, background:'#dcfce7', color:'#16a34a', fontWeight:700, fontSize:'0.4375rem', cursor:'pointer' }}>✓ Confirm</button>
-                    <button onClick={() => { onReject(a.id,'rejected'); }}  style={{ padding:'0.2rem 0.5rem', border:'none', borderRadius:5, background:'#fee2e2', color:'#dc2626', fontWeight:700, fontSize:'0.4375rem', cursor:'pointer' }}>✕ Reject</button>
+                    <button onClick={() => onApprove(a.id,'confirmed')} style={{ padding:'0.2rem 0.5rem', border:'none', borderRadius:5, background:'#dcfce7', color:'#16a34a', fontWeight:700, fontSize:'0.4375rem', cursor:'pointer' }}>✓ Confirm</button>
+                    <button onClick={() => onReject(a.id,'rejected')}   style={{ padding:'0.2rem 0.5rem', border:'none', borderRadius:5, background:'#fee2e2', color:'#dc2626', fontWeight:700, fontSize:'0.4375rem', cursor:'pointer' }}>✕ Reject</button>
                   </div>
                 )}
               </div>
             )
           })}
         </div>
+
+        <div style={{ padding:'0.5rem 0.75rem', borderTop:`1px solid ${C.border}`, flexShrink:0 }}>
+          <button onClick={onClose} style={{ width:'100%', padding:'0.425rem', background:C.bg, color:C.muted, border:`1px solid ${C.border}`, fontWeight:600, fontSize:'0.5rem', borderRadius:7, cursor:'pointer' }}>Close</button>
+        </div>
       </div>
+
+      {showAdd && (
+        <AddEventModal
+          date={date}
+          onClose={() => setShowAdd(false)}
+          onSave={newAppt => { onAddEvent(newAppt); setShowAdd(false) }}
+        />
+      )}
     </div>
   )
 }
@@ -327,13 +461,13 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
       </div>
 
       {/* Legend */}
-      <div style={{ display:'flex', gap:'0.75rem', padding:'0.375rem 1.25rem', borderBottom:`1px solid ${C.border}`, flexWrap:'wrap', background: darkMode ? '#0d2444' : C.bg }}>
+      <div style={{ display:'flex', gap:'1.25rem', padding:'0.5rem 1.25rem', borderBottom:`1px solid ${C.border}`, flexWrap:'wrap', alignItems:'center', background: darkMode ? '#0d2444' : C.bg }}>
         {[['#fee2e2','🚫 Unavailable'],['#fef3c7','🎌 Holiday'],['#dbeafe','Drag-select'],['#f0fdfa','Full'],['#fef9c3','Waitlist']].map(([bg, t]) => (
-          <span key={t} style={{ display:'flex', alignItems:'center', gap:'0.25rem', fontSize:'0.4375rem', color: darkMode ? '#94a3b8' : C.muted }}>
-            <span style={{ width:8, height:8, borderRadius:2, background:bg, display:'inline-block', border:'1px solid rgba(0,0,0,0.06)' }} />{t}
+          <span key={t} style={{ display:'flex', alignItems:'center', gap:'0.5rem', fontSize:'13px', color: darkMode ? '#94a3b8' : C.muted }}>
+            <span style={{ width:14, height:14, borderRadius:3, background:bg, display:'inline-block', border:'1px solid rgba(0,0,0,0.1)', flexShrink:0 }} />{t}
           </span>
         ))}
-        <span style={{ fontSize:'0.4375rem', color: darkMode ? '#94a3b8' : C.muted }}>· Drag to block ranges · Click to view</span>
+        <span style={{ fontSize:'13px', color: darkMode ? '#94a3b8' : C.muted }}>· Drag to block ranges · Click to view</span>
       </div>
 
       {blockTip && (
@@ -1568,7 +1702,7 @@ export default function Dashboard() {
       )}
 
       {/* ── Overlays ── */}
-      {calDateModal  && <DateDetailModal date={calDateModal} appointments={appointments.filter(a => a.date === calDateModal)} onClose={() => setCalDateModal(null)} onApprove={setStatus} onReject={setStatus} />}
+      {calDateModal  && <DateSidePanel date={calDateModal} appointments={appointments.filter(a => a.date === calDateModal)} onClose={() => setCalDateModal(null)} onApprove={setStatus} onReject={setStatus} onAddEvent={appt => setAppointments(p => [...p, appt])} />}
       {detailAppt    && <PatientPanel    appt={detailAppt} onClose={() => setDetailAppt(null)} onApprove={() => { setStatus(detailAppt.id,'confirmed'); setDetailAppt(null) }} onReject={() => { setStatus(detailAppt.id,'rejected'); setDetailAppt(null) }} />}
       {aiBriefAppt   && <AiBriefModal    appt={aiBriefAppt} onClose={() => setAiBriefAppt(null)} />}
       {(showDelay || delayAppt) && <DelayModal todayAppts={delayAppt ? [delayAppt] : todayAppts} onClose={() => { setShowDelay(false); setDelayAppt(null) }} />}
