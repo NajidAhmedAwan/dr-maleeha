@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { Z_INDEX } from '../constants/zIndex'
 import { PARTNERSHIP_TYPES, BUDGET_RANGES, addInquiry } from '../data/brandInquiries'
 
@@ -96,6 +97,10 @@ export default function Brands() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: 'system-ui,-apple-system,sans-serif', color: C.text }}>
+      <Helmet>
+        <title>Brand Partnerships | Dr. Maleeha Jawaid</title>
+        <meta name="description" content="Partner with Dr. Maleeha Jawaid — clinical &amp; aesthetic dermatologist. Submit your brand partnership inquiry for skincare collaborations." />
+      </Helmet>
 
       {/* ── Navbar ── */}
       <nav style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '0.875rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: Z_INDEX.DROPDOWN }}>
@@ -104,6 +109,8 @@ export default function Brands() {
         </button>
         <span style={{ fontSize: '0.625rem', fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Brand Partnerships</span>
       </nav>
+
+      <main id="main-content">
 
       {/* ── Hero ── */}
       <div style={{ background: `linear-gradient(135deg, #071a2e 0%, #0a2240 50%, #0f766e 100%)`, padding: 'clamp(3rem,8vw,6rem) 1.5rem', textAlign: 'center' }}>
@@ -213,8 +220,8 @@ export default function Brands() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.5rem', fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.375rem' }}>Partnership Type *</label>
-                <select value={form.partnershipType} onChange={e => { set('partnershipType', e.target.value); clearE('partnershipType') }}
+                <label htmlFor="partnership-type" style={{ display: 'block', fontSize: '0.5rem', fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.375rem' }}>Partnership Type *</label>
+                <select id="partnership-type" value={form.partnershipType} onChange={e => { set('partnershipType', e.target.value); clearE('partnershipType') }}
                   style={{ width: '100%', padding: '0.75rem', border: `1.5px solid ${errors.partnershipType ? '#dc2626' : form.partnershipType ? C.teal : C.border}`, borderRadius: 9, fontSize: '0.875rem', color: form.partnershipType ? C.text : C.muted, background: C.white, boxSizing: 'border-box', outline: 'none', cursor: 'pointer' }}>
                   <option value="">Select partnership type…</option>
                   {PARTNERSHIP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -232,8 +239,8 @@ export default function Brands() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.5rem', fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.375rem' }}>Budget Range</label>
-                  <select value={form.budgetRange} onChange={e => set('budgetRange', e.target.value)}
+                  <label htmlFor="budget-range" style={{ display: 'block', fontSize: '0.5rem', fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.375rem' }}>Budget Range</label>
+                  <select id="budget-range" value={form.budgetRange} onChange={e => set('budgetRange', e.target.value)}
                     style={{ width: '100%', padding: '0.75rem', border: `1.5px solid ${form.budgetRange ? C.teal : C.border}`, borderRadius: 9, fontSize: '0.8125rem', color: form.budgetRange ? C.text : C.muted, background: C.white, boxSizing: 'border-box', outline: 'none', cursor: 'pointer' }}>
                     <option value="">Select range…</option>
                     {BUDGET_RANGES.map(b => <option key={b} value={b}>{b}</option>)}
@@ -254,6 +261,8 @@ export default function Brands() {
           </div>
         )}
       </section>
+
+      </main>
     </div>
   )
 }

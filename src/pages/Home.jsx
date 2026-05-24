@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import ChatbotWidget from '../components/ChatbotWidget'
 import { Z_INDEX } from '../constants/zIndex'
 
@@ -206,14 +207,14 @@ function ProcedureCard({ proc, onBook, onOpen }) {
           </div>
         </div>
         <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.3rem 0.5rem', background: C.bg }}>
-          <button onClick={() => setCi((ci - 1 + n) % n)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.125rem', lineHeight: 1, padding: '0 4px' }}>‹</button>
+          <button onClick={() => setCi((ci - 1 + n) % n)} aria-label="Previous case" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.125rem', lineHeight: 1, padding: '10px 8px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
           <div style={{ textAlign: 'center' }}>
             <p style={{ margin: 0, fontSize: '0.6875rem', fontWeight: 600, color: C.text }}>{proc.pairs[ci].label}</p>
             <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 3 }}>
               {proc.pairs.map((_, i) => <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: i === ci ? C.teal : C.border, display: 'inline-block', transition: 'background 0.2s' }} />)}
             </div>
           </div>
-          <button onClick={() => setCi((ci + 1) % n)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.125rem', lineHeight: 1, padding: '0 4px' }}>›</button>
+          <button onClick={() => setCi((ci + 1) % n)} aria-label="Next case" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.125rem', lineHeight: 1, padding: '10px 8px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
         </div>
       </div>
 
@@ -290,7 +291,7 @@ function ProductModal({ product, onClose }) {
             <p style={{ margin: 0, fontSize: '0.625rem', color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{product.brand}</p>
             <h2 style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 800, color: C.text, letterSpacing: '-0.01em' }}>{product.shortName}</h2>
           </div>
-          <button onClick={onClose} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, width: 36, height: 36, cursor: 'pointer', color: C.muted, fontSize: '1.125rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
+          <button onClick={onClose} aria-label="Close" style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, width: 44, height: 44, cursor: 'pointer', color: C.muted, fontSize: '1.125rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
         </div>
 
         {/* Body — two columns */}
@@ -383,7 +384,7 @@ function ProcedureModal({ proc, onClose, onBook }) {
             <span style={{ fontSize: '1.375rem' }}>{proc.icon}</span>
             <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: C.text, letterSpacing: '-0.01em' }}>{proc.name}</h2>
           </div>
-          <button onClick={onClose} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, width: 32, height: 32, cursor: 'pointer', color: C.muted, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
+          <button onClick={onClose} aria-label="Close" style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, width: 44, height: 44, cursor: 'pointer', color: C.muted, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
         </div>
 
         <div style={{ padding: '1rem 1.25rem 2.5rem' }}>
@@ -409,14 +410,14 @@ function ProcedureModal({ proc, onClose, onBook }) {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.75rem', background: C.bg }}>
-              <button onClick={() => setCi((ci - 1 + n) % n)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.25rem', lineHeight: 1, padding: '0 4px' }}>‹</button>
+              <button onClick={() => setCi((ci - 1 + n) % n)} aria-label="Previous case" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.25rem', lineHeight: 1, padding: '10px 8px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
               <div style={{ textAlign: 'center' }}>
                 <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 600, color: C.text }}>{proc.pairs[ci].label}</p>
                 <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginTop: 4 }}>
                   {proc.pairs.map((_, i) => <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i === ci ? C.teal : C.border, display: 'inline-block', transition: 'background 0.2s' }} />)}
                 </div>
               </div>
-              <button onClick={() => setCi((ci + 1) % n)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.25rem', lineHeight: 1, padding: '0 4px' }}>›</button>
+              <button onClick={() => setCi((ci + 1) % n)} aria-label="Next case" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.25rem', lineHeight: 1, padding: '10px 8px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
             </div>
           </div>
 
@@ -503,6 +504,10 @@ export default function Home() {
 
   return (
     <div style={{ fontFamily: 'system-ui,-apple-system,sans-serif', color: C.text, background: C.bg, width: '100%', display: 'block' }}>
+      <Helmet>
+        <title>Dr. Maleeha Jawaid | In Your Face by Maleeha — Dermatologist Karachi &amp; Islamabad</title>
+        <meta name="description" content="Book aesthetic dermatology treatments with Dr. Maleeha Jawaid. Botox, fillers, hydrafacial, laser, microneedling in Karachi &amp; Islamabad. Real results, no fluff." />
+      </Helmet>
 
       {/* ── Nav (glassmorphism, fixed over hero) ── */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: Z_INDEX.FLOATING_BAR, background: scrolled ? 'rgba(7,26,46,0.96)' : 'rgba(7,26,46,0.45)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: scrolled ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.04)', transition: 'background 0.3s, border-color 0.3s' }}>
@@ -529,6 +534,8 @@ export default function Home() {
           </div>
         </div>
       </nav>
+
+      <main id="main-content">
 
       {/* ── Hero Carousel ── */}
       <section style={{ position: 'relative', height: '100svh', minHeight: 560, overflow: 'hidden', color: C.white }}>
@@ -575,10 +582,11 @@ export default function Home() {
           </div>
 
           {/* Dot navigation */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.75rem' }}>
             {SLIDES.map((_, i) => (
               <button key={i} onClick={() => setSlide(i)}
-                style={{ width: i === slide ? 24 : 8, height: 8, borderRadius: 4, border: 'none', background: i === slide ? C.teal : 'rgba(255,255,255,0.35)', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
+                aria-label={`Go to slide ${i + 1}`}
+                style={{ width: i === slide ? 24 : 8, height: 8, borderRadius: 4, border: 'none', background: i === slide ? C.teal : 'rgba(255,255,255,0.35)', cursor: 'pointer', transition: 'all 0.3s', padding: '10px 4px', boxSizing: 'content-box' }} />
             ))}
           </div>
 
@@ -595,9 +603,11 @@ export default function Home() {
 
         {/* Arrow nav */}
         <button onClick={() => setSlide(s => (s - 1 + SLIDES.length) % SLIDES.length)}
-          style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 40, height: 40, color: C.white, fontSize: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>‹</button>
+          aria-label="Previous slide"
+          style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 44, height: 44, color: C.white, fontSize: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>‹</button>
         <button onClick={() => setSlide(s => (s + 1) % SLIDES.length)}
-          style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 40, height: 40, color: C.white, fontSize: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>›</button>
+          aria-label="Next slide"
+          style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 44, height: 44, color: C.white, fontSize: '1.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>›</button>
       </section>
 
       {/* ── How It Works ── */}
@@ -730,6 +740,8 @@ export default function Home() {
 
       <ChatbotWidget />
 
+      </main>
+
       {/* ── Footer ── */}
       <footer id="contact" style={{ background: '#0d4a6e', borderTop: '3px solid #0d9488', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
         {/* Large name header */}
@@ -738,7 +750,7 @@ export default function Home() {
           <div style={{ position: 'relative', zIndex: Z_INDEX.BASE }}>
             <div style={{ fontSize: 'clamp(2.5rem,8vw,4.5rem)', fontWeight: 900, color: C.white, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '0.5rem' }}>Dr. Maleeha Jawaid</div>
             <p style={{ fontSize: '0.8125rem', color: C.tealRing, marginBottom: '0.375rem', fontWeight: 600, letterSpacing: '0.02em' }}>In Your Face by Maleeha</p>
-            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)', marginBottom: '1.25rem', letterSpacing: '0.01em' }}>MBBS · MCPS Dermatology (PNS Shifa) · Fellowship · PAADS Member · Islamabad</p>
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.80)', marginBottom: '1.25rem', letterSpacing: '0.01em' }}>MBBS · MCPS Dermatology (PNS Shifa) · Fellowship · PAADS Member · Islamabad</p>
             <a href="https://instagram.com/inyourfacebymaleeha" target="_blank" rel="noopener noreferrer"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(153,246,228,0.12)', border: '1px solid rgba(153,246,228,0.25)', borderRadius: 100, padding: '0.5rem 1.25rem', color: C.tealRing, fontSize: '0.875rem', fontWeight: 700, textDecoration: 'none' }}>
               📸 @inyourfacebymaleeha
@@ -751,7 +763,7 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
             {/* Locations */}
             <div>
-              <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Clinic Locations</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Clinic Locations</p>
               {[['📍','DHA Phase 6, Karachi'],['📍','F-7 Markaz, Islamabad'],['💻','Online · WhatsApp / Zoom']].map(([icon, loc]) => (
                 <div key={loc} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.625rem', alignItems: 'flex-start' }}>
                   <span style={{ fontSize: '0.875rem', flexShrink: 0, marginTop: 1 }}>{icon}</span>
@@ -761,18 +773,18 @@ export default function Home() {
             </div>
             {/* Hours */}
             <div>
-              <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Clinic Hours</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 800, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Clinic Hours</p>
               {[['Karachi','Mon – Sat · 10 AM – 7 PM'],['Islamabad','Tue, Thu, Sat · 11 AM – 5 PM'],['Online','Mon – Sun · By appointment']].map(([city, hrs]) => (
                 <div key={city} style={{ marginBottom: '0.625rem' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.tealRing }}>{city}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>{hrs}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.85)' }}>{hrs}</div>
                 </div>
               ))}
             </div>
             {/* CTA */}
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <p style={{ fontSize: '0.9375rem', fontWeight: 700, color: C.white, marginBottom: '0.5rem', lineHeight: 1.4 }}>Let's sort your skin out.</p>
-              <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.65)', marginBottom: '1.25rem', lineHeight: 1.6 }}>Book in under 3 minutes. I'll see you in clinic — or on screen.</p>
+              <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)', marginBottom: '1.25rem', lineHeight: 1.6 }}>Book in under 3 minutes. I'll see you in clinic — or on screen.</p>
               <button onClick={() => navigate('/booking')} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.9375rem 1.5rem', borderRadius: 11, fontWeight: 700, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 6px 24px rgba(13,148,136,0.4)', textAlign: 'center' }}>
                 Book Appointment →
               </button>
@@ -782,10 +794,10 @@ export default function Home() {
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', margin: 0 }}>© 2026 Dr. Maleeha Jawaid · In Your Face by Maleeha — Honest skincare. Real results. No filters.</p>
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.75rem', margin: 0 }}>© 2026 Dr. Maleeha Jawaid · In Your Face by Maleeha — Honest skincare. Real results. No filters.</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
               <Link to="/brands" style={{ color: '#99f6e4', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>Work with Dr. Maleeha →</Link>
-              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', margin: 0 }}>Islamabad · Karachi · Online</p>
+              <p style={{ color: 'rgba(255,255,255,0.70)', fontSize: '0.75rem', margin: 0 }}>Islamabad · Karachi · Online</p>
             </div>
           </div>
         </div>

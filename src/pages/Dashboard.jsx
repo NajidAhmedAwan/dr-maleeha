@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { Helmet } from 'react-helmet-async'
 import AIAssistant from './AIAssistant'
 import { Z_INDEX } from '../constants/zIndex'
 import { getInquiries, updateInquiry, STATUSES } from '../data/brandInquiries'
@@ -1937,7 +1938,12 @@ export default function Dashboard() {
   const STATUS_TABS = [['all','All'],['pending','Pending'],['confirmed','Confirmed'],['rejected','Rejected']]
 
   return (
-    <div style={{ background: darkMode ? '#0d1b2a' : C.bg, fontFamily:'system-ui,-apple-system,sans-serif', minHeight:'100vh' }}>
+    <main id="main-content" style={{ background: darkMode ? '#0d1b2a' : C.bg, fontFamily:'system-ui,-apple-system,sans-serif', minHeight:'100vh', display:'block' }}>
+      <Helmet>
+        <title>Dashboard | Dr. Maleeha</title>
+        <meta name="description" content="Practice management dashboard." />
+        <meta name="robots" content="noindex,nofollow" />
+      </Helmet>
 
       {/* ── Header ── */}
       <div style={{ background:`linear-gradient(135deg,#0f766e,${C.teal})`, padding:'0.75rem 1.125rem', color:C.white }}>
@@ -2147,6 +2153,6 @@ export default function Dashboard() {
       {aiBriefAppt   && <AiBriefModal    appt={aiBriefAppt} onClose={() => setAiBriefAppt(null)} />}
       {(showDelay || delayAppt) && <DelayModal todayAppts={delayAppt ? [delayAppt] : todayAppts} onClose={() => { setShowDelay(false); setDelayAppt(null) }} />}
       {viewingProd   && <ProductViewModal product={viewingProd} onClose={() => setViewingProd(null)} />}
-    </div>
+    </main>
   )
 }

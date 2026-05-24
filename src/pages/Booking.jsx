@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { findPatientById } from '../data/patients'
 import { googleCalendarUrl, outlookCalendarUrl, downloadIcs } from '../utils/calendar'
 import { generatePatientId } from '../utils/patientId'
@@ -16,7 +17,7 @@ const N = {
   borderSel: '#0d9488',
   text:      '#e2e8f0',
   textDim:   'rgba(255,255,255,0.6)',
-  muted:     'rgba(255,255,255,0.35)',
+  muted:     'rgba(255,255,255,0.55)',
   teal:      '#0d9488',
   tealLight: 'rgba(13,148,136,0.14)',
   tealBord:  'rgba(13,148,136,0.4)',
@@ -599,8 +600,12 @@ export default function Booking() {
 
     return (
       <>
+        <Helmet>
+          <title>Book Appointment | Dr. Maleeha Jawaid</title>
+          <meta name="description" content="Book your dermatology appointment with Dr. Maleeha. Karachi, Islamabad, or online consultation. Simple booking, confirmed slot, deposit pricing." />
+        </Helmet>
         {showConfetti && <Confetti />}
-        <div style={{ minHeight:'100vh', background:N.bg, display:'flex', alignItems:'center', justifyContent:'center', padding:'1.5rem', fontFamily:'system-ui,-apple-system,sans-serif' }}>
+        <main id="main-content" style={{ minHeight:'100vh', background:N.bg, display:'flex', alignItems:'center', justifyContent:'center', padding:'1.5rem', fontFamily:'system-ui,-apple-system,sans-serif' }}>
           <div style={{ background:N.card, border:`1px solid ${N.border}`, borderRadius:20, padding:'2.5rem 2rem', maxWidth:440, width:'100%', textAlign:'center', boxShadow:'0 24px 60px rgba(0,0,0,0.5)', animation:'app-section-in 0.4s ease' }}>
             <div style={{ width:72, height:72, background:'rgba(13,148,136,0.15)', border:`2px solid ${N.teal}`, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 1.25rem', fontSize:'2rem', animation:'app-check-pop 0.5s ease' }}>✓</div>
             <h2 style={{ fontSize:'1.375rem', fontWeight:800, color:N.text, marginBottom:'0.5rem', letterSpacing:'-0.02em' }}>
@@ -702,7 +707,7 @@ export default function Booking() {
               Back to Home
             </button>
           </div>
-        </div>
+        </main>
       </>
     )
   }
@@ -769,9 +774,9 @@ export default function Booking() {
 
       {/* WhatsApp */}
       <div>
-        <label style={{ display:'block', fontSize:'0.5rem', fontWeight:800, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.375rem' }}>WhatsApp</label>
+        <label htmlFor="country-code" style={{ display:'block', fontSize:'0.5rem', fontWeight:800, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.375rem' }}>WhatsApp</label>
         <div style={{ display:'flex', gap:'0.5rem' }}>
-          <select value={form.countryCode} onChange={e => { set('countryCode', e.target.value); set('phone','') }}
+          <select id="country-code" value={form.countryCode} onChange={e => { set('countryCode', e.target.value); set('phone','') }}
             style={{ padding:'0.8125rem 0.5rem', border:`1.5px solid ${N.border}`, borderRadius:10, fontSize:'0.875rem', color:N.text, background:N.card, cursor:'pointer', outline:'none' }}>
             {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
           </select>
@@ -1080,7 +1085,11 @@ export default function Booking() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight:'100vh', background:N.bg, fontFamily:'system-ui,-apple-system,sans-serif', color:N.text }}>
+    <main id="main-content" style={{ minHeight:'100vh', background:N.bg, fontFamily:'system-ui,-apple-system,sans-serif', color:N.text, display:'block' }}>
+      <Helmet>
+        <title>Book Appointment | Dr. Maleeha Jawaid</title>
+        <meta name="description" content="Book your dermatology appointment with Dr. Maleeha. Karachi, Islamabad, or online consultation. Simple booking, confirmed slot, deposit pricing." />
+      </Helmet>
 
       {/* ── Top bar ── */}
       <div style={{ background:N.bg, borderBottom:`1px solid ${N.border}`, padding:'0.75rem 1.25rem', display:'flex', alignItems:'center', gap:'0.875rem', position:'sticky', top:0, zIndex:Z_INDEX.STICKY_HEADER }}>
@@ -1256,6 +1265,6 @@ export default function Booking() {
           </button>
         </div>
       )}
-    </div>
+    </main>
   )
 }
