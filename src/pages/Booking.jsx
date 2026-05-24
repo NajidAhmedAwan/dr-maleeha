@@ -8,6 +8,7 @@ import { MapPin, Video } from 'lucide-react'
 import { Z_INDEX } from '../constants/zIndex'
 import { getSlotsForDate, isCityOpenOn } from '../utils/slots'
 import { calculateDeposit } from '../utils/deposit'
+import ContactForm from '../components/ContactForm'
 
 // ── Color tokens (dark navy theme) ────────────────────────────────────────────
 const N = {
@@ -597,6 +598,19 @@ export default function Booking() {
     setTimeout(() => setShowConfetti(false), 4000)
   }
 
+  // ContactForm wiring: derive from form state so lookup pre-fill propagates automatically
+  const contactDetails = { name: form.name, phone: form.phone, email: form.email }
+  const handleSetContactDetails = (d) => setForm(f => ({ ...f, name: d.name, phone: d.phone, email: d.email }))
+  const handleConfirmBooking = () => {
+    const ref = genRef()
+    const pid = patientType === 'returning' && foundPatient ? foundPatient.id : generatePatientId()
+    setBookingRef(ref)
+    setPatientId(pid)
+    setStep('confirmation')
+    setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), 4000)
+  }
+
   // ── Confirmation screen ──────────────────────────────────────────────────
   if (step === 'confirmation') {
     const waMsg      = encodeURIComponent(`I've booked a ${form.procedure} appointment at Dr. Maleeha Jawaid's clinic on ${form.date} at ${form.time} at ${form.city}. Ref: ${bookingRef}`)
@@ -627,7 +641,7 @@ export default function Booking() {
         </Helmet>
         {showConfetti && <Confetti />}
         <main id="main-content" style={{ minHeight:'100vh', background:N.bg, display:'flex', alignItems:'center', justifyContent:'center', padding:'1.5rem', fontFamily:'system-ui,-apple-system,sans-serif' }}>
-          <div style={{ background:N.card, border:`1px solid ${N.border}`, borderRadius:20, padding:'2.5rem 2rem', maxWidth:440, width:'100%', textAlign:'center', boxShadow:'0 24px 60px rgba(0,0,0,0.5)', animation:'app-section-in 0.4s ease' }}>
+          <div data-testid="booking-confirmation" style={{ background:N.card, border:`1px solid ${N.border}`, borderRadius:20, padding:'2.5rem 2rem', maxWidth:440, width:'100%', textAlign:'center', boxShadow:'0 24px 60px rgba(0,0,0,0.5)', animation:'app-section-in 0.4s ease' }}>
             <div style={{ width:72, height:72, background:'rgba(13,148,136,0.15)', border:`2px solid ${N.teal}`, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 1.25rem', fontSize:'2rem', animation:'app-check-pop 0.5s ease' }}>✓</div>
             <h2 style={{ fontSize:'1.375rem', fontWeight:800, color:N.text, marginBottom:'0.5rem', letterSpacing:'-0.02em' }}>
               {form.isWaitlisted ? 'Waitlisted!' : 'Booking Confirmed!'}
@@ -641,7 +655,7 @@ export default function Booking() {
             {/* Prominent patient number card */}
             <div style={{ background:'rgba(13,148,136,0.12)', border:`2px solid ${N.tealBord}`, borderRadius:14, padding:'1.25rem', marginBottom:'1rem' }}>
               <div style={{ fontSize:'0.45rem', color:N.teal, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:'0.5rem' }}>Your Patient Number</div>
-              <div style={{ fontSize:'1.75rem', fontWeight:900, color:N.teal, letterSpacing:'0.1em', marginBottom:'0.375rem' }}>{patientId}</div>
+              <div data-testid="booking-reference" style={{ fontSize:'1.75rem', fontWeight:900, color:N.teal, letterSpacing:'0.1em', marginBottom:'0.375rem' }}>{patientId}</div>
               <div style={{ fontSize:'0.625rem', color:N.muted }}>
                 {patientType === 'returning' ? `Welcome back, ${form.name}.` : 'Save this for future bookings.'}
               </div>
@@ -1071,7 +1085,13 @@ export default function Booking() {
       )}
 
       {/* Contact form — always for new; only after lookup for returning */}
-      {(patientType === 'new' || foundPatient) && contactFormBody}
+      {(patientType === 'new' || foundPatient) && (
+        <ContactForm
+          value={contactDetails}
+          onChange={handleSetContactDetails}
+          onSubmit={handleConfirmBooking}
+        />
+      )}
     </div>
   )
 
@@ -1131,10 +1151,12 @@ export default function Booking() {
           {selItem?.price && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.teal, fontWeight:700 }}>{selItem.price}</span></>}
           {!form.city && !form.procedure && <span style={{ fontSize:'0.6875rem', color:N.muted, fontStyle:'italic' }}>Select city to begin</span>}
         </div>
-        <button onClick={handleFooterBtn} disabled={!stepCanContinue}
-          style={{ flexShrink:0, padding:'0.75rem 1.25rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.06)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', transition:'all 0.2s', boxShadow: stepCanContinue ? '0 4px 20px rgba(13,148,136,0.4)' : 'none', whiteSpace:'nowrap' }}>
-          {step === 'contact' ? (form.isWaitlisted ? 'Join Waitlist ✓' : 'Confirm Booking →') : 'Continue →'}
-        </button>
+        {step !== 'contact' && (
+          <button onClick={handleFooterBtn} disabled={!stepCanContinue}
+            style={{ flexShrink:0, padding:'0.75rem 1.25rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.06)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', transition:'all 0.2s', boxShadow: stepCanContinue ? '0 4px 20px rgba(13,148,136,0.4)' : 'none', whiteSpace:'nowrap' }}>
+            Continue →
+          </button>
+        )}
       </div>
     </div>
   )
@@ -1349,10 +1371,12 @@ export default function Booking() {
                 {selItem?.price || 'Choose options above'}
               </div>
             </div>
-            <button onClick={handleFooterBtn} disabled={!stepCanContinue}
-              style={{ flexShrink:0, padding:'0.75rem 1.375rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.07)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', whiteSpace:'nowrap' }}>
-              {step === 'contact' ? (form.isWaitlisted ? 'Join Waitlist' : 'Confirm') : 'Continue →'}
-            </button>
+            {step !== 'contact' && (
+              <button onClick={handleFooterBtn} disabled={!stepCanContinue}
+                style={{ flexShrink:0, padding:'0.75rem 1.375rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.07)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', whiteSpace:'nowrap' }}>
+                Continue →
+              </button>
+            )}
           </div>
         </div>
       )}

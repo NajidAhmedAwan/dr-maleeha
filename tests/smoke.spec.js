@@ -119,3 +119,80 @@ function getNextWeekday(targetDay) {
   d.setDate(d.getDate() + diff);
   return { day: d.getDate(), date: d };
 }
+
+const BASE_URL = process.env.TEST_ENV === 'live' ? 'https://dr-maleeha.vercel.app' : 'http://localhost:5173';
+
+test.describe('Booking — contact form validation (Batch 3)', () => {
+  async function navigateToContactStep(page) {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    const future = new Date();
+    future.setDate(future.getDate() + 5);
+    await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
+    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+    await page.waitForSelector('[data-testid="contact-form"]');
+  }
+
+  test('Empty submit shows name and phone errors', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="submit-booking"]').click();
+    await expect(page.locator('[data-testid="error-name"]')).toBeVisible();
+    await expect(page.locator('[data-testid="error-phone"]')).toBeVisible();
+    await expect(page.locator('[data-testid="form-summary-error"]')).toBeVisible();
+  });
+
+  test('Invalid phone shows error', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="input-name"]').fill('Ayesha Khan');
+    await page.locator('[data-testid="input-phone"]').fill('12345');
+    await page.locator('[data-testid="input-phone"]').blur();
+    await expect(page.locator('[data-testid="error-phone"]')).toContainText(/valid pakistani mobile/i);
+  });
+
+  test('Invalid email shows error', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="input-email"]').fill('not-an-email');
+    await page.locator('[data-testid="input-email"]').blur();
+    await expect(page.locator('[data-testid="error-email"]')).toBeVisible();
+  });
+
+  test('Empty email is allowed (optional field)', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="input-name"]').fill('Ayesha Khan');
+    await page.locator('[data-testid="input-phone"]').fill('03001234567');
+    await page.locator('[data-testid="submit-booking"]').click();
+    await expect(page.locator('[data-testid="booking-confirmation"]')).toBeVisible();
+  });
+
+  test('Valid Pakistani phone formats accepted (0300, +92, with spaces)', async ({ page }) => {
+    const validFormats = ['03001234567', '+923001234567', '0300 1234567'];
+    for (const phone of validFormats) {
+      await navigateToContactStep(page);
+      await page.locator('[data-testid="input-name"]').fill('Test User');
+      await page.locator('[data-testid="input-phone"]').fill(phone);
+      await page.locator('[data-testid="input-phone"]').blur();
+      // No error should appear
+      await expect(page.locator('[data-testid="error-phone"]')).not.toBeVisible();
+      // Clean up storage between iterations
+      await page.evaluate(() => localStorage.clear());
+    }
+  });
+
+  test('Name with digits is rejected', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="input-name"]').fill('Ayesha123');
+    await page.locator('[data-testid="input-name"]').blur();
+    await expect(page.locator('[data-testid="error-name"]')).toContainText(/invalid characters/i);
+  });
+
+  test('Full valid form submits and reaches confirmation', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="input-name"]').fill('Ayesha Khan');
+    await page.locator('[data-testid="input-phone"]').fill('0300 1234567');
+    await page.locator('[data-testid="input-email"]').fill('ayesha@example.com');
+    await page.locator('[data-testid="submit-booking"]').click();
+    await expect(page.locator('[data-testid="booking-confirmation"]')).toBeVisible();
+    await expect(page.locator('[data-testid="booking-reference"]')).toContainText(/^MAL-\d{4}$/);
+  });
+});
