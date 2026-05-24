@@ -283,9 +283,34 @@ function AddEventModal({ date, onClose, onSave }) {
 
 // ── Date Side Panel (calendar date click) ─────────────────────────────────────
 function DateSidePanel({ date, appointments, onClose, onApprove, onReject, onAddEvent }) {
-  const [showAdd, setShowAdd] = useState(false)
+  const [showAdd,         setShowAdd]         = useState(false)
+  const [notes,           setNotes]           = useState([])
+  const [noteInput,       setNoteInput]       = useState('')
+  const [editingNoteId,   setEditingNoteId]   = useState(null)
+  const [editingNoteText, setEditingNoteText] = useState('')
+
   const sorted = [...appointments].sort((a, b) => tToMin(a.time) - tToMin(b.time))
   const holidayName = PK_HOLIDAY_NAMES[date]
+
+  const addNote = () => {
+    const text = noteInput.trim()
+    if (!text) return
+    const now = new Date()
+    const ts  = now.toLocaleTimeString('en-PK', { hour:'2-digit', minute:'2-digit' })
+    setNotes(prev => [...prev, { id: Date.now(), text, timestamp: ts, checked: false }])
+    setNoteInput('')
+  }
+
+  const toggleNote = id =>
+    setNotes(prev => prev.map(n => n.id === id ? { ...n, checked: !n.checked } : n))
+
+  const startEdit = note => { setEditingNoteId(note.id); setEditingNoteText(note.text) }
+
+  const saveEdit = id => {
+    const text = editingNoteText.trim()
+    if (text) setNotes(prev => prev.map(n => n.id === id ? { ...n, text } : n))
+    setEditingNoteId(null)
+  }
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:500, display:'flex', justifyContent:'flex-end' }}>
@@ -338,6 +363,51 @@ function DateSidePanel({ date, appointments, onClose, onApprove, onReject, onAdd
               </div>
             )
           })}
+
+          {/* ── Notes ── */}
+          <div style={{ marginTop:'0.75rem', paddingTop:'0.625rem', borderTop:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:'0.4375rem', fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.375rem' }}>Notes</div>
+
+            {notes.map(note => (
+              <div key={note.id} style={{ display:'flex', alignItems:'flex-start', gap:'0.375rem', marginBottom:'0.3rem' }}>
+                <input
+                  type="checkbox"
+                  checked={note.checked}
+                  onChange={() => toggleNote(note.id)}
+                  style={{ marginTop:'0.175rem', flexShrink:0, cursor:'pointer', accentColor:C.teal }}
+                />
+                <div style={{ flex:1, minWidth:0 }}>
+                  {editingNoteId === note.id ? (
+                    <input
+                      autoFocus
+                      value={editingNoteText}
+                      onChange={e => setEditingNoteText(e.target.value)}
+                      onBlur={() => saveEdit(note.id)}
+                      onKeyDown={e => { if (e.key === 'Enter') saveEdit(note.id); if (e.key === 'Escape') setEditingNoteId(null) }}
+                      style={{ width:'100%', padding:'0.15rem 0.3rem', border:`1.5px solid ${C.teal}`, borderRadius:4, fontSize:'0.5rem', color:C.text, outline:'none', boxSizing:'border-box' }}
+                    />
+                  ) : (
+                    <span
+                      onClick={() => !note.checked && startEdit(note)}
+                      style={{ fontSize:'0.5rem', color:C.text, cursor: note.checked ? 'default' : 'text', display:'block', wordBreak:'break-word', textDecoration: note.checked ? 'line-through' : 'none', opacity: note.checked ? 0.45 : 1 }}>
+                      {note.text}
+                    </span>
+                  )}
+                  <span style={{ fontSize:'0.375rem', color:C.muted }}>{note.timestamp}</span>
+                </div>
+              </div>
+            ))}
+
+            <div style={{ display:'flex', alignItems:'center', gap:'0.25rem', marginTop:'0.25rem' }}>
+              <input
+                value={noteInput}
+                onChange={e => setNoteInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') addNote() }}
+                placeholder="+ Add Note"
+                style={{ flex:1, padding:'0.3rem 0.5rem', border:`1px solid ${C.border}`, borderRadius:6, fontSize:'0.5rem', color:C.text, outline:'none', background:'transparent', fontFamily:'inherit' }}
+              />
+            </div>
+          </div>
         </div>
 
         <div style={{ padding:'0.5rem 0.75rem', borderTop:`1px solid ${C.border}`, flexShrink:0 }}>
