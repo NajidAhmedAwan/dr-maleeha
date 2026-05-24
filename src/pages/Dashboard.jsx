@@ -1320,7 +1320,7 @@ export default function Dashboard() {
   const [editingProd,  setEditingProd]  = useState(null)
   const [prodForm,     setProdForm]     = useState({ name:'', desc:'', imageUrl:'', pdpLink:'', discountCode:'' })
   const [viewingProd,  setViewingProd]  = useState(null)
-  const [showShop,     setShowShop]     = useState(false)
+  const [showShop,     setShowShop]     = useState(false) // kept for legacy; shop now has its own tab
   const [activeView,   setActiveView]   = useState('calendar')
   const [darkMode,     setDarkMode]     = useState(() => localStorage.getItem('drm_dark') === 'true')
 
@@ -1375,7 +1375,6 @@ export default function Dashboard() {
             <h1 style={{ fontSize:'0.875rem', fontWeight:800, color:C.white, margin:0 }}>Dr. Maleeha Jawaid — Dashboard</h1>
           </div>
           <div style={{ display:'flex', gap:'0.3rem', alignItems:'center' }}>
-            <button onClick={() => setShowShop(s => !s)} style={{ background: showShop ? C.tealDark : 'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.55rem', borderRadius:6, fontSize:'0.5rem', fontWeight:700, cursor:'pointer' }}>🛍 Shop</button>
             <button onClick={() => setShowDelay(true)} style={{ background:'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.55rem', borderRadius:6, fontSize:'0.5rem', fontWeight:700, cursor:'pointer' }}>📢 Delay</button>
             <button onClick={toggleDark} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={{ background:'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.45rem', borderRadius:6, fontSize:'0.875rem', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>{darkMode ? '☀️' : '🌙'}</button>
             <div style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:'0.7rem' }}>M</div>
@@ -1386,7 +1385,7 @@ export default function Dashboard() {
       {/* ── View Tabs ── */}
       <div style={{ background: darkMode ? '#1a2744' : C.white, borderBottom:`1px solid ${C.border}` }}>
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.5rem 1.125rem', display:'flex', gap:'0.5rem' }}>
-          {[['calendar','📅','Calendar'],['finance','💰','Finance'],['ai','✦','AI Assistant']].map(([v, icon, label]) => {
+          {[['calendar','📅','Calendar'],['finance','💰','Finance'],['shop','🛍','Shop'],['ai','✦','AI Assistant']].map(([v, icon, label]) => {
             const active = activeView === v
             return (
               <button key={v} onClick={() => setActiveView(v)} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.625rem 1.375rem', border:`2px solid ${active ? C.teal : C.border}`, borderRadius:10, background: active ? C.teal : C.white, color: active ? C.white : C.muted, fontWeight: active ? 700 : 500, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.18s', boxShadow: active ? '0 2px 12px rgba(13,148,136,0.3)' : 'none' }}>
@@ -1465,71 +1464,108 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Shop ── */}
-          {showShop && (
-            <div style={{ marginTop:'1rem' }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.625rem' }}>
-                <div>
-                  <h2 style={{ fontSize:'0.8125rem', fontWeight:800, color:C.text, margin:0 }}>🛍 Products I Use & Recommend</h2>
-                  <p style={{ fontSize:'0.5rem', color:C.muted, margin:0 }}>Shown on the homepage shop section</p>
-                </div>
-                <button onClick={startAdd} style={{ background:C.teal, color:C.white, border:'none', padding:'0.4rem 0.75rem', borderRadius:8, fontWeight:700, fontSize:'0.5625rem', cursor:'pointer' }}>+ Add Product</button>
-              </div>
-
-              {editingProd && (
-                <div style={{ background:C.tealLight, border:`1px solid ${C.tealRing}`, borderRadius:11, padding:'0.875rem', marginBottom:'0.75rem' }}>
-                  <p style={{ fontWeight:700, fontSize:'0.6875rem', color:C.tealDark, marginBottom:'0.625rem' }}>{editingProd === 'new' ? 'New Product' : 'Edit Product'}</p>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.45rem' }}>
-                    {[['Product Name *','name','text'],['Short Description','desc','text'],['Image URL','imageUrl','url'],['Daraz/Product URL','pdpLink','url'],['Discount Code','discountCode','text']].map(([label, key, type]) => (
-                      <div key={key} style={{ gridColumn: key === 'desc' ? '1/-1' : undefined }}>
-                        <p style={{ fontSize:'0.5rem', fontWeight:700, color:C.tealDark, marginBottom:'0.2rem' }}>{label}</p>
-                        <input type={type} value={prodForm[key]||''} onChange={e => setProdForm(f => ({ ...f, [key]: e.target.value }))} placeholder={label.replace(' *','')}
-                          style={{ width:'100%', padding:'0.4rem 0.5rem', border:`1px solid ${C.tealRing}`, borderRadius:7, fontSize:'0.5625rem', background:C.white, boxSizing:'border-box' }} />
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display:'flex', gap:'0.375rem', marginTop:'0.625rem' }}>
-                    <button onClick={saveProd}   style={{ background:C.teal, color:C.white, border:'none', padding:'0.4rem 0.875rem', borderRadius:7, fontWeight:700, fontSize:'0.5625rem', cursor:'pointer' }}>Save</button>
-                    <button onClick={cancelEdit} style={{ background:'none', color:C.muted, border:`1px solid ${C.border}`, padding:'0.4rem 0.75rem', borderRadius:7, fontWeight:600, fontSize:'0.5625rem', cursor:'pointer' }}>Cancel</button>
-                  </div>
-                </div>
-              )}
-
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:'0.5rem' }}>
-                {shopProducts.map(p => (
-                  <div key={p.id} style={{ background: darkMode ? '#1a2744' : C.white, border:`1px solid ${C.border}`, borderRadius:10, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
-                    {/* Product image */}
-                    <div style={{ height:140, background:C.tealLight, position:'relative', overflow:'hidden' }}>
-                      {p.imageUrl ? (
-                        <img src={p.imageUrl} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none' }} />
-                      ) : (
-                        <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'2.5rem' }}>🧴</div>
-                      )}
-                    </div>
-                    <div style={{ padding:'0.625rem 0.75rem' }}>
-                      <p style={{ fontWeight:700, fontSize:'0.625rem', color:C.text, margin:'0 0 0.25rem' }}>{p.name}</p>
-                      <p style={{ fontSize:'0.5rem', color:C.muted, margin:'0 0 0.5rem', lineHeight:1.5 }}>{p.desc}</p>
-                      {p.discountCode && (
-                        <div style={{ display:'inline-flex', alignItems:'center', gap:'0.25rem', background:C.tealLight, border:`1px solid ${C.tealRing}`, borderRadius:6, padding:'0.15rem 0.4rem', marginBottom:'0.375rem' }}>
-                          <span style={{ fontSize:'0.4rem', color:C.teal, fontWeight:700 }}>🏷 {p.discountCode}</span>
-                        </div>
-                      )}
-                      <div style={{ display:'flex', gap:'0.25rem' }}>
-                        <button onClick={() => setViewingProd(p)} style={{ flex:1, background:C.teal, color:C.white, border:'none', padding:'0.3rem 0.4rem', borderRadius:6, fontSize:'0.5rem', fontWeight:700, cursor:'pointer' }}>View</button>
-                        <button onClick={() => startEdit(p)} style={{ flex:1, background:C.tealLight, color:C.tealDark, border:`1px solid ${C.tealRing}`, padding:'0.3rem 0.4rem', borderRadius:6, fontSize:'0.5rem', fontWeight:600, cursor:'pointer' }}>Edit</button>
-                        <button onClick={() => saveProds(shopProducts.filter(x => x.id !== p.id))} style={{ flex:1, background:'#fff5f5', color:'#dc2626', border:'1px solid #fca5a5', padding:'0.3rem 0.4rem', borderRadius:6, fontSize:'0.5rem', fontWeight:600, cursor:'pointer' }}>Remove</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
       {activeView === 'ai'      && <AIAssistant appointments={appointments} onStatusChange={setStatus} />}
       {activeView === 'finance' && <FinanceTab  appointments={appointments} darkMode={darkMode} />}
+
+      {activeView === 'shop' && (
+        <div style={{ maxWidth:1200, margin:'0 auto', padding:'1rem 1.125rem 2rem', display:'flex', gap:'1rem', alignItems:'flex-start' }}>
+
+          {/* ── Main shop hero area ── */}
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.875rem' }}>
+              <div>
+                <h2 style={{ fontSize:'1rem', fontWeight:800, color:darkMode?'#e2e8f0':C.text, margin:0 }}>🛍 Products I Use & Recommend</h2>
+                <p style={{ fontSize:'0.5rem', color:C.muted, margin:'0.2rem 0 0' }}>Shown on the homepage shop section</p>
+              </div>
+              <button onClick={startAdd} style={{ background:C.teal, color:C.white, border:'none', padding:'0.5rem 1rem', borderRadius:8, fontWeight:700, fontSize:'0.625rem', cursor:'pointer' }}>+ Add New Product</button>
+            </div>
+
+            {editingProd && (
+              <div style={{ background:C.tealLight, border:`1px solid ${C.tealRing}`, borderRadius:11, padding:'0.875rem', marginBottom:'0.875rem' }}>
+                <p style={{ fontWeight:700, fontSize:'0.6875rem', color:C.tealDark, marginBottom:'0.625rem' }}>{editingProd === 'new' ? 'New Product' : 'Edit Product'}</p>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.45rem' }}>
+                  {[['Product Name *','name','text'],['Short Description','desc','text'],['Image URL','imageUrl','url'],['Daraz/Product URL','pdpLink','url'],['Discount Code','discountCode','text']].map(([label, key, type]) => (
+                    <div key={key} style={{ gridColumn: key === 'desc' ? '1/-1' : undefined }}>
+                      <p style={{ fontSize:'0.5rem', fontWeight:700, color:C.tealDark, marginBottom:'0.2rem' }}>{label}</p>
+                      <input type={type} value={prodForm[key]||''} onChange={e => setProdForm(f => ({ ...f, [key]: e.target.value }))} placeholder={label.replace(' *','')}
+                        style={{ width:'100%', padding:'0.4rem 0.5rem', border:`1px solid ${C.tealRing}`, borderRadius:7, fontSize:'0.5625rem', background:C.white, boxSizing:'border-box' }} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display:'flex', gap:'0.375rem', marginTop:'0.625rem' }}>
+                  <button onClick={saveProd}   style={{ background:C.teal, color:C.white, border:'none', padding:'0.4rem 0.875rem', borderRadius:7, fontWeight:700, fontSize:'0.5625rem', cursor:'pointer' }}>Save</button>
+                  <button onClick={cancelEdit} style={{ background:'none', color:C.muted, border:`1px solid ${C.border}`, padding:'0.4rem 0.75rem', borderRadius:7, fontWeight:600, fontSize:'0.5625rem', cursor:'pointer' }}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:'0.75rem' }}>
+              {shopProducts.map(p => (
+                <div key={p.id} style={{ background: darkMode ? '#1a2744' : C.white, border:`1px solid ${C.border}`, borderRadius:12, overflow:'hidden', boxShadow:'0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div style={{ height:160, background:C.tealLight, position:'relative', overflow:'hidden' }}>
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none' }} />
+                    ) : (
+                      <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'2.5rem' }}>🧴</div>
+                    )}
+                  </div>
+                  <div style={{ padding:'0.75rem' }}>
+                    <p style={{ fontWeight:700, fontSize:'0.6875rem', color:darkMode?'#e2e8f0':C.text, margin:'0 0 0.25rem' }}>{p.name}</p>
+                    <p style={{ fontSize:'0.5rem', color:C.muted, margin:'0 0 0.5rem', lineHeight:1.5 }}>{p.desc}</p>
+                    {p.discountCode && (
+                      <div style={{ display:'inline-flex', alignItems:'center', gap:'0.25rem', background:C.tealLight, border:`1px solid ${C.tealRing}`, borderRadius:6, padding:'0.15rem 0.4rem', marginBottom:'0.4rem' }}>
+                        <span style={{ fontSize:'0.4375rem', color:C.teal, fontWeight:700 }}>🏷 {p.discountCode}</span>
+                      </div>
+                    )}
+                    <div style={{ display:'flex', gap:'0.3rem' }}>
+                      <button onClick={() => setViewingProd(p)} style={{ flex:1, background:C.teal, color:C.white, border:'none', padding:'0.35rem 0.4rem', borderRadius:6, fontSize:'0.5rem', fontWeight:700, cursor:'pointer' }}>View</button>
+                      <button onClick={() => startEdit(p)} style={{ flex:1, background:C.tealLight, color:C.tealDark, border:`1px solid ${C.tealRing}`, padding:'0.35rem 0.4rem', borderRadius:6, fontSize:'0.5rem', fontWeight:600, cursor:'pointer' }}>Edit</button>
+                      <button onClick={() => saveProds(shopProducts.filter(x => x.id !== p.id))} style={{ flex:1, background:'#fff5f5', color:'#dc2626', border:'1px solid #fca5a5', padding:'0.35rem 0.4rem', borderRadius:6, fontSize:'0.5rem', fontWeight:600, cursor:'pointer' }}>Remove</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Mini today sidebar ── */}
+          <div style={{ width:210, flexShrink:0 }}>
+            <div style={{ background: darkMode ? '#1a2744' : C.white, border:`1px solid ${C.border}`, borderRadius:12, overflow:'hidden', boxShadow:'0 2px 8px rgba(0,0,0,0.05)', position:'sticky', top:'1rem' }}>
+              <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.625rem 0.875rem' }}>
+                <div style={{ fontSize:'0.4rem', color:'#99f6e4', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:'0.2rem' }}>Today</div>
+                <div style={{ fontWeight:800, fontSize:'0.75rem', color:C.white }}>{new Date().toLocaleDateString('en-PK', { weekday:'short', day:'numeric', month:'short' })}</div>
+              </div>
+              <div style={{ padding:'0.625rem 0.875rem' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.5rem' }}>
+                  <span style={{ fontSize:'0.5rem', color:darkMode?'#94a3b8':C.muted, fontWeight:600 }}>Appointments</span>
+                  <span style={{ background:C.tealLight, color:C.teal, fontWeight:800, fontSize:'0.75rem', borderRadius:100, padding:'0.1rem 0.5rem', border:`1px solid ${C.tealRing}` }}>{todayAppts.length}</span>
+                </div>
+                {todayAppts.length === 0 ? (
+                  <div style={{ textAlign:'center', padding:'0.75rem 0', color:C.muted, fontSize:'0.45rem' }}>No appointments today</div>
+                ) : (
+                  <div style={{ display:'flex', flexDirection:'column', gap:'0.25rem' }}>
+                    {todayAppts.slice(0, 5).map(a => {
+                      const st = STATUS_STYLE[a.status] || STATUS_STYLE.pending
+                      return (
+                        <div key={a.id} style={{ background:st.bg, borderLeft:`2px solid ${st.color}`, borderRadius:4, padding:'0.2rem 0.35rem' }}>
+                          <div style={{ fontSize:'0.4rem', fontWeight:700, color:st.color }}>{a.time.replace(' AM','a').replace(' PM','p')} · {a.name.split(' ')[0]}</div>
+                          <div style={{ fontSize:'0.35rem', color:C.muted }}>{a.procedure}</div>
+                        </div>
+                      )
+                    })}
+                    {todayAppts.length > 5 && (
+                      <div style={{ fontSize:'0.4rem', color:C.muted, textAlign:'center', paddingTop:'0.15rem' }}>+{todayAppts.length - 5} more</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Overlays ── */}
       {calDateModal  && <DateDetailModal date={calDateModal} appointments={appointments.filter(a => a.date === calDateModal)} onClose={() => setCalDateModal(null)} onApprove={setStatus} onReject={setStatus} />}
