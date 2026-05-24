@@ -815,6 +815,9 @@ function Newsletter() {
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' }))
   const [emailEnabled, setEmailEnabled] = useState(false)
   const [email, setEmail] = useState('')
+  const [selectedIds, setSelectedIds] = useState([])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [copyToast, setCopyToast] = useState(false)
 
   const addKeyword = () => {
     const kw = newKeyword.trim()
@@ -831,72 +834,239 @@ function Newsletter() {
     }, 1600)
   }
 
+  const toggleSelect = (idx, e) => {
+    e.stopPropagation()
+    setSelectedIds(prev => prev.includes(idx) ? prev.filter(id => id !== idx) : [...prev, idx])
+  }
+
+  const selectedCards = cards.filter((_, i) => selectedIds.includes(i))
+
+  const getTopicLabel = (card) => {
+    if (card.headline.includes('HIFU')) return 'HIFU treatments'
+    if (card.headline.includes('CO₂')) return 'CO₂ fractional laser'
+    if (card.headline.includes('Melasma')) return 'melasma protocols'
+    if (card.headline.includes('Aesthetic Medicine')) return 'aesthetic medicine growth'
+    if (card.headline.includes('PRP')) return 'PRP hair restoration'
+    if (card.headline.includes('Sunscreen')) return 'sunscreen compliance'
+    return card.source
+  }
+
+  const buildSummary = (sel) => {
+    const topics = sel.map(getTopicLabel)
+    const n = sel.length
+    const topicList = topics.join(', ')
+
+    const keyThemes = `Across the ${n} selected article${n !== 1 ? 's' : ''}, the central themes are ${topicList}. These pieces collectively reflect the evolving landscape of aesthetic dermatology in Pakistan, with a clear shift toward evidence-based, technology-driven care addressing the unique needs of South Asian skin types.`
+
+    const trending = `The most prominent trend is ${topics[0]}${topics.length > 1 ? `, alongside ${topics.slice(1).join(' and ')}` : ''}. ${sel[0].source} highlights that ${sel[0].summary.split('.')[0].toLowerCase()}, signalling strong momentum in these areas heading into the latter half of 2026.`
+
+    const relevant = `For your practice, coverage on ${topics[0]}${topics.length > 1 ? ` and ${topics[1]}` : ''} is most actionable. Patients in Islamabad and Karachi are increasingly asking about ${topics[0]}, positioning your clinic competitively by staying ahead of this curve.${n > 2 ? ` The remaining articles on ${topics.slice(2).join(', ')} offer useful background for patient education.` : ''} Consider incorporating key talking points from these updates into your next patient consultations.`
+
+    return { keyThemes, trending, relevant }
+  }
+
+  const getPlainText = (sel) => {
+    const { keyThemes, trending, relevant } = buildSummary(sel)
+    return `NEWSLETTER SUMMARY — ${sel.length} ARTICLE${sel.length !== 1 ? 'S' : ''}\n\nKEY THEMES\n${keyThemes}\n\nWHAT'S TRENDING\n${trending}\n\nRELEVANT FOR YOUR PRACTICE\n${relevant}`
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(getPlainText(selectedCards)).catch(() => {})
+    setCopyToast(true)
+    setTimeout(() => setCopyToast(false), 2000)
+  }
+
+  const n = selectedIds.length
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, padding: '0.875rem 1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <div>
-            <p style={{ fontWeight: 800, fontSize: '0.75rem', color: C.text, margin: '0 0 0.2rem' }}>Dermatology Newsletter</p>
-            <p style={{ fontSize: '0.5rem', color: C.muted, margin: 0 }}>Latest trends and updates in dermatology and aesthetic treatments in Pakistan</p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
-            <span style={{ fontSize: '0.45rem', color: C.muted }}>Updated {lastUpdated}</span>
-            <button onClick={refresh} disabled={loading} style={{
-              background: loading ? C.muted : C.teal, color: C.white, border: 'none',
-              padding: '0.375rem 0.875rem', borderRadius: 7, fontWeight: 700, fontSize: '0.5625rem',
-              cursor: loading ? 'wait' : 'pointer', whiteSpace: 'nowrap',
-            }}>
-              {loading ? '⏳ Loading...' : '🔄 Refresh'}
-            </button>
-          </div>
-        </div>
+    <>
+      <style>{`
+        @keyframes nlFadeSlideUp {
+          from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+          to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        .nl-action-bar { animation: nlFadeSlideUp 0.2s ease forwards; }
+        @keyframes nlFadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        .nl-overlay { animation: nlFadeIn 0.18s ease forwards; }
+      `}</style>
 
-        <div style={{ marginBottom: '0.625rem' }}>
-          <p style={{ fontWeight: 600, fontSize: '0.5625rem', color: C.text, margin: '0 0 0.375rem' }}>Search Keywords</p>
-          <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-            {keywords.map(kw => (
-              <span key={kw} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', background: C.tealLight, color: C.tealDark, border: `1px solid ${C.tealRing}`, borderRadius: 20, padding: '0.2rem 0.5rem', fontSize: '0.5rem', fontWeight: 600 }}>
-                {kw}
-                <button onClick={() => removeKeyword(kw)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.tealDark, padding: 0, lineHeight: 1, fontSize: '0.625rem', fontWeight: 700 }}>×</button>
-              </span>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: '0.375rem' }}>
-            <input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && addKeyword()} placeholder="Add keyword..."
-              style={{ flex: 1, padding: '0.3rem 0.5rem', border: `1px solid ${C.border}`, borderRadius: 6, fontSize: '0.5rem', color: C.text, background: C.bg }} />
-            <button onClick={addKeyword} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.3rem 0.625rem', borderRadius: 6, fontSize: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Add</button>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <div onClick={() => setEmailEnabled(e => !e)} style={{
-            width: 36, height: 20, borderRadius: 10, background: emailEnabled ? C.teal : C.border,
-            position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
-          }}>
-            <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.white, position: 'absolute', top: 2, left: emailEnabled ? 18 : 2, transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-          </div>
-          <span style={{ fontSize: '0.5rem', fontWeight: 600, color: C.text, cursor: 'pointer' }} onClick={() => setEmailEnabled(e => !e)}>Email digest</span>
-          {emailEnabled && (
-            <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter email address" type="email"
-              style={{ padding: '0.3rem 0.5rem', border: `1px solid ${C.border}`, borderRadius: 6, fontSize: '0.5rem', color: C.text, background: C.bg, minWidth: 200 }} />
-          )}
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
-        {cards.map((card, i) => (
-          <div key={i} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, padding: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ background: C.teal, color: C.white, fontSize: '0.4375rem', fontWeight: 700, padding: '0.15rem 0.4375rem', borderRadius: 4 }}>{card.source}</span>
-              <span style={{ fontSize: '0.45rem', color: C.muted }}>{card.date}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, padding: '0.875rem 1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div>
+              <p style={{ fontWeight: 800, fontSize: '0.75rem', color: C.text, margin: '0 0 0.2rem' }}>Dermatology Newsletter</p>
+              <p style={{ fontSize: '0.5rem', color: C.muted, margin: 0 }}>Latest trends and updates in dermatology and aesthetic treatments in Pakistan</p>
             </div>
-            <p style={{ fontWeight: 700, fontSize: '0.5625rem', color: C.text, margin: 0, lineHeight: 1.5 }}>{card.headline}</p>
-            <p style={{ fontSize: '0.5rem', color: C.muted, margin: 0, lineHeight: 1.65 }}>{card.summary}</p>
-            <span style={{ fontSize: '0.5rem', color: C.teal, fontWeight: 600, marginTop: 'auto', paddingTop: '0.25rem' }}>Read more →</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
+              <span style={{ fontSize: '0.45rem', color: C.muted }}>Updated {lastUpdated}</span>
+              <button onClick={refresh} disabled={loading} style={{
+                background: loading ? C.muted : C.teal, color: C.white, border: 'none',
+                padding: '0.375rem 0.875rem', borderRadius: 7, fontWeight: 700, fontSize: '0.5625rem',
+                cursor: loading ? 'wait' : 'pointer', whiteSpace: 'nowrap',
+              }}>
+                {loading ? '⏳ Loading...' : '🔄 Refresh'}
+              </button>
+            </div>
           </div>
-        ))}
+
+          <div style={{ marginBottom: '0.625rem' }}>
+            <p style={{ fontWeight: 600, fontSize: '0.5625rem', color: C.text, margin: '0 0 0.375rem' }}>Search Keywords</p>
+            <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+              {keywords.map(kw => (
+                <span key={kw} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', background: C.tealLight, color: C.tealDark, border: `1px solid ${C.tealRing}`, borderRadius: 20, padding: '0.2rem 0.5rem', fontSize: '0.5rem', fontWeight: 600 }}>
+                  {kw}
+                  <button onClick={() => removeKeyword(kw)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.tealDark, padding: 0, lineHeight: 1, fontSize: '0.625rem', fontWeight: 700 }}>×</button>
+                </span>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '0.375rem' }}>
+              <input value={newKeyword} onChange={e => setNewKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && addKeyword()} placeholder="Add keyword..."
+                style={{ flex: 1, padding: '0.3rem 0.5rem', border: `1px solid ${C.border}`, borderRadius: 6, fontSize: '0.5rem', color: C.text, background: C.bg }} />
+              <button onClick={addKeyword} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.3rem 0.625rem', borderRadius: 6, fontSize: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Add</button>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div onClick={() => setEmailEnabled(e => !e)} style={{
+              width: 36, height: 20, borderRadius: 10, background: emailEnabled ? C.teal : C.border,
+              position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+            }}>
+              <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.white, position: 'absolute', top: 2, left: emailEnabled ? 18 : 2, transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+            </div>
+            <span style={{ fontSize: '0.5rem', fontWeight: 600, color: C.text, cursor: 'pointer' }} onClick={() => setEmailEnabled(e => !e)}>Email digest</span>
+            {emailEnabled && (
+              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter email address" type="email"
+                style={{ padding: '0.3rem 0.5rem', border: `1px solid ${C.border}`, borderRadius: 6, fontSize: '0.5rem', color: C.text, background: C.bg, minWidth: 200 }} />
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
+          {cards.map((card, i) => {
+            const isSelected = selectedIds.includes(i)
+            return (
+              <div key={i} style={{
+                background: C.white,
+                border: `1.5px solid ${isSelected ? C.teal : C.border}`,
+                borderRadius: 10, padding: '0.875rem',
+                display: 'flex', flexDirection: 'column', gap: '0.4rem',
+                transition: 'border-color 0.15s',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div
+                      onClick={(e) => toggleSelect(i, e)}
+                      style={{
+                        width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                        background: isSelected ? C.teal : 'transparent',
+                        border: `2px solid ${isSelected ? C.teal : '#cbd5e1'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >
+                      {isSelected && (
+                        <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                          <path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span style={{ background: C.teal, color: C.white, fontSize: '0.4375rem', fontWeight: 700, padding: '0.15rem 0.4375rem', borderRadius: 4 }}>{card.source}</span>
+                  </div>
+                  <span style={{ fontSize: '0.45rem', color: C.muted }}>{card.date}</span>
+                </div>
+                <p style={{ fontWeight: 700, fontSize: '0.5625rem', color: C.text, margin: 0, lineHeight: 1.5 }}>{card.headline}</p>
+                <p style={{ fontSize: '0.5rem', color: C.muted, margin: 0, lineHeight: 1.65 }}>{card.summary}</p>
+                <span style={{ fontSize: '0.5rem', color: C.teal, fontWeight: 600, marginTop: 'auto', paddingTop: '0.25rem' }}>Read more →</span>
+              </div>
+            )
+          })}
+        </div>
+
+        {n >= 1 && <div style={{ height: 72 }} />}
       </div>
-    </div>
+
+      {n >= 1 && (
+        <div className="nl-action-bar" style={{
+          position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+          maxWidth: 600, width: 'calc(100% - 48px)',
+          background: C.teal, color: C.white,
+          borderRadius: 20, padding: '0.75rem 1.25rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          boxShadow: '0 4px 24px rgba(13,148,136,0.35)',
+          zIndex: 100, cursor: 'pointer',
+        }} onClick={() => setModalOpen(true)}>
+          <span style={{ fontSize: '0.5625rem', fontWeight: 700 }}>
+            Summarize {n} selected article{n !== 1 ? 's' : ''}
+          </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); setSelectedIds([]) }}
+            style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: C.white, borderRadius: 12, padding: '0.2rem 0.625rem', fontSize: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
+          >
+            Clear selection
+          </button>
+        </div>
+      )}
+
+      {modalOpen && (
+        <div className="nl-overlay" style={{
+          position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 200, padding: '1rem',
+        }} onClick={() => setModalOpen(false)}>
+          <div style={{
+            background: C.white, borderRadius: 16, maxWidth: 600, width: '100%',
+            maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.border}` }}>
+              <p style={{ fontWeight: 800, fontSize: '0.875rem', color: C.text, margin: 0 }}>
+                Newsletter Summary — {selectedCards.length} article{selectedCards.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {(() => {
+                const { keyThemes, trending, relevant } = buildSummary(selectedCards)
+                return (
+                  <>
+                    <div>
+                      <h3 style={{ fontWeight: 700, fontSize: '0.6875rem', color: C.tealDark, margin: '0 0 0.375rem' }}>Key Themes</h3>
+                      <p style={{ fontSize: '0.5625rem', color: C.text, margin: 0, lineHeight: 1.75 }}>{keyThemes}</p>
+                    </div>
+                    <div>
+                      <h3 style={{ fontWeight: 700, fontSize: '0.6875rem', color: C.tealDark, margin: '0 0 0.375rem' }}>{"What's Trending"}</h3>
+                      <p style={{ fontSize: '0.5625rem', color: C.text, margin: 0, lineHeight: 1.75 }}>{trending}</p>
+                    </div>
+                    <div>
+                      <h3 style={{ fontWeight: 700, fontSize: '0.6875rem', color: C.tealDark, margin: '0 0 0.375rem' }}>Relevant for Your Practice</h3>
+                      <p style={{ fontSize: '0.5625rem', color: C.text, margin: 0, lineHeight: 1.75 }}>{relevant}</p>
+                    </div>
+                  </>
+                )
+              })()}
+            </div>
+            <div style={{ padding: '0.75rem 1.25rem', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button onClick={handleCopy} style={{
+                background: copyToast ? '#16a34a' : C.teal, color: C.white, border: 'none',
+                padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 700, fontSize: '0.5625rem',
+                cursor: 'pointer', transition: 'background 0.2s',
+              }}>
+                {copyToast ? '✓ Copied' : 'Copy Summary'}
+              </button>
+              <button onClick={() => setModalOpen(false)} style={{
+                background: 'none', border: `1px solid ${C.border}`, color: C.muted,
+                padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 600, fontSize: '0.5625rem',
+                cursor: 'pointer',
+              }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
