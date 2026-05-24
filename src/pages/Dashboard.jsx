@@ -107,6 +107,13 @@ const HISTORY = {
   ],
 }
 
+const DEPOSIT_CONFIG_KEY = 'drm_deposit_config'
+const DEFAULT_DEPOSIT_CONFIG = {
+  weekends: { enabled: false, pct: 30 },
+  holidays: { enabled: false, pct: 30 },
+  specific: {},
+}
+
 const PRODUCTS_KEY = 'drm_products'
 const DEFAULT_PRODUCTS = [
   { id:'1', name:'Neutrogena Hydro Boost Water Gel',       desc:'Lightweight gel with hyaluronic acid for all-day hydration.',  imageUrl:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&q=80',  discountCode:'DRMALEEHA10', pdpLink:'https://www.daraz.pk' },
@@ -1506,6 +1513,196 @@ function FinanceTab({ appointments, darkMode }) {
   )
 }
 
+// ── Deposit Configuration Section ────────────────────────────────────────────
+function DepositConfigSection({ darkMode }) {
+  const [config, setConfig] = useState(() => {
+    try { const s = localStorage.getItem(DEPOSIT_CONFIG_KEY); return s ? JSON.parse(s) : DEFAULT_DEPOSIT_CONFIG }
+    catch { return DEFAULT_DEPOSIT_CONFIG }
+  })
+  const [newDate, setNewDate] = useState('')
+  const [newPct,  setNewPct]  = useState(30)
+  const [saved,   setSaved]   = useState(false)
+  const [dateErr, setDateErr] = useState('')
+
+  const bg    = darkMode ? '#1a2744' : C.white
+  const subBg = darkMode ? '#0d2444' : C.bg
+  const textC = darkMode ? '#e2e8f0' : C.text
+  const brd   = darkMode ? '#2a3a5c' : C.border
+
+  const setDayType = (type, field, val) =>
+    setConfig(c => ({ ...c, [type]: { ...c[type], [field]: val } }))
+
+  const addSpecificDate = () => {
+    if (!newDate) { setDateErr('Please select a date'); return }
+    if (config.specific[newDate]) { setDateErr('Date already configured'); return }
+    setDateErr('')
+    setConfig(c => ({ ...c, specific: { ...c.specific, [newDate]: { enabled: true, pct: newPct } } }))
+    setNewDate('')
+    setNewPct(30)
+  }
+
+  const removeSpecificDate = date =>
+    setConfig(c => { const s = { ...c.specific }; delete s[date]; return { ...c, specific: s } })
+
+  const handleSave = () => {
+    localStorage.setItem(DEPOSIT_CONFIG_KEY, JSON.stringify(config))
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  const DAY_TYPES = [
+    { key:'weekends', label:'Weekends',  icon:'📅', desc:'Saturdays and Sundays' },
+    { key:'holidays', label:'Holidays',  icon:'🎌', desc:'Pakistani national holidays' },
+  ]
+
+  const Toggle = ({ on, onToggle, size = 'lg' }) => {
+    const W = size === 'lg' ? 44 : 36
+    const H = size === 'lg' ? 24 : 20
+    const D = size === 'lg' ? 18 : 16
+    const off = size === 'lg' ? 3 : 2
+    const onX = W - D - off
+    return (
+      <button onClick={onToggle} style={{ width:W, height:H, borderRadius:H/2, border:'none', cursor:'pointer', background:on ? C.teal : '#cbd5e1', position:'relative', transition:'background 0.2s', flexShrink:0 }}>
+        <span style={{ position:'absolute', top:off, left: on ? onX : off, width:D, height:D, borderRadius:'50%', background:C.white, transition:'left 0.2s', boxShadow:'0 1px 4px rgba(0,0,0,0.2)' }} />
+      </button>
+    )
+  }
+
+  return (
+    <div style={{ maxWidth:780, margin:'0 auto', padding:'1.5rem 1.125rem 2rem' }}>
+
+      {/* Header */}
+      <div style={{ marginBottom:'1.25rem' }}>
+        <h2 style={{ fontSize:'1rem', fontWeight:800, color:textC, margin:'0 0 0.3rem' }}>Deposit Configuration</h2>
+        <p style={{ fontSize:'0.5625rem', color:C.muted, margin:0 }}>Set deposit requirements per day type. Patients will be asked to pay this percentage upfront when booking on these days.</p>
+      </div>
+
+      {/* Day type cards */}
+      <div style={{ display:'flex', flexDirection:'column', gap:'0.625rem', marginBottom:'1.25rem' }}>
+        {DAY_TYPES.map(({ key, label, icon, desc }) => {
+          const cfg = config[key]
+          return (
+            <div key={key} style={{ background:bg, border:`1.5px solid ${cfg.enabled ? C.teal : brd}`, borderRadius:12, padding:'0.875rem 1rem', transition:'border-color 0.2s', boxShadow: cfg.enabled ? '0 2px 12px rgba(13,148,136,0.1)' : 'none' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: cfg.enabled ? '0.75rem' : 0 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'0.625rem' }}>
+                  <div style={{ width:36, height:36, borderRadius:9, background: cfg.enabled ? C.tealLight : subBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1rem', border:`1px solid ${cfg.enabled ? C.tealRing : brd}`, flexShrink:0 }}>{icon}</div>
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:'0.6875rem', color:textC }}>{label}</div>
+                    <div style={{ fontSize:'0.4375rem', color:C.muted, marginTop:1 }}>{desc}</div>
+                  </div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:'0.625rem' }}>
+                  <span style={{ fontSize:'0.4375rem', color: cfg.enabled ? C.teal : C.muted, fontWeight:700 }}>
+                    {cfg.enabled ? 'Required' : 'Off'}
+                  </span>
+                  <Toggle on={cfg.enabled} onToggle={() => setDayType(key, 'enabled', !cfg.enabled)} size="lg" />
+                </div>
+              </div>
+
+              {cfg.enabled && (
+                <div style={{ display:'flex', alignItems:'center', gap:'1rem', paddingTop:'0.625rem', borderTop:`1px solid ${brd}`, flexWrap:'wrap' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                    <label style={{ fontSize:'0.5625rem', fontWeight:700, color:textC, whiteSpace:'nowrap' }}>Deposit percentage</label>
+                    <div style={{ display:'flex', alignItems:'center', gap:'0.375rem' }}>
+                      <input type="number" min={1} max={100} value={cfg.pct}
+                        onChange={e => setDayType(key, 'pct', Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                        style={{ width:64, padding:'0.375rem 0.5rem', border:`1.5px solid ${C.teal}`, borderRadius:7, fontSize:'0.875rem', color:textC, background:subBg, textAlign:'center', fontWeight:800, outline:'none', boxSizing:'border-box' }} />
+                      <span style={{ fontSize:'0.75rem', fontWeight:800, color:C.teal }}>%</span>
+                    </div>
+                  </div>
+                  <div style={{ background:C.tealLight, border:`1px solid ${C.tealRing}`, borderRadius:7, padding:'0.3rem 0.625rem' }}>
+                    <span style={{ fontSize:'0.4375rem', color:C.tealDark }}>e.g. PKR 18,000 Botox → </span>
+                    <span style={{ fontSize:'0.4375rem', color:C.tealDark, fontWeight:800 }}>PKR {Math.round(18000 * cfg.pct / 100).toLocaleString()} deposit</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Specific Dates */}
+      <div style={{ background:bg, border:`1px solid ${brd}`, borderRadius:12, padding:'0.875rem 1rem', marginBottom:'1.25rem' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.875rem' }}>
+          <div style={{ width:36, height:36, borderRadius:9, background:subBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1rem', border:`1px solid ${brd}`, flexShrink:0 }}>📆</div>
+          <div>
+            <div style={{ fontWeight:700, fontSize:'0.6875rem', color:textC }}>Specific Dates</div>
+            <div style={{ fontSize:'0.4375rem', color:C.muted }}>Override deposit settings for individual dates</div>
+          </div>
+        </div>
+
+        {/* Add date row */}
+        <div style={{ background:subBg, border:`1px solid ${brd}`, borderRadius:9, padding:'0.75rem', marginBottom:'0.625rem' }}>
+          <div style={{ fontSize:'0.4375rem', fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.5rem' }}>Add a date</div>
+          <div style={{ display:'flex', gap:'0.625rem', alignItems:'flex-end', flexWrap:'wrap' }}>
+            <div>
+              <div style={{ fontSize:'0.4rem', fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.2rem' }}>Date</div>
+              <input type="date" value={newDate} onChange={e => { setNewDate(e.target.value); setDateErr('') }}
+                style={{ padding:'0.375rem 0.5rem', border:`1.5px solid ${dateErr ? '#dc2626' : brd}`, borderRadius:7, fontSize:'0.5rem', color:textC, background:bg, outline:'none' }} />
+            </div>
+            <div>
+              <div style={{ fontSize:'0.4rem', fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.2rem' }}>Deposit %</div>
+              <div style={{ display:'flex', alignItems:'center', gap:'0.25rem' }}>
+                <input type="number" min={1} max={100} value={newPct} onChange={e => setNewPct(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                  style={{ width:56, padding:'0.375rem 0.5rem', border:`1.5px solid ${brd}`, borderRadius:7, fontSize:'0.5rem', color:textC, background:bg, textAlign:'center', fontWeight:700, outline:'none' }} />
+                <span style={{ fontSize:'0.5rem', color:C.muted, fontWeight:700 }}>%</span>
+              </div>
+            </div>
+            <button onClick={addSpecificDate}
+              style={{ padding:'0.4rem 1rem', background:C.teal, color:C.white, border:'none', borderRadius:7, fontWeight:700, fontSize:'0.5rem', cursor:'pointer' }}>
+              + Add Date
+            </button>
+          </div>
+          {dateErr && <p style={{ fontSize:'0.4375rem', color:'#dc2626', margin:'0.375rem 0 0', fontWeight:600 }}>{dateErr}</p>}
+        </div>
+
+        {/* Dates list */}
+        {Object.keys(config.specific).length === 0 ? (
+          <div style={{ textAlign:'center', padding:'1.25rem', color:C.muted, background:subBg, borderRadius:8, border:`1px dashed ${brd}` }}>
+            <div style={{ fontSize:'1.25rem', marginBottom:'0.25rem' }}>📆</div>
+            <div style={{ fontSize:'0.5rem', fontWeight:600 }}>No specific dates configured yet</div>
+          </div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:'0.375rem' }}>
+            {Object.entries(config.specific).sort(([a],[b]) => a.localeCompare(b)).map(([date, cfg]) => (
+              <div key={date} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:subBg, border:`1.5px solid ${cfg.enabled ? C.tealRing : brd}`, borderRadius:8, padding:'0.5rem 0.75rem', transition:'border-color 0.2s' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'0.625rem' }}>
+                  <Toggle on={cfg.enabled}
+                    onToggle={() => setConfig(c => ({ ...c, specific: { ...c.specific, [date]: { ...c.specific[date], enabled: !c.specific[date].enabled } } }))}
+                    size="sm" />
+                  <div>
+                    <span style={{ fontWeight:700, fontSize:'0.5625rem', color:textC }}>{fmtS(toD(date))}</span>
+                    {PK_HOLIDAY_NAMES[date] && <span style={{ marginLeft:'0.375rem', fontSize:'0.4rem', color:'#d97706', fontWeight:700 }}>🎌 {PK_HOLIDAY_NAMES[date]}</span>}
+                  </div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'0.25rem' }}>
+                    <input type="number" min={1} max={100} value={cfg.pct}
+                      onChange={e => setConfig(c => ({ ...c, specific: { ...c.specific, [date]: { ...c.specific[date], pct: Math.min(100, Math.max(1, parseInt(e.target.value) || 1)) } } }))}
+                      style={{ width:48, padding:'0.2rem 0.375rem', border:`1.5px solid ${C.teal}`, borderRadius:6, fontSize:'0.5rem', color:textC, background:bg, textAlign:'center', fontWeight:700, outline:'none' }} />
+                    <span style={{ fontSize:'0.4375rem', color:C.teal, fontWeight:800 }}>%</span>
+                  </div>
+                  <button onClick={() => removeSpecificDate(date)}
+                    style={{ background:'#fff5f5', color:'#dc2626', border:'1px solid #fca5a5', borderRadius:5, padding:'0.175rem 0.5rem', fontSize:'0.4375rem', fontWeight:700, cursor:'pointer' }}>✕</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Save */}
+      <div style={{ display:'flex', alignItems:'center', gap:'0.875rem' }}>
+        <button onClick={handleSave}
+          style={{ padding:'0.625rem 1.75rem', background: saved ? '#16a34a' : C.teal, color:C.white, border:'none', borderRadius:9, fontWeight:700, fontSize:'0.75rem', cursor:'pointer', transition:'background 0.25s', boxShadow:`0 2px 12px ${saved ? 'rgba(22,163,74,0.35)' : 'rgba(13,148,136,0.35)'}` }}>
+          {saved ? '✓ Saved!' : 'Save Configuration'}
+        </button>
+        {saved && <span style={{ fontSize:'0.5rem', color:'#16a34a', fontWeight:700 }}>Deposit settings updated successfully</span>}
+      </div>
+    </div>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const todayStr = dsOf(new Date())
@@ -1589,7 +1786,7 @@ export default function Dashboard() {
       {/* ── View Tabs ── */}
       <div style={{ background: darkMode ? '#1a2744' : C.white, borderBottom:`1px solid ${C.border}` }}>
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.5rem 1.125rem', display:'flex', gap:'0.5rem' }}>
-          {[['calendar','📅','Calendar'],['finance','💰','Finance'],['shop','🛍','Shop'],['ai','✦','AI Assistant']].map(([v, icon, label]) => {
+          {[['calendar','📅','Calendar'],['finance','💰','Finance'],['shop','🛍','Shop'],['ai','✦','AI Assistant'],['settings','⚙️','Settings']].map(([v, icon, label]) => {
             const active = activeView === v
             return (
               <button key={v} onClick={() => setActiveView(v)} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.625rem 1.375rem', border:`2px solid ${active ? C.teal : C.border}`, borderRadius:10, background: active ? C.teal : C.white, color: active ? C.white : C.muted, fontWeight: active ? 700 : 500, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.18s', boxShadow: active ? '0 2px 12px rgba(13,148,136,0.3)' : 'none' }}>
@@ -1671,8 +1868,9 @@ export default function Dashboard() {
         </div>
       )}
 
-      {activeView === 'ai'      && <AIAssistant appointments={appointments} onStatusChange={setStatus} />}
-      {activeView === 'finance' && <FinanceTab  appointments={appointments} darkMode={darkMode} />}
+      {activeView === 'ai'       && <AIAssistant appointments={appointments} onStatusChange={setStatus} />}
+      {activeView === 'finance'  && <FinanceTab  appointments={appointments} darkMode={darkMode} />}
+      {activeView === 'settings' && <DepositConfigSection darkMode={darkMode} />}
 
       {activeView === 'shop' && (
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'1rem 1.125rem 2rem', display:'flex', gap:'1rem', alignItems:'flex-start' }}>
