@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Z_INDEX } from '../constants/zIndex'
+import { DEFAULT_QA, updateChatbotQA, addCustomQA, deleteCustomQA } from '../data/chatbotQA'
 
 const C = {
   teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
@@ -1360,15 +1361,256 @@ function Benchmarking() {
   )
 }
 
+// ── QACard ────────────────────────────────────────────────────────────────
+function QACard({ item, custom, onToggle, onAnswerBlur, onTriggerBlur, onDelete }) {
+  const [answer, setAnswer]   = useState(item.answer)
+  const [trigger, setTrigger] = useState(item.trigger)
+
+  useEffect(() => { setAnswer(item.answer) }, [item.answer])
+  useEffect(() => { setTrigger(item.trigger) }, [item.trigger])
+
+  return (
+    <div style={{
+      background: C.white, border: `1px solid ${C.border}`, borderRadius: 10,
+      padding: '0.75rem 0.875rem', opacity: item.enabled ? 1 : 0.5, transition: 'opacity 0.2s',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.625rem', marginBottom: '0.5rem' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.4rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Trigger</span>
+            {!item.enabled && (
+              <span style={{ fontSize: '0.4rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '0.1rem 0.375rem', borderRadius: 4 }}>Disabled</span>
+            )}
+            {custom && (
+              <span style={{ fontSize: '0.4rem', fontWeight: 700, color: C.tealDark, background: C.tealLight, padding: '0.1rem 0.375rem', borderRadius: 4 }}>Custom</span>
+            )}
+          </div>
+          {custom ? (
+            <input
+              value={trigger}
+              onChange={e => setTrigger(e.target.value)}
+              onBlur={e => onTriggerBlur(item, e.target.value)}
+              style={{
+                width: '100%', padding: '0.3rem 0.5rem', border: `1px solid ${C.border}`,
+                borderRadius: 6, fontSize: '0.5625rem', color: C.text, background: C.bg,
+                fontWeight: 600, boxSizing: 'border-box',
+              }}
+            />
+          ) : (
+            <p style={{ fontSize: '0.5625rem', color: C.text, fontWeight: 600, margin: 0 }}>{item.trigger}</p>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+          {custom && (
+            <button onClick={() => onDelete(item)} style={{
+              background: 'none', border: '1px solid #fca5a5', color: '#dc2626',
+              padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.45rem', fontWeight: 600, cursor: 'pointer',
+            }}>Delete</button>
+          )}
+          <div onClick={() => onToggle(item)} style={{
+            width: 36, height: 20, borderRadius: 10,
+            background: item.enabled ? C.teal : C.border,
+            position: 'relative', cursor: 'pointer', transition: 'background 0.2s',
+          }}>
+            <div style={{
+              width: 16, height: 16, borderRadius: '50%', background: C.white,
+              position: 'absolute', top: 2, left: item.enabled ? 18 : 2,
+              transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            }} />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <span style={{ fontSize: '0.4rem', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '0.2rem' }}>Answer</span>
+        <textarea
+          value={answer}
+          onChange={e => setAnswer(e.target.value)}
+          onBlur={e => onAnswerBlur(item, e.target.value)}
+          rows={3}
+          style={{
+            width: '100%', padding: '0.4rem 0.5rem', border: `1px solid ${C.border}`,
+            borderRadius: 7, fontSize: '0.5rem', color: C.text, background: C.bg,
+            resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6, boxSizing: 'border-box',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ── ChatbotTraining ───────────────────────────────────────────────────────
+function ChatbotTraining() {
+  const [version, setVersion]       = useState(0)
+  const [modalOpen, setModalOpen]   = useState(false)
+  const [newTrigger, setNewTrigger] = useState('')
+  const [newAnswer, setNewAnswer]   = useState('')
+  const [errors, setErrors]         = useState({})
+
+  const allQA = useMemo(() => {
+    const stored = JSON.parse(localStorage.getItem('chatbotQA_overrides') || '{}')
+    const custom = JSON.parse(localStorage.getItem('chatbotQA_custom') || '[]')
+    return [
+      ...DEFAULT_QA.map(item => stored[item.id] ? { ...item, ...stored[item.id] } : item),
+      ...custom.map(item => stored[item.id] ? { ...item, ...stored[item.id] } : item),
+    ]
+  }, [version])
+
+  const bump     = () => setVersion(v => v + 1)
+  const isCustom = id => String(id).startsWith('custom-')
+
+  const handleToggle = item => {
+    updateChatbotQA(item.id, { enabled: !item.enabled })
+    bump()
+  }
+
+  const handleAnswerBlur = (item, val) => {
+    if (val !== item.answer) { updateChatbotQA(item.id, { answer: val }); bump() }
+  }
+
+  const handleTriggerBlur = (item, val) => {
+    if (val !== item.trigger && isCustom(item.id)) {
+      const custom = JSON.parse(localStorage.getItem('chatbotQA_custom') || '[]')
+      localStorage.setItem('chatbotQA_custom', JSON.stringify(
+        custom.map(q => q.id === item.id ? { ...q, trigger: val, question: val } : q)
+      ))
+      bump()
+    }
+  }
+
+  const handleDelete = item => {
+    if (window.confirm(`Delete "${item.trigger}"?`)) { deleteCustomQA(item.id); bump() }
+  }
+
+  const handleSaveNew = () => {
+    const errs = {}
+    if (!newTrigger.trim()) errs.trigger = 'Required'
+    if (!newAnswer.trim())  errs.answer  = 'Required'
+    if (Object.keys(errs).length) { setErrors(errs); return }
+    addCustomQA({ trigger: newTrigger.trim(), question: newTrigger.trim(), answer: newAnswer.trim() })
+    bump()
+    setModalOpen(false)
+    setNewTrigger('')
+    setNewAnswer('')
+    setErrors({})
+  }
+
+  const closeModal = () => {
+    setModalOpen(false)
+    setNewTrigger('')
+    setNewAnswer('')
+    setErrors({})
+  }
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.875rem', gap: '0.75rem' }}>
+        <div>
+          <p style={{ fontWeight: 800, fontSize: '0.75rem', color: C.text, margin: '0 0 0.2rem' }}>Chatbot Training</p>
+          <p style={{ fontSize: '0.5rem', color: C.muted, margin: 0 }}>Edit how Dr. Maleeha's assistant responds. Changes apply instantly to the homepage chatbot.</p>
+        </div>
+        <button onClick={() => setModalOpen(true)} style={{
+          background: C.teal, color: C.white, border: 'none',
+          padding: '0.4rem 0.875rem', borderRadius: 8, fontWeight: 700, fontSize: '0.5625rem',
+          cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+        }}>+ Add New Q&A</button>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+        {allQA.map(item => (
+          <QACard
+            key={item.id}
+            item={item}
+            custom={isCustom(item.id)}
+            onToggle={handleToggle}
+            onAnswerBlur={handleAnswerBlur}
+            onTriggerBlur={handleTriggerBlur}
+            onDelete={handleDelete}
+          />
+        ))}
+      </div>
+
+      <p style={{ fontSize: '0.475rem', color: C.muted, margin: '0.875rem 0 0', padding: '0 0.25rem', fontStyle: 'italic' }}>
+        Tip: changes are stored in your browser. To make them live for all visitors, Supabase integration is coming soon.
+      </p>
+
+      {modalOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: Z_INDEX.MODAL_OVERLAY, padding: '1rem',
+        }} onClick={closeModal}>
+          <div style={{
+            background: C.white, borderRadius: 16, maxWidth: 480, width: '100%',
+            overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.border}` }}>
+              <p style={{ fontWeight: 800, fontSize: '0.875rem', color: C.text, margin: 0 }}>Add New Q&A</p>
+            </div>
+            <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={{ fontSize: '0.5rem', fontWeight: 700, color: C.text, display: 'block', marginBottom: '0.3rem' }}>
+                  Trigger <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <input
+                  value={newTrigger}
+                  onChange={e => setNewTrigger(e.target.value)}
+                  placeholder="e.g. How long does Botox last?"
+                  style={{
+                    width: '100%', padding: '0.4rem 0.625rem',
+                    border: `1px solid ${errors.trigger ? '#dc2626' : C.border}`,
+                    borderRadius: 7, fontSize: '0.5625rem', color: C.text, background: C.bg, boxSizing: 'border-box',
+                  }}
+                />
+                {errors.trigger && <p style={{ fontSize: '0.45rem', color: '#dc2626', margin: '0.2rem 0 0' }}>{errors.trigger}</p>}
+              </div>
+              <div>
+                <label style={{ fontSize: '0.5rem', fontWeight: 700, color: C.text, display: 'block', marginBottom: '0.3rem' }}>
+                  Answer <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <textarea
+                  value={newAnswer}
+                  onChange={e => setNewAnswer(e.target.value)}
+                  placeholder="What the chatbot should say in response..."
+                  rows={4}
+                  style={{
+                    width: '100%', padding: '0.4rem 0.625rem',
+                    border: `1px solid ${errors.answer ? '#dc2626' : C.border}`,
+                    borderRadius: 7, fontSize: '0.5625rem', color: C.text, background: C.bg,
+                    resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6, boxSizing: 'border-box',
+                  }}
+                />
+                {errors.answer && <p style={{ fontSize: '0.45rem', color: '#dc2626', margin: '0.2rem 0 0' }}>{errors.answer}</p>}
+              </div>
+            </div>
+            <div style={{ padding: '0.75rem 1.25rem', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between' }}>
+              <button onClick={handleSaveNew} style={{
+                background: C.teal, color: C.white, border: 'none',
+                padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 700, fontSize: '0.5625rem', cursor: 'pointer',
+              }}>Save</button>
+              <button onClick={closeModal} style={{
+                background: 'none', border: `1px solid ${C.border}`, color: C.muted,
+                padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 600, fontSize: '0.5625rem', cursor: 'pointer',
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────
 export default function AIAssistant({ appointments = [], onStatusChange }) {
   const [subTab, setSubTab] = useState('chat')
 
   const TABS = [
-    { key: 'chat',       icon: '💬', label: 'Patient Chat'  },
-    { key: 'preconsult', icon: '🩺', label: 'Pre-Consult'   },
-    { key: 'newsletter', icon: '📰', label: 'Newsletter'    },
-    { key: 'benchmark',  icon: '💹', label: 'Benchmarking'  },
+    { key: 'chat',       icon: '💬', label: 'Patient Chat'      },
+    { key: 'preconsult', icon: '🩺', label: 'Pre-Consult'       },
+    { key: 'newsletter', icon: '📰', label: 'Newsletter'        },
+    { key: 'benchmark',  icon: '💹', label: 'Benchmarking'      },
+    { key: 'training',   icon: '🤖', label: 'Chatbot Training'  },
   ]
 
   return (
@@ -1392,6 +1634,7 @@ export default function AIAssistant({ appointments = [], onStatusChange }) {
       {subTab === 'preconsult' && <PreConsult />}
       {subTab === 'newsletter' && <Newsletter />}
       {subTab === 'benchmark'  && <Benchmarking />}
+      {subTab === 'training'   && <ChatbotTraining />}
     </div>
   )
 }
