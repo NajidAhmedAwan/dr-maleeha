@@ -3,7 +3,7 @@ import { Z_INDEX } from '../constants/zIndex'
 import { DEFAULT_QA, updateChatbotQA, addCustomQA, deleteCustomQA } from '../data/chatbotQA'
 
 const C = {
-  teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
+  teal: '#0a6e66', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
   text: '#0f172a', muted: '#64748b', border: '#e2e8f0', bg: '#f8fafc', white: '#fff',
 }
 
@@ -962,10 +962,10 @@ function Newsletter() {
 
         {n > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-            <span style={{ background: '#0d9488', color: '#fff', fontSize: '0.5rem', fontWeight: 700, padding: '0.2rem 0.625rem', borderRadius: 999 }}>
+            <span style={{ background: '#0a6e66', color: '#fff', fontSize: '0.5rem', fontWeight: 700, padding: '0.2rem 0.625rem', borderRadius: 999 }}>
               {n} article{n !== 1 ? 's' : ''} selected
             </span>
-            <button onClick={() => setSelectedIds([])} style={{ background: 'none', border: 'none', color: '#0d9488', fontSize: '0.5rem', fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+            <button onClick={() => setSelectedIds([])} style={{ background: 'none', border: 'none', color: '#0a6e66', fontSize: '0.5rem', fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
               Clear selection
             </button>
           </div>

@@ -5,7 +5,7 @@ import ChatbotWidget from '../components/ChatbotWidget'
 import { Z_INDEX } from '../constants/zIndex'
 
 const C = {
-  teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
+  teal: '#0a6e66', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
   text: '#0f172a', muted: '#64748b', border: '#e2e8f0', bg: '#f8fafc',
   white: '#fff', dark: '#071a2e', darkMid: '#0a2540',
 }
@@ -156,7 +156,7 @@ const scrollTo = id => {
 }
 
 const igCards = [
-  { procedure: 'Botox Explained',       color: '#0d9488', thumb: 'https://source.unsplash.com/400x300/?aesthetic,botox,skin' },
+  { procedure: 'Botox Explained',       color: '#0a6e66', thumb: 'https://source.unsplash.com/400x300/?aesthetic,botox,skin' },
   { procedure: 'PLLA Thread Lift',      color: '#0891b2', thumb: 'https://source.unsplash.com/400x300/?face,glow,beauty' },
   { procedure: 'Chemical Peel Results', color: '#7c3aed', thumb: 'https://source.unsplash.com/400x300/?skincare,peel,radiance' },
   { procedure: 'Skincare Routine Tips', color: '#0f766e', thumb: 'https://source.unsplash.com/400x300/?skincare,routine,serum' },
@@ -211,7 +211,12 @@ function ProcedureCard({ proc, onBook, onOpen }) {
           <div style={{ textAlign: 'center' }}>
             <p style={{ margin: 0, fontSize: '0.6875rem', fontWeight: 600, color: C.text }}>{proc.pairs[ci].label}</p>
             <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 3 }}>
-              {proc.pairs.map((_, i) => <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: i === ci ? C.teal : C.border, display: 'inline-block', transition: 'background 0.2s' }} />)}
+              {proc.pairs.map((_, i) => (
+                <button key={i} onClick={() => setCi(i)} aria-label={`Case ${i + 1}`}
+                  style={{ width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: '50%', background: i === ci ? C.teal : C.border, display: 'block', transition: 'background 0.2s' }} />
+                </button>
+              ))}
             </div>
           </div>
           <button onClick={() => setCi((ci + 1) % n)} aria-label="Next case" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.125rem', lineHeight: 1, padding: '10px 8px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
@@ -414,7 +419,12 @@ function ProcedureModal({ proc, onClose, onBook }) {
               <div style={{ textAlign: 'center' }}>
                 <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 600, color: C.text }}>{proc.pairs[ci].label}</p>
                 <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginTop: 4 }}>
-                  {proc.pairs.map((_, i) => <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i === ci ? C.teal : C.border, display: 'inline-block', transition: 'background 0.2s' }} />)}
+                  {proc.pairs.map((_, i) => (
+                    <button key={i} onClick={() => setCi(i)} aria-label={`Case ${i + 1}`}
+                      style={{ width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: '50%', background: i === ci ? C.teal : C.border, display: 'block', transition: 'background 0.2s' }} />
+                    </button>
+                  ))}
                 </div>
               </div>
               <button onClick={() => setCi((ci + 1) % n)} aria-label="Next case" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: '1.25rem', lineHeight: 1, padding: '10px 8px', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
@@ -586,7 +596,9 @@ export default function Home() {
             {SLIDES.map((_, i) => (
               <button key={i} onClick={() => setSlide(i)}
                 aria-label={`Go to slide ${i + 1}`}
-                style={{ width: i === slide ? 24 : 8, height: 8, borderRadius: 4, border: 'none', background: i === slide ? C.teal : 'rgba(255,255,255,0.35)', cursor: 'pointer', transition: 'all 0.3s', padding: '10px 4px', boxSizing: 'content-box' }} />
+                style={{ width: 28, height: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
+                <span aria-hidden="true" style={{ width: i === slide ? 20 : 8, height: 8, borderRadius: 4, background: i === slide ? C.teal : 'rgba(255,255,255,0.35)', transition: 'all 0.3s', display: 'block' }} />
+              </button>
             ))}
           </div>
 
@@ -611,9 +623,9 @@ export default function Home() {
       </section>
 
       {/* ── How It Works ── */}
-      <section id="how-it-works" style={{ padding: '3.5rem 1.5rem', background: `linear-gradient(135deg,#0d9488 0%,#0f766e 100%)`, borderTop: '3px solid #0f766e', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
-        <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+      <section id="how-it-works" style={{ padding: '3.5rem 1.5rem', background: `linear-gradient(135deg,#0a6e66 0%,#0f766e 100%)`, borderTop: '3px solid #0f766e', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
+        <div aria-hidden="true" style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+        <div aria-hidden="true" style={{ position: 'absolute', bottom: -60, left: -60, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: 820, margin: '0 auto', position: 'relative', zIndex: Z_INDEX.BASE }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', textAlign: 'center', marginBottom: '0.375rem', letterSpacing: '-0.02em' }}>Booking with me is easy</h2>
           <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: '2.5rem' }}>Three steps. Under three minutes. No phone calls needed.</p>
@@ -624,7 +636,7 @@ export default function Home() {
               { step: '03', icon: '🏥', title: "Show up & glow", desc: "Come in at your time. We'll assess, treat, and walk you through aftercare — all in one visit." },
             ].map(({ step, icon, title, desc }) => (
               <div key={step} style={{ background: C.white, border: `1px solid ${C.tealRing}`, borderRadius: 16, padding: '1.75rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: -18, right: -10, fontSize: '4rem', fontWeight: 900, color: C.teal, opacity: 0.06, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>{step}</div>
+                <div aria-hidden="true" role="presentation" style={{ position: 'absolute', top: -18, right: -10, fontSize: '4rem', fontWeight: 900, color: C.teal, opacity: 0.06, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>{step}</div>
                 <div style={{ width: 50, height: 50, background: C.tealLight, border: `1.5px solid ${C.tealRing}`, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.375rem', marginBottom: '1rem' }}>{icon}</div>
                 <div style={{ display: 'inline-block', background: C.teal, color: C.white, fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', borderRadius: 100, padding: '0.2rem 0.5rem', marginBottom: '0.625rem' }}>Step {step}</div>
                 <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: C.text, marginBottom: '0.5rem', letterSpacing: '-0.01em' }}>{title}</h3>
@@ -669,7 +681,7 @@ export default function Home() {
       </section>
 
       {/* ── Instagram Videos ── */}
-      <section id="videos" style={{ padding: '3rem 1.5rem', background: '#0f172a', borderTop: '3px solid #0d9488', width: '100%', display: 'block' }}>
+      <section id="videos" style={{ padding: '3rem 1.5rem', background: '#0f172a', borderTop: '3px solid #0a6e66', width: '100%', display: 'block' }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
           <h2 style={{ fontSize: '1.375rem', fontWeight: 800, color: '#ffffff', textAlign: 'center', marginBottom: '0.375rem', letterSpacing: '-0.02em' }}>Watch Me Work</h2>
           <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.72)', textAlign: 'center', marginBottom: '2rem' }}>
@@ -743,7 +755,7 @@ export default function Home() {
       </main>
 
       {/* ── Footer ── */}
-      <footer id="contact" style={{ background: '#0d4a6e', borderTop: '3px solid #0d9488', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
+      <footer id="contact" style={{ background: '#0d4a6e', borderTop: '3px solid #0a6e66', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
         {/* Large name header */}
         <div style={{ padding: '3rem 1.5rem 2rem', borderBottom: '1px solid rgba(255,255,255,0.12)', textAlign: 'center', position: 'relative' }}>
           <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 500, height: 500, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />

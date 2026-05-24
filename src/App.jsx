@@ -26,7 +26,7 @@ class ErrorBoundary extends Component {
           </pre>
           <button
             onClick={() => this.setState({ error: null })}
-            style={{ marginTop: 16, padding: '8px 20px', background: '#0d9488', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}
+            style={{ marginTop: 16, padding: '8px 20px', background: '#0a6e66', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}
           >
             Try again
           </button>

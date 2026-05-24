@@ -5,7 +5,7 @@ import { Z_INDEX } from '../constants/zIndex'
 import { getInquiries, updateInquiry, STATUSES } from '../data/brandInquiries'
 
 const C = {
-  teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
+  teal: '#0a6e66', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
   text: '#0f172a', muted: '#64748b', border: '#e2e8f0', bg: '#f8fafc',
   white: '#fff', dark: '#071a2e',
 }
@@ -156,11 +156,11 @@ function KPISection({ appointments }) {
   const avg        = unique > 0 ? Math.round(totalRev / unique) : 0
 
   const kpis = [
-    { icon:'📅', label:'Total Appointments', value:appointments.length, sub:`All time`,                    accent:'#0d9488', bg:'#f0fdfa', textCol:'#0f766e' },
+    { icon:'📅', label:'Total Appointments', value:appointments.length, sub:`All time`,                    accent:'#0a6e66', bg:'#f0fdfa', textCol:'#0f766e' },
     { icon:'🕐', label:'Pending',            value:pending.length,     sub:`${waitlisted.length} waitlisted`, accent:'#d97706', bg:'#fef9c3', textCol:'#a16207' },
     { icon:'✓',  label:'Confirmed',          value:confirmed.length,   sub:`${Math.round(confirmed.length/appointments.length*100)}% rate`, accent:'#16a34a', bg:'#dcfce7', textCol:'#15803d' },
     { icon:'✕',  label:'Rejected',           value:rejected.length,    sub:`${Math.round(rejected.length/appointments.length*100)}% rate`,  accent:'#dc2626', bg:'#fee2e2', textCol:'#dc2626' },
-    { icon:'💰', label:'Total Revenue',      value:`PKR ${(totalRev/1000).toFixed(0)}K`, sub:'All confirmed',         accent:'#0d9488', bg:'#f0fdfa', textCol:'#0f766e' },
+    { icon:'💰', label:'Total Revenue',      value:`PKR ${(totalRev/1000).toFixed(0)}K`, sub:'All confirmed',         accent:'#0a6e66', bg:'#f0fdfa', textCol:'#0f766e' },
     { icon:'📈', label:'This Month',         value:`PKR ${(monthRev/1000).toFixed(0)}K`, sub:`${growth > 0 ? '▲' : '▼'} ${Math.abs(growth)}% vs last month`, accent: growth >= 0 ? '#16a34a' : '#dc2626', bg: growth >= 0 ? '#dcfce7' : '#fee2e2', textCol: growth >= 0 ? '#15803d' : '#dc2626' },
     { icon:'👤', label:'Avg per Patient',    value:`PKR ${(avg/1000).toFixed(1)}K`, sub:`${unique} unique patients`, accent:'#7c3aed', bg:'#f5f3ff', textCol:'#6d28d9' },
   ]
@@ -1148,7 +1148,7 @@ function PaymentDetailModal({ appt, onClose }) {
 
 // ── Finance Tab ───────────────────────────────────────────────────────────────
 const PROC_COLORS = {
-  'Botox':          '#0d9488',
+  'Botox':          '#0a6e66',
   'PLLA Threads':   '#7c3aed',
   'Chemical Peel':  '#d97706',
   'Microneedling':  '#2563eb',
@@ -1256,7 +1256,7 @@ function FinanceTab({ appointments, darkMode }) {
       {/* ── Top stat cards ── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.625rem', marginBottom:'1rem' }}>
         {[
-          { icon:'💰', label:'Total Revenue',    value:`PKR ${(totalRev/1000).toFixed(0)}K`,   sub:'All verified payments',                   accent:'#0d9488', bg:'#f0fdfa', textCol:'#0f766e' },
+          { icon:'💰', label:'Total Revenue',    value:`PKR ${(totalRev/1000).toFixed(0)}K`,   sub:'All verified payments',                   accent:'#0a6e66', bg:'#f0fdfa', textCol:'#0f766e' },
           { icon:'📅', label:'This Month (May)', value:`PKR ${(mayRev/1000).toFixed(0)}K`,     sub:`${growth>=0?'▲':'▼'} ${Math.abs(growth)}% vs April`, accent:growth>=0?'#16a34a':'#dc2626', bg:growth>=0?'#dcfce7':'#fee2e2', textCol:growth>=0?'#15803d':'#dc2626' },
           { icon:'⏳', label:'Pending Revenue',  value:`PKR ${(pendingRev/1000).toFixed(0)}K`, sub:`${pendingAppts.length} unverified payments`, accent:'#d97706', bg:'#fef9c3', textCol:'#a16207' },
           { icon:'✅', label:'Verified Txns',    value:paidAppts.length,                       sub:`${refAppts.length} refunded`,               accent:'#16a34a', bg:'#dcfce7', textCol:'#15803d' },
@@ -1505,7 +1505,7 @@ function FinanceTab({ appointments, darkMode }) {
 
       {/* Export toast */}
       {payToast && (
-        <div style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', background:'#0d9488', color:C.white, padding:'0.625rem 1.375rem', borderRadius:30, fontSize:'0.6875rem', fontWeight:700, boxShadow:'0 4px 20px rgba(0,0,0,0.2)', zIndex:Z_INDEX.TOAST, whiteSpace:'nowrap', animation:'app-toast-in 0.3s ease' }}>
+        <div style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', background:'#0a6e66', color:C.white, padding:'0.625rem 1.375rem', borderRadius:30, fontSize:'0.6875rem', fontWeight:700, boxShadow:'0 4px 20px rgba(0,0,0,0.2)', zIndex:Z_INDEX.TOAST, whiteSpace:'nowrap', animation:'app-toast-in 0.3s ease' }}>
           📊 Export coming soon
         </div>
       )}
@@ -1708,7 +1708,7 @@ function DepositConfigSection({ darkMode }) {
 
 // ── Partnerships Tab ──────────────────────────────────────────────────────────
 const INQ_STATUS_STYLE = {
-  'New':       { bg:'#f0fdfa', color:'#0d9488', border:'#99f6e4' },
+  'New':       { bg:'#f0fdfa', color:'#0a6e66', border:'#99f6e4' },
   'In Review': { bg:'#fef3c7', color:'#d97706', border:'#fcd34d' },
   'Accepted':  { bg:'#dcfce7', color:'#16a34a', border:'#86efac' },
   'Rejected':  { bg:'#f1f5f9', color:'#64748b', border:'#cbd5e1' },
@@ -1768,8 +1768,8 @@ function PartnershipsTab() {
       {/* KPI strip */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'0.5rem', marginBottom:'1rem' }}>
         {[
-          { label:'Total',     value:counts.Total,       accent:'#0d9488', bg:'#f0fdfa', textCol:'#0f766e' },
-          { label:'New',       value:counts.New,         accent:'#0d9488', bg:'#f0fdfa', textCol:'#0f766e' },
+          { label:'Total',     value:counts.Total,       accent:'#0a6e66', bg:'#f0fdfa', textCol:'#0f766e' },
+          { label:'New',       value:counts.New,         accent:'#0a6e66', bg:'#f0fdfa', textCol:'#0f766e' },
           { label:'In Review', value:counts['In Review'],accent:'#d97706', bg:'#fef9c3', textCol:'#a16207' },
           { label:'Accepted',  value:counts.Accepted,    accent:'#16a34a', bg:'#dcfce7', textCol:'#15803d' },
           { label:'Rejected',  value:counts.Rejected,    accent:'#64748b', bg:'#f1f5f9', textCol:'#475569' },

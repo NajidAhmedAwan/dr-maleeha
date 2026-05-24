@@ -5,7 +5,7 @@ import { Z_INDEX } from '../constants/zIndex'
 import { PARTNERSHIP_TYPES, BUDGET_RANGES, addInquiry } from '../data/brandInquiries'
 
 const C = {
-  teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
+  teal: '#0a6e66', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
   text: '#0f172a', muted: '#64748b', border: '#e2e8f0', bg: '#f8fafc', white: '#fff',
 }
 

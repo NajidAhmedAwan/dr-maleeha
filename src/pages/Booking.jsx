@@ -14,11 +14,11 @@ const N = {
   cardHov:   '#162840',
   border:    'rgba(255,255,255,0.08)',
   borderHov: 'rgba(255,255,255,0.18)',
-  borderSel: '#0d9488',
+  borderSel: '#0a6e66',
   text:      '#e2e8f0',
   textDim:   'rgba(255,255,255,0.6)',
   muted:     'rgba(255,255,255,0.55)',
-  teal:      '#0d9488',
+  teal:      '#0a6e66',
   tealLight: 'rgba(13,148,136,0.14)',
   tealBord:  'rgba(13,148,136,0.4)',
   tealGlow:  'rgba(13,148,136,0.25)',
@@ -157,7 +157,7 @@ function Confetti() {
     x: Math.random() * 100,
     delay: Math.random() * 1.5,
     dur: 2.5 + Math.random() * 2,
-    color: ['#0d9488','#14b8a6','#f59e0b','#a78bfa','#34d399','#60a5fa','#f472b6'][Math.floor(Math.random() * 7)],
+    color: ['#0a6e66','#14b8a6','#f59e0b','#a78bfa','#34d399','#60a5fa','#f472b6'][Math.floor(Math.random() * 7)],
     size: 6 + Math.random() * 9,
     rot: Math.random() * 360,
   }))
@@ -267,7 +267,7 @@ function InlineCalendar({ value, onChange }) {
 
       {/* Legend */}
       <div style={{ display:'flex', gap:'0.875rem', padding:'0.5rem 1rem 0.75rem', borderTop:`1px solid ${N.border}` }}>
-        {[['#0d9488','Selected'],['rgba(255,255,255,0.25)','Available'],['rgba(255,255,255,0.04)','Full'],['rgba(245,158,11,0.5)','Holiday']].map(([col,label]) => (
+        {[['#0a6e66','Selected'],['rgba(255,255,255,0.25)','Available'],['rgba(255,255,255,0.04)','Full'],['rgba(245,158,11,0.5)','Holiday']].map(([col,label]) => (
           <div key={label} style={{ display:'flex', alignItems:'center', gap:'0.25rem' }}>
             <div style={{ width:8, height:8, borderRadius:2, background:col }} />
             <span style={{ fontSize:'0.5rem', color:N.muted }}>{label}</span>

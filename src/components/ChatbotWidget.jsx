@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { DEFAULT_QA, getChatbotQA } from '../data/chatbotQA'
 import { Z_INDEX } from '../constants/zIndex'
 
-const TEAL = '#0d9488'
+const TEAL = '#0a6e66'
 const NAVY = '#0d1b2a'
 const FALLBACK_REPLIES = ['Book an appointment', 'Learn about procedures']
 const FALLBACK_ANSWER = "I'm not sure I caught that — try one of the options below, or book a consultation."
