@@ -29,29 +29,29 @@ const tToMin = t => {
 
 // ── Extended mock data with revenue + waitlist ────────────────────────────────
 const MOCK = [
-  { id:0,  name:'Rida Qureshi',   procedure:'Consultation',   date:'2026-05-21', time:'9:00 AM',  status:'confirmed',  phone:'+92 300 9876543', location:'Islamabad', paid:'paid',     revenue:3000  },
-  { id:1,  name:'Fatima Ahmed',   procedure:'Botox',          date:'2026-05-21', time:'11:00 AM', status:'pending',    phone:'+92 300 1234567', location:'Islamabad', paid:'paid',     revenue:18000 },
-  { id:13, name:'Laila Hassan',   procedure:'Botox',          date:'2026-05-21', time:'3:00 PM',  status:'confirmed',  phone:'+92 333 9991111', location:'Karachi',   paid:'paid',     revenue:18000 },
-  { id:2,  name:'Sara Khan',      procedure:'Chemical Peel',  date:'2026-05-22', time:'11:00 AM', status:'confirmed',  phone:'+92 321 9876543', location:'Karachi',   paid:'paid',     revenue:8000  },
-  { id:14, name:'Ruqayyah Niazi', procedure:'Consultation',   date:'2026-05-22', time:'9:00 AM',  status:'pending',    phone:'+92 321 2223333', location:'Islamabad', paid:'pending',  revenue:3000  },
-  { id:3,  name:'Ayesha Malik',   procedure:'Consultation',   date:'2026-05-23', time:'2:00 PM',  status:'pending',    phone:'+92 333 5554321', location:'Online',    paid:'pending',  revenue:3000  },
-  { id:4,  name:'Nadia Hussain',  procedure:'PLLA Threads',   date:'2026-05-23', time:'4:00 PM',  status:'pending',    phone:'+92 311 7778888', location:'Islamabad', paid:'paid',     revenue:35000 },
-  { id:5,  name:'Zara Sheikh',    procedure:'Botox',          date:'2026-05-24', time:'9:00 AM',  status:'confirmed',  phone:'+92 345 6667777', location:'Karachi',   paid:'paid',     revenue:18000 },
-  { id:15, name:'Aisha Baig',     procedure:'Acne Treatment', date:'2026-05-24', time:'2:00 PM',  status:'confirmed',  phone:'+92 300 4445555', location:'Lahore',    paid:'paid',     revenue:5000  },
-  { id:6,  name:'Hira Iqbal',     procedure:'Chemical Peel',  date:'2026-05-25', time:'3:00 PM',  status:'rejected',   phone:'+92 301 2223334', location:'Lahore',    paid:'refunded', revenue:0     },
-  { id:7,  name:'Mahnoor Butt',   procedure:'Consultation',   date:'2026-05-26', time:'12:00 PM', status:'pending',    phone:'+92 322 4445556', location:'Online',    paid:'pending',  revenue:3000  },
-  { id:16, name:'Hafsa Mir',      procedure:'Chemical Peel',  date:'2026-05-26', time:'10:00 AM', status:'pending',    phone:'+92 311 6667778', location:'Online',    paid:'pending',  revenue:8000  },
-  { id:8,  name:'Sana Raza',      procedure:'Microneedling',  date:'2026-05-27', time:'10:00 AM', status:'confirmed',  phone:'+92 333 1112222', location:'Islamabad', paid:'paid',     revenue:12000 },
-  { id:17, name:'Iqra Butt',      procedure:'Microneedling',  date:'2026-05-27', time:'2:00 PM',  status:'pending',    phone:'+92 345 8889990', location:'Karachi',   paid:'paid',     revenue:12000 },
-  { id:9,  name:'Amna Zahid',     procedure:'Hydrafacial',    date:'2026-05-28', time:'2:00 PM',  status:'confirmed',  phone:'+92 321 3334444', location:'Lahore',    paid:'paid',     revenue:9000  },
-  { id:10, name:'Khadija Ali',    procedure:'PRP Treatment',  date:'2026-05-29', time:'11:00 AM', status:'pending',    phone:'+92 345 5556666', location:'Online',    paid:'pending',  revenue:28000 },
-  { id:11, name:'Mariam Tariq',   procedure:'Lip Fillers',    date:'2026-05-29', time:'3:00 PM',  status:'confirmed',  phone:'+92 300 7778889', location:'Islamabad', paid:'paid',     revenue:30000 },
-  { id:12, name:'Noor Fatima',    procedure:'Skin Boosters',  date:'2026-05-30', time:'10:00 AM', status:'pending',    phone:'+92 311 2223335', location:'Lahore',    paid:'pending',  revenue:15000 },
-  { id:18, name:'Zubia Rehman',   procedure:'Skin Boosters',  date:'2026-05-30', time:'3:00 PM',  status:'waitlisted', phone:'+92 300 1112223', location:'Islamabad', paid:'pending',  revenue:15000, waitlist:true, waitlistPos:1 },
-  { id:19, name:'Tasneem Ashraf', procedure:'Botox',          date:'2026-06-02', time:'11:00 AM', status:'confirmed',  phone:'+92 321 5556667', location:'Karachi',   paid:'paid',     revenue:18000 },
-  { id:20, name:'Fatima Ahmed',   procedure:'Consultation',   date:'2026-06-03', time:'11:00 AM', status:'confirmed',  phone:'+92 300 1234567', location:'Online',    paid:'paid',     revenue:3000  },
-  { id:21, name:'Sara Khan',      procedure:'Botox',          date:'2026-06-04', time:'2:00 PM',  status:'pending',    phone:'+92 321 9876543', location:'Karachi',   paid:'pending',  revenue:18000 },
-  { id:22, name:'Zara Sheikh',    procedure:'Hydrafacial',    date:'2026-06-05', time:'10:00 AM', status:'waitlisted', phone:'+92 345 6667777', location:'Online',    paid:'pending',  revenue:9000,  waitlist:true, waitlistPos:2 },
+  { id:0,  name:'Rida Qureshi',   procedure:'Consultation',   date:'2026-05-21', time:'9:00 AM',  status:'confirmed',  phone:'+92 300 9876543', location:'Islamabad', paid:'paid',     revenue:3000,  method:'Cash'          },
+  { id:1,  name:'Fatima Ahmed',   procedure:'Botox',          date:'2026-05-21', time:'11:00 AM', status:'pending',    phone:'+92 300 1234567', location:'Islamabad', paid:'paid',     revenue:18000, method:'Bank Transfer' },
+  { id:13, name:'Laila Hassan',   procedure:'Botox',          date:'2026-05-21', time:'3:00 PM',  status:'confirmed',  phone:'+92 333 9991111', location:'Karachi',   paid:'paid',     revenue:18000, method:'JazzCash'      },
+  { id:2,  name:'Sara Khan',      procedure:'Chemical Peel',  date:'2026-05-22', time:'11:00 AM', status:'confirmed',  phone:'+92 321 9876543', location:'Karachi',   paid:'paid',     revenue:8000,  method:'EasyPaisa'     },
+  { id:14, name:'Ruqayyah Niazi', procedure:'Consultation',   date:'2026-05-22', time:'9:00 AM',  status:'pending',    phone:'+92 321 2223333', location:'Islamabad', paid:'pending',  revenue:3000,  method:'Cash'          },
+  { id:3,  name:'Ayesha Malik',   procedure:'Consultation',   date:'2026-05-23', time:'2:00 PM',  status:'pending',    phone:'+92 333 5554321', location:'Online',    paid:'pending',  revenue:3000,  method:'JazzCash'      },
+  { id:4,  name:'Nadia Hussain',  procedure:'PLLA Threads',   date:'2026-05-23', time:'4:00 PM',  status:'pending',    phone:'+92 311 7778888', location:'Islamabad', paid:'paid',     revenue:35000, method:'Bank Transfer' },
+  { id:5,  name:'Zara Sheikh',    procedure:'Botox',          date:'2026-05-24', time:'9:00 AM',  status:'confirmed',  phone:'+92 345 6667777', location:'Karachi',   paid:'paid',     revenue:18000, method:'Card'          },
+  { id:15, name:'Aisha Baig',     procedure:'Acne Treatment', date:'2026-05-24', time:'2:00 PM',  status:'confirmed',  phone:'+92 300 4445555', location:'Lahore',    paid:'paid',     revenue:5000,  method:'Cash'          },
+  { id:6,  name:'Hira Iqbal',     procedure:'Chemical Peel',  date:'2026-05-25', time:'3:00 PM',  status:'rejected',   phone:'+92 301 2223334', location:'Lahore',    paid:'refunded', revenue:0,     method:'EasyPaisa'     },
+  { id:7,  name:'Mahnoor Butt',   procedure:'Consultation',   date:'2026-05-26', time:'12:00 PM', status:'pending',    phone:'+92 322 4445556', location:'Online',    paid:'pending',  revenue:3000,  method:'JazzCash'      },
+  { id:16, name:'Hafsa Mir',      procedure:'Chemical Peel',  date:'2026-05-26', time:'10:00 AM', status:'pending',    phone:'+92 311 6667778', location:'Online',    paid:'pending',  revenue:8000,  method:'Bank Transfer' },
+  { id:8,  name:'Sana Raza',      procedure:'Microneedling',  date:'2026-05-27', time:'10:00 AM', status:'confirmed',  phone:'+92 333 1112222', location:'Islamabad', paid:'paid',     revenue:12000, method:'Card'          },
+  { id:17, name:'Iqra Butt',      procedure:'Microneedling',  date:'2026-05-27', time:'2:00 PM',  status:'pending',    phone:'+92 345 8889990', location:'Karachi',   paid:'paid',     revenue:12000, method:'EasyPaisa'     },
+  { id:9,  name:'Amna Zahid',     procedure:'Hydrafacial',    date:'2026-05-28', time:'2:00 PM',  status:'confirmed',  phone:'+92 321 3334444', location:'Lahore',    paid:'paid',     revenue:9000,  method:'Bank Transfer' },
+  { id:10, name:'Khadija Ali',    procedure:'PRP Treatment',  date:'2026-05-29', time:'11:00 AM', status:'pending',    phone:'+92 345 5556666', location:'Online',    paid:'pending',  revenue:28000, method:'JazzCash'      },
+  { id:11, name:'Mariam Tariq',   procedure:'Lip Fillers',    date:'2026-05-29', time:'3:00 PM',  status:'confirmed',  phone:'+92 300 7778889', location:'Islamabad', paid:'paid',     revenue:30000, method:'Card'          },
+  { id:12, name:'Noor Fatima',    procedure:'Skin Boosters',  date:'2026-05-30', time:'10:00 AM', status:'pending',    phone:'+92 311 2223335', location:'Lahore',    paid:'pending',  revenue:15000, method:'Cash'          },
+  { id:18, name:'Zubia Rehman',   procedure:'Skin Boosters',  date:'2026-05-30', time:'3:00 PM',  status:'waitlisted', phone:'+92 300 1112223', location:'Islamabad', paid:'pending',  revenue:15000, method:'JazzCash',      waitlist:true, waitlistPos:1 },
+  { id:19, name:'Tasneem Ashraf', procedure:'Botox',          date:'2026-06-02', time:'11:00 AM', status:'confirmed',  phone:'+92 321 5556667', location:'Karachi',   paid:'paid',     revenue:18000, method:'Bank Transfer' },
+  { id:20, name:'Fatima Ahmed',   procedure:'Consultation',   date:'2026-06-03', time:'11:00 AM', status:'confirmed',  phone:'+92 300 1234567', location:'Online',    paid:'paid',     revenue:3000,  method:'Cash'          },
+  { id:21, name:'Sara Khan',      procedure:'Botox',          date:'2026-06-04', time:'2:00 PM',  status:'pending',    phone:'+92 321 9876543', location:'Karachi',   paid:'pending',  revenue:18000, method:'JazzCash'      },
+  { id:22, name:'Zara Sheikh',    procedure:'Hydrafacial',    date:'2026-06-05', time:'10:00 AM', status:'waitlisted', phone:'+92 345 6667777', location:'Online',    paid:'pending',  revenue:9000,  method:'EasyPaisa',    waitlist:true, waitlistPos:2 },
 ]
 
 // ── Pakistani national holidays ───────────────────────────────────────────────
@@ -885,6 +885,53 @@ function ProductViewModal({ product, onClose }) {
   )
 }
 
+// ── Payment Detail Modal ─────────────────────────────────────────────────────
+const METHOD_ICON = { 'Cash':'💵', 'Bank Transfer':'🏦', 'JazzCash':'📱', 'EasyPaisa':'📲', 'Card':'💳' }
+
+function PaymentDetailModal({ appt, onClose }) {
+  const pst = PAID_STYLE[appt.paid] || PAID_STYLE.pending
+  const st  = STATUS_STYLE[appt.status] || STATUS_STYLE.pending
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:650, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+      <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)' }} />
+      <div style={{ position:'relative', background:C.white, borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.25)', width:'100%', maxWidth:400, animation:'modal-in 0.2s ease', zIndex:1, overflow:'hidden' }}>
+        <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div>
+            <div style={{ fontSize:'0.4375rem', color:'#99f6e4', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:'0.25rem' }}>Payment Details</div>
+            <div style={{ fontWeight:800, fontSize:'0.875rem', color:C.white }}>{appt.name}</div>
+            <div style={{ fontSize:'0.5rem', color:'rgba(255,255,255,0.7)', marginTop:2 }}>{appt.procedure} · {appt.date}</div>
+          </div>
+          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:6, width:28, height:28, cursor:'pointer', color:C.white, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.75rem' }}>✕</button>
+        </div>
+        <div style={{ padding:'1rem' }}>
+          {[
+            ['Location', appt.location],
+            ['Phone',    appt.phone],
+            ['Amount',   appt.revenue > 0 ? `PKR ${appt.revenue.toLocaleString()}` : '—'],
+            ['Method',   `${METHOD_ICON[appt.method] || '💳'} ${appt.method || '—'}`],
+          ].map(([label, value]) => (
+            <div key={label} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0.4rem 0', borderBottom:`1px solid ${C.border}` }}>
+              <span style={{ fontSize:'0.5625rem', color:C.muted, fontWeight:600 }}>{label}</span>
+              <span style={{ fontSize:'0.5625rem', color:C.text, fontWeight:700 }}>{value}</span>
+            </div>
+          ))}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0.4rem 0', borderBottom:`1px solid ${C.border}` }}>
+            <span style={{ fontSize:'0.5625rem', color:C.muted, fontWeight:600 }}>Payment</span>
+            <span style={{ padding:'0.1rem 0.375rem', borderRadius:4, fontSize:'0.4375rem', fontWeight:700, background:pst.bg, color:pst.color, textTransform:'capitalize' }}>{appt.paid}</span>
+          </div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0.4rem 0' }}>
+            <span style={{ fontSize:'0.5625rem', color:C.muted, fontWeight:600 }}>Appt Status</span>
+            <span style={{ padding:'0.1rem 0.375rem', borderRadius:4, fontSize:'0.4375rem', fontWeight:700, background:st.bg, color:st.color }}>{st.label}</span>
+          </div>
+        </div>
+        <div style={{ padding:'0 1rem 1rem' }}>
+          <button onClick={onClose} style={{ width:'100%', padding:'0.5rem', background:C.bg, color:C.muted, border:`1px solid ${C.border}`, fontWeight:600, fontSize:'0.5625rem', borderRadius:8, cursor:'pointer' }}>Close</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Finance Tab ───────────────────────────────────────────────────────────────
 const PROC_COLORS = {
   'Botox':          '#0d9488',
@@ -930,6 +977,16 @@ function DonutChart({ slices }) {
 }
 
 function FinanceTab({ appointments, darkMode }) {
+  const [payStatusF,  setPayStatusF]  = useState('All')
+  const [payLocF,     setPayLocF]     = useState('All')
+  const [payDateFrom, setPayDateFrom] = useState('')
+  const [payDateTo,   setPayDateTo]   = useState('')
+  const [payProcF,    setPayProcF]    = useState('All')
+  const [paySortBy,   setPaySortBy]   = useState('date')
+  const [paySortDir,  setPaySortDir]  = useState('desc')
+  const [payToast,    setPayToast]    = useState(false)
+  const [payDetail,   setPayDetail]   = useState(null)
+
   const paidAppts    = appointments.filter(a => a.paid === 'paid')
   const pendingAppts = appointments.filter(a => a.paid === 'pending')
   const refAppts     = appointments.filter(a => a.paid === 'refunded')
@@ -960,6 +1017,24 @@ function FinanceTab({ appointments, darkMode }) {
   const subBg = darkMode ? '#0d2444' : C.bg
   const textC = darkMode ? '#e2e8f0' : C.text
   const brd   = darkMode ? '#2a3a5c' : C.border
+
+  const allProcedures = [...new Set(appointments.map(a => a.procedure))].sort()
+
+  let payRows = [...appointments]
+  if (payStatusF !== 'All') payRows = payRows.filter(a => a.paid === payStatusF)
+  if (payLocF    !== 'All') payRows = payRows.filter(a => a.location === payLocF)
+  if (payProcF   !== 'All') payRows = payRows.filter(a => a.procedure === payProcF)
+  if (payDateFrom)          payRows = payRows.filter(a => a.date >= payDateFrom)
+  if (payDateTo)            payRows = payRows.filter(a => a.date <= payDateTo)
+  payRows.sort((a, b) => {
+    let cmp = 0
+    if (paySortBy === 'date')   cmp = a.date.localeCompare(b.date)
+    if (paySortBy === 'amount') cmp = (a.revenue || 0) - (b.revenue || 0)
+    if (paySortBy === 'status') cmp = a.paid.localeCompare(b.paid)
+    return paySortDir === 'asc' ? cmp : -cmp
+  })
+
+  const hasActiveFilter = payStatusF !== 'All' || payLocF !== 'All' || payProcF !== 'All' || payDateFrom || payDateTo
 
   return (
     <div style={{ maxWidth:1200, margin:'0 auto', padding:'1rem 1.125rem 2rem' }}>
@@ -1095,6 +1170,134 @@ function FinanceTab({ appointments, darkMode }) {
           </div>
         </div>
       </div>
+
+      {/* ── Payments Section ── */}
+      <div style={{ marginTop:'1.25rem' }}>
+        {/* Header */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.625rem' }}>
+          <div>
+            <div style={{ fontWeight:800, fontSize:'0.8125rem', color:textC }}>Payments</div>
+            <div style={{ fontSize:'0.4375rem', color:C.muted, marginTop:2 }}>{payRows.length} record{payRows.length !== 1 ? 's' : ''} shown</div>
+          </div>
+          <button
+            onClick={() => { setPayToast(true); setTimeout(() => setPayToast(false), 2500) }}
+            style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.4rem 0.875rem', background:C.teal, color:C.white, border:'none', borderRadius:8, fontWeight:700, fontSize:'0.5rem', cursor:'pointer' }}>
+            ⬇ Export
+          </button>
+        </div>
+
+        {/* Filters + Sort */}
+        <div style={{ background:bg, border:`1px solid ${brd}`, borderRadius:12, padding:'0.75rem', marginBottom:'0.75rem' }}>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem', alignItems:'flex-end' }}>
+            {/* Status */}
+            <div>
+              <div style={{ fontSize:'0.375rem', fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.2rem' }}>Status</div>
+              <select value={payStatusF} onChange={e => setPayStatusF(e.target.value)}
+                style={{ padding:'0.3rem 0.5rem', border:`1px solid ${brd}`, borderRadius:7, fontSize:'0.5rem', color:textC, background:subBg, cursor:'pointer', outline:'none' }}>
+                {['All','paid','pending','refunded'].map(s => (
+                  <option key={s} value={s}>{s === 'All' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+            {/* Location */}
+            <div>
+              <div style={{ fontSize:'0.375rem', fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.2rem' }}>Location</div>
+              <select value={payLocF} onChange={e => setPayLocF(e.target.value)}
+                style={{ padding:'0.3rem 0.5rem', border:`1px solid ${brd}`, borderRadius:7, fontSize:'0.5rem', color:textC, background:subBg, cursor:'pointer', outline:'none' }}>
+                {['All','Islamabad','Karachi','Lahore','Online'].map(l => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+            {/* Procedure */}
+            <div>
+              <div style={{ fontSize:'0.375rem', fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.2rem' }}>Procedure</div>
+              <select value={payProcF} onChange={e => setPayProcF(e.target.value)}
+                style={{ padding:'0.3rem 0.5rem', border:`1px solid ${brd}`, borderRadius:7, fontSize:'0.5rem', color:textC, background:subBg, cursor:'pointer', outline:'none' }}>
+                <option value="All">All</option>
+                {allProcedures.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            {/* Date From */}
+            <div>
+              <div style={{ fontSize:'0.375rem', fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.2rem' }}>Date From</div>
+              <input type="date" value={payDateFrom} onChange={e => setPayDateFrom(e.target.value)}
+                style={{ padding:'0.3rem 0.5rem', border:`1px solid ${brd}`, borderRadius:7, fontSize:'0.475rem', color:textC, background:subBg, outline:'none' }} />
+            </div>
+            {/* Date To */}
+            <div>
+              <div style={{ fontSize:'0.375rem', fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.2rem' }}>Date To</div>
+              <input type="date" value={payDateTo} onChange={e => setPayDateTo(e.target.value)}
+                style={{ padding:'0.3rem 0.5rem', border:`1px solid ${brd}`, borderRadius:7, fontSize:'0.475rem', color:textC, background:subBg, outline:'none' }} />
+            </div>
+            {hasActiveFilter && (
+              <button onClick={() => { setPayStatusF('All'); setPayLocF('All'); setPayProcF('All'); setPayDateFrom(''); setPayDateTo('') }}
+                style={{ padding:'0.3rem 0.625rem', border:`1px solid ${brd}`, borderRadius:7, background:'transparent', color:C.muted, fontSize:'0.45rem', fontWeight:600, cursor:'pointer', alignSelf:'flex-end' }}>
+                ✕ Clear
+              </button>
+            )}
+          </div>
+          {/* Sort row */}
+          <div style={{ display:'flex', alignItems:'center', gap:'0.375rem', marginTop:'0.5rem', flexWrap:'wrap' }}>
+            <span style={{ fontSize:'0.375rem', fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em' }}>Sort by:</span>
+            {[['date','Date'],['amount','Amount'],['status','Status']].map(([key, label]) => (
+              <button key={key}
+                onClick={() => { if (paySortBy === key) setPaySortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setPaySortBy(key); setPaySortDir('desc') } }}
+                style={{ padding:'0.2rem 0.5rem', border:`1.5px solid ${paySortBy === key ? C.teal : brd}`, borderRadius:20, background: paySortBy === key ? C.tealLight : 'transparent', color: paySortBy === key ? C.teal : C.muted, fontWeight: paySortBy === key ? 700 : 500, fontSize:'0.45rem', cursor:'pointer' }}>
+                {label}{paySortBy === key ? (paySortDir === 'asc' ? ' ↑' : ' ↓') : ''}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div style={{ background:bg, border:`1px solid ${brd}`, borderRadius:12, overflow:'hidden' }}>
+          {/* Header row */}
+          <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1.2fr 0.85fr 0.9fr 1fr 0.8fr 52px', padding:'0.375rem 0.75rem', background:darkMode ? '#0d2444' : C.tealLight, borderBottom:`1px solid ${brd}` }}>
+            {[['Patient Name',0],['Procedure',0],['Date',1],['Amount (PKR)',1],['Method',1],['Status',1],['',1]].map(([h, right], i) => (
+              <span key={i} style={{ fontSize:'0.375rem', fontWeight:800, color:C.teal, textTransform:'uppercase', letterSpacing:'0.05em', textAlign: right ? 'right' : 'left' }}>{h}</span>
+            ))}
+          </div>
+          {payRows.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'2rem', color:C.muted }}>
+              <div style={{ fontSize:'1.5rem', marginBottom:'0.5rem' }}>📭</div>
+              <div style={{ fontSize:'0.5625rem', fontWeight:600 }}>No payments match the selected filters</div>
+            </div>
+          ) : (
+            <div style={{ maxHeight:400, overflowY:'auto' }}>
+              {payRows.map((a, idx) => {
+                const pst = PAID_STYLE[a.paid] || PAID_STYLE.pending
+                return (
+                  <div key={a.id} style={{ display:'grid', gridTemplateColumns:'1.5fr 1.2fr 0.85fr 0.9fr 1fr 0.8fr 52px', padding:'0.425rem 0.75rem', borderBottom: idx < payRows.length - 1 ? `1px solid ${brd}` : 'none', alignItems:'center', background: idx % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.012)') }}>
+                    <span style={{ fontSize:'0.5rem', color:textC, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{a.name}</span>
+                    <span style={{ fontSize:'0.45rem', color:C.muted, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{a.procedure}</span>
+                    <span style={{ fontSize:'0.45rem', color:C.muted, textAlign:'right' }}>{a.date}</span>
+                    <span style={{ fontSize:'0.5rem', color:C.teal, fontWeight:700, textAlign:'right' }}>{a.revenue > 0 ? `${(a.revenue/1000).toFixed(0)}K` : '—'}</span>
+                    <span style={{ fontSize:'0.45rem', color:C.muted, textAlign:'right' }}>{METHOD_ICON[a.method] || '💳'} {a.method || '—'}</span>
+                    <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                      <span style={{ padding:'0.1rem 0.3rem', borderRadius:4, fontSize:'0.4rem', fontWeight:700, background:pst.bg, color:pst.color, textTransform:'capitalize' }}>{a.paid}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                      <button onClick={() => setPayDetail(a)}
+                        style={{ padding:'0.2rem 0.45rem', border:`1px solid ${C.tealRing}`, borderRadius:5, background:C.tealLight, color:C.tealDark, fontWeight:700, fontSize:'0.4rem', cursor:'pointer' }}>View</button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Export toast */}
+      {payToast && (
+        <div style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', background:'#0d9488', color:C.white, padding:'0.625rem 1.375rem', borderRadius:30, fontSize:'0.6875rem', fontWeight:700, boxShadow:'0 4px 20px rgba(0,0,0,0.2)', zIndex:999, whiteSpace:'nowrap', animation:'toast-in 0.3s ease' }}>
+          📊 Export coming soon
+        </div>
+      )}
+
+      {/* Payment detail modal */}
+      {payDetail && <PaymentDetailModal appt={payDetail} onClose={() => setPayDetail(null)} />}
     </div>
   )
 }
