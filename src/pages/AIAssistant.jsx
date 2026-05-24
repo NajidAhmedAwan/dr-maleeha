@@ -1070,20 +1070,55 @@ function Newsletter() {
   )
 }
 
+// ── Price Benchmarking Sources ────────────────────────────────────────────
+const AVAILABLE_SOURCES = [
+  { id: 'doctorify', name: 'Doctorify Pakistan',      url: 'https://doctorify.pk' },
+  { id: 'marham',    name: 'Marham.pk',               url: 'https://marham.pk' },
+  { id: 'shifa',     name: 'Shifa Hospital',           url: 'https://shifa.com.pk' },
+  { id: 'aku',       name: 'Aga Khan Hospital',        url: 'https://hospitals.aku.edu' },
+  { id: 'gmaps',     name: 'Google Maps Listings',     url: 'https://maps.google.com' },
+  { id: 'clinics',   name: 'Clinic Websites',          url: '#' },
+  { id: 'social',    name: 'Social Media Pricing Posts', url: '#' },
+]
+
 // ── Benchmarking ──────────────────────────────────────────────────────────
 function Benchmarking() {
   const today = new Date().toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })
-  const [prices, setPrices] = useState(PROC_PRICES.map(p => ({ ...p })))
-  const [market, setMarket] = useState(MARKET_DATA)
-  const [loading, setLoading] = useState(false)
-  const [lastRun, setLastRun] = useState(today)
-  const [editingRow, setEditingRow] = useState(null)
-  const [editVal, setEditVal] = useState('')
+  const DEFAULT_SELECTED = ['doctorify', 'marham', 'shifa']
+
+  const [prices, setPrices]                     = useState(PROC_PRICES.map(p => ({ ...p })))
+  const [market, setMarket]                     = useState(MARKET_DATA)
+  const [loading, setLoading]                   = useState(false)
+  const [lastRun, setLastRun]                   = useState(today)
+  const [editingRow, setEditingRow]             = useState(null)
+  const [editVal, setEditVal]                   = useState('')
+  const [selectedSources, setSelectedSources]   = useState(DEFAULT_SELECTED)
+  const [runSources, setRunSources]             = useState(DEFAULT_SELECTED)
+  const [sourcesModalOpen, setSourcesModalOpen] = useState(false)
+  const [draftSources, setDraftSources]         = useState(DEFAULT_SELECTED)
+
+  const pendingUpdate = selectedSources.slice().sort().join(',') !== runSources.slice().sort().join(',')
+
+  const openSourcesModal = () => {
+    setDraftSources([...selectedSources])
+    setSourcesModalOpen(true)
+  }
+
+  const toggleDraft = (id) => {
+    setDraftSources(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  const saveSources = () => {
+    if (draftSources.length === 0) return
+    setSelectedSources([...draftSources])
+    setSourcesModalOpen(false)
+  }
 
   const runBenchmark = () => {
     setLoading(true)
     setTimeout(() => {
       setMarket({ ...MARKET_DATA })
+      setRunSources([...selectedSources])
       setLastRun(new Date().toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' }))
       setLoading(false)
     }, 2000)
@@ -1104,80 +1139,197 @@ function Benchmarking() {
 
   const fmt = n => n ? `PKR ${n.toLocaleString()}` : '—'
 
+  const getRowSource = (procName) => {
+    const active = AVAILABLE_SOURCES.filter(s => runSources.includes(s.id))
+    if (!active.length) return null
+    const charSum = procName.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+    return active[charSum % active.length]
+  }
+
+  const activeSourceObjects = AVAILABLE_SOURCES.filter(s => selectedSources.includes(s.id))
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, padding: '0.875rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div>
-          <p style={{ fontWeight: 800, fontSize: '0.75rem', color: C.text, margin: '0 0 0.2rem' }}>Price Benchmarking</p>
-          <p style={{ fontSize: '0.5rem', color: C.muted, margin: 0 }}>Compare your procedure prices against Pakistan market rates</p>
-          <p style={{ fontSize: '0.45rem', color: C.teal, margin: '0.25rem 0 0' }}>Last benchmarked: {lastRun}</p>
+    <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {/* Header */}
+        <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, padding: '0.875rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div>
+            <p style={{ fontWeight: 800, fontSize: '0.75rem', color: C.text, margin: '0 0 0.2rem' }}>Price Benchmarking</p>
+            <p style={{ fontSize: '0.5rem', color: C.muted, margin: 0 }}>Compare your procedure prices against Pakistan market rates</p>
+            <p style={{ fontSize: '0.45rem', color: C.teal, margin: '0.25rem 0 0' }}>Last benchmarked: {lastRun}</p>
+          </div>
+          <button onClick={runBenchmark} disabled={loading} style={{
+            background: loading ? C.muted : C.teal, color: C.white, border: 'none',
+            padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 700, fontSize: '0.5625rem',
+            cursor: loading ? 'wait' : 'pointer', whiteSpace: 'nowrap',
+          }}>
+            {loading ? '⏳ Running...' : '💹 Run Benchmark'}
+          </button>
         </div>
-        <button onClick={runBenchmark} disabled={loading} style={{
-          background: loading ? C.muted : C.teal, color: C.white, border: 'none',
-          padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 700, fontSize: '0.5625rem',
-          cursor: loading ? 'wait' : 'pointer', whiteSpace: 'nowrap',
-        }}>
-          {loading ? '⏳ Running...' : '💹 Run Benchmark'}
-        </button>
+
+        {/* Data Sources */}
+        <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, padding: '0.875rem 1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.625rem' }}>
+            <p style={{ fontWeight: 700, fontSize: '0.625rem', color: C.text, margin: 0 }}>Data Sources</p>
+            <button onClick={openSourcesModal} style={{
+              background: 'none', border: `1px solid ${C.teal}`, borderRadius: 7,
+              padding: '0.25rem 0.625rem', fontSize: '0.5rem', color: C.tealDark,
+              fontWeight: 600, cursor: 'pointer',
+            }}>Select Sources</button>
+          </div>
+          <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+            {activeSourceObjects.map(src => (
+              <a key={src.id} href={src.url !== '#' ? src.url : undefined}
+                target={src.url !== '#' ? '_blank' : undefined}
+                rel={src.url !== '#' ? 'noopener noreferrer' : undefined}
+                onClick={src.url === '#' ? e => e.preventDefault() : undefined}
+                style={{
+                  display: 'inline-block', padding: '0.2rem 0.6rem',
+                  border: `1px solid ${C.teal}`, borderRadius: 20,
+                  color: C.teal, background: 'transparent',
+                  fontSize: '0.5rem', fontWeight: 600,
+                  textDecoration: 'none', cursor: src.url !== '#' ? 'pointer' : 'default',
+                  transition: 'opacity 0.15s',
+                }}>
+                {src.name}
+              </a>
+            ))}
+          </div>
+          {pendingUpdate && (
+            <p style={{ fontSize: '0.45rem', color: '#d97706', margin: '0.5rem 0 0', fontStyle: 'italic' }}>
+              Run Benchmark to update results with new source selection.
+            </p>
+          )}
+        </div>
+
+        {/* Results table */}
+        <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.5625rem' }}>
+              <thead>
+                <tr style={{ background: C.bg, borderBottom: `1px solid ${C.border}` }}>
+                  {['Procedure', 'Market Low', 'Market Avg', 'Market High', "Dr. Maleeha's Price", 'Position', 'Source'].map(col => (
+                    <th key={col} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 700, color: C.muted, fontSize: '0.5rem', whiteSpace: 'nowrap' }}>{col}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {prices.map(row => {
+                  const m = market[row.name]
+                  const pos = getPosition(row.myPrice, m?.avg)
+                  const src = getRowSource(row.name)
+                  return (
+                    <tr key={row.name} style={{ borderBottom: `1px solid ${C.border}` }}>
+                      <td style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: C.text }}>{row.name}</td>
+                      <td style={{ padding: '0.5rem 0.75rem', color: C.muted }}>{m ? fmt(m.low) : '—'}</td>
+                      <td style={{ padding: '0.5rem 0.75rem', color: C.muted, fontWeight: 600 }}>{m ? fmt(m.avg) : '—'}</td>
+                      <td style={{ padding: '0.5rem 0.75rem', color: C.muted }}>{m ? fmt(m.high) : '—'}</td>
+                      <td style={{ padding: '0.5rem 0.75rem' }}>
+                        {editingRow === row.name ? (
+                          <input value={editVal} onChange={e => setEditVal(e.target.value)}
+                            onBlur={() => saveEdit(row.name)}
+                            onKeyDown={e => { if (e.key === 'Enter') saveEdit(row.name); if (e.key === 'Escape') { setEditingRow(null); setEditVal('') } }}
+                            autoFocus
+                            style={{ width: 90, padding: '0.2rem 0.375rem', border: `2px solid ${C.teal}`, borderRadius: 5, fontSize: '0.5625rem', color: C.text }} />
+                        ) : (
+                          <button onClick={() => { setEditingRow(row.name); setEditVal(String(row.myPrice)) }} title="Click to edit"
+                            style={{ background: 'none', border: `1px solid ${C.border}`, borderRadius: 5, padding: '0.2rem 0.375rem', fontSize: '0.5625rem', color: C.text, cursor: 'pointer', fontWeight: 600 }}>
+                            PKR {row.myPrice.toLocaleString()}
+                          </button>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem' }}>
+                        {!m ? (
+                          <span style={{ fontSize: '0.45rem', color: C.muted, fontStyle: 'italic' }}>—</span>
+                        ) : pos === 'below' ? (
+                          <span style={{ background: '#fee2e2', color: '#dc2626', padding: '0.2rem 0.5rem', borderRadius: 5, fontSize: '0.475rem', fontWeight: 700 }}>↓ Below Market</span>
+                        ) : pos === 'premium' ? (
+                          <span style={{ background: '#fef3c7', color: '#92400e', padding: '0.2rem 0.5rem', borderRadius: 5, fontSize: '0.475rem', fontWeight: 700 }}>★ Premium</span>
+                        ) : (
+                          <span style={{ background: '#dcfce7', color: '#16a34a', padding: '0.2rem 0.5rem', borderRadius: 5, fontSize: '0.475rem', fontWeight: 700 }}>✓ Competitive</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem' }}>
+                        {src ? (
+                          <span style={{ fontSize: '0.475rem', color: C.tealDark, fontWeight: 600 }}>{src.name}</span>
+                        ) : (
+                          <span style={{ fontSize: '0.45rem', color: C.muted, fontStyle: 'italic' }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p style={{ fontSize: '0.475rem', color: C.muted, margin: 0, padding: '0 0.25rem' }}>
+          ⚠️ Market prices sourced from Pakistan clinic surveys (2026). For internal reference only. Click any price to edit.
+        </p>
       </div>
 
-      <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.5625rem' }}>
-            <thead>
-              <tr style={{ background: C.bg, borderBottom: `1px solid ${C.border}` }}>
-                {['Procedure', 'Market Low', 'Market Avg', 'Market High', "Dr. Maleeha's Price", 'Position'].map(col => (
-                  <th key={col} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 700, color: C.muted, fontSize: '0.5rem', whiteSpace: 'nowrap' }}>{col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {prices.map(row => {
-                const m = market[row.name]
-                const pos = getPosition(row.myPrice, m?.avg)
+      {/* Select Sources Modal */}
+      {sourcesModalOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 200, padding: '1rem',
+        }} onClick={() => setSourcesModalOpen(false)}>
+          <div style={{
+            background: C.white, borderRadius: 16, maxWidth: 440, width: '100%',
+            overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${C.border}` }}>
+              <p style={{ fontWeight: 800, fontSize: '0.875rem', color: C.text, margin: 0 }}>Select Sources</p>
+              <p style={{ fontSize: '0.5rem', color: C.muted, margin: '0.25rem 0 0' }}>Choose which sources to include in the benchmark</p>
+            </div>
+
+            <div style={{ padding: '0.875rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              {AVAILABLE_SOURCES.map(src => {
+                const isOn = draftSources.includes(src.id)
                 return (
-                  <tr key={row.name} style={{ borderBottom: `1px solid ${C.border}` }}>
-                    <td style={{ padding: '0.5rem 0.75rem', fontWeight: 700, color: C.text }}>{row.name}</td>
-                    <td style={{ padding: '0.5rem 0.75rem', color: C.muted }}>{m ? fmt(m.low) : '—'}</td>
-                    <td style={{ padding: '0.5rem 0.75rem', color: C.muted, fontWeight: 600 }}>{m ? fmt(m.avg) : '—'}</td>
-                    <td style={{ padding: '0.5rem 0.75rem', color: C.muted }}>{m ? fmt(m.high) : '—'}</td>
-                    <td style={{ padding: '0.5rem 0.75rem' }}>
-                      {editingRow === row.name ? (
-                        <input value={editVal} onChange={e => setEditVal(e.target.value)}
-                          onBlur={() => saveEdit(row.name)}
-                          onKeyDown={e => { if (e.key === 'Enter') saveEdit(row.name); if (e.key === 'Escape') { setEditingRow(null); setEditVal('') } }}
-                          autoFocus
-                          style={{ width: 90, padding: '0.2rem 0.375rem', border: `2px solid ${C.teal}`, borderRadius: 5, fontSize: '0.5625rem', color: C.text }} />
-                      ) : (
-                        <button onClick={() => { setEditingRow(row.name); setEditVal(String(row.myPrice)) }} title="Click to edit"
-                          style={{ background: 'none', border: `1px solid ${C.border}`, borderRadius: 5, padding: '0.2rem 0.375rem', fontSize: '0.5625rem', color: C.text, cursor: 'pointer', fontWeight: 600 }}>
-                          PKR {row.myPrice.toLocaleString()}
-                        </button>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.5rem 0.75rem' }}>
-                      {!m ? (
-                        <span style={{ fontSize: '0.45rem', color: C.muted, fontStyle: 'italic' }}>—</span>
-                      ) : pos === 'below' ? (
-                        <span style={{ background: '#fee2e2', color: '#dc2626', padding: '0.2rem 0.5rem', borderRadius: 5, fontSize: '0.475rem', fontWeight: 700 }}>↓ Below Market</span>
-                      ) : pos === 'premium' ? (
-                        <span style={{ background: '#fef3c7', color: '#92400e', padding: '0.2rem 0.5rem', borderRadius: 5, fontSize: '0.475rem', fontWeight: 700 }}>★ Premium</span>
-                      ) : (
-                        <span style={{ background: '#dcfce7', color: '#16a34a', padding: '0.2rem 0.5rem', borderRadius: 5, fontSize: '0.475rem', fontWeight: 700 }}>✓ Competitive</span>
-                      )}
-                    </td>
-                  </tr>
+                  <div key={src.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.5625rem', color: C.text, fontWeight: 500 }}>{src.name}</span>
+                    <div onClick={() => toggleDraft(src.id)} style={{
+                      width: 36, height: 20, borderRadius: 10,
+                      background: isOn ? C.teal : C.border,
+                      position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+                    }}>
+                      <div style={{
+                        width: 16, height: 16, borderRadius: '50%', background: C.white,
+                        position: 'absolute', top: 2, left: isOn ? 18 : 2,
+                        transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      }} />
+                    </div>
+                  </div>
                 )
               })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </div>
 
-      <p style={{ fontSize: '0.475rem', color: C.muted, margin: 0, padding: '0 0.25rem' }}>
-        ⚠️ Market prices sourced from Pakistan clinic surveys (2026). For internal reference only. Click any price to edit.
-      </p>
-    </div>
+            {draftSources.length === 0 && (
+              <p style={{ fontSize: '0.475rem', color: '#dc2626', margin: '0 1.25rem 0.625rem', fontStyle: 'italic' }}>
+                At least one source required.
+              </p>
+            )}
+
+            <div style={{ padding: '0.75rem 1.25rem', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button onClick={saveSources} disabled={draftSources.length === 0} style={{
+                background: draftSources.length === 0 ? C.muted : C.teal, color: C.white, border: 'none',
+                padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 700, fontSize: '0.5625rem',
+                cursor: draftSources.length === 0 ? 'default' : 'pointer', transition: 'background 0.2s',
+              }}>Save</button>
+              <button onClick={() => setSourcesModalOpen(false)} style={{
+                background: 'none', border: `1px solid ${C.border}`, color: C.muted,
+                padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 600, fontSize: '0.5625rem',
+                cursor: 'pointer',
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
