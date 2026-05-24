@@ -79,9 +79,9 @@ test.describe('Booking — slots + deposit (Batch 1)', () => {
     await page.goto('/booking');
     await page.getByRole('button', { name: /karachi/i }).click();
     await page.getByRole('button', { name: /botox|consultation/i }).first().click();
-    // Pick today
+    // Pick today — use force in case today's cell is in the mock FULL_DAYS set
     const today = new Date().getDate();
-    await page.getByRole('button', { name: today.toString(), exact: true }).first().click();
+    await page.getByRole('button', { name: today.toString(), exact: true }).first().click({ force: true });
     // Pick the last available slot
     const slots = page.locator('[data-testid="time-slot"]:not([disabled])');
     const slotCount = await slots.count();

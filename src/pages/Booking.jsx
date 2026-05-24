@@ -124,8 +124,8 @@ const COUNTRY_CODES = [
 ]
 
 const TIME_SLOTS   = ['9:00 AM','10:00 AM','11:00 AM','12:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM']
-const FULL_SLOTS   = new Set(['2026-05-25|10:00 AM','2026-05-25|11:00 AM','2026-05-26|2:00 PM','2026-05-28|9:00 AM','2026-05-28|10:00 AM'])
-const FULL_DAYS    = new Set(['2026-05-25','2026-05-28'])
+const FULL_SLOTS   = new Set(['2026-06-05|11:00 AM','2026-06-05|12:00 PM','2026-06-10|2:00 PM','2026-06-12|11:00 AM'])
+const FULL_DAYS    = new Set(['2026-06-05','2026-06-12'])
 const PK_HOLIDAYS  = { '03-23':'Pakistan Day','05-01':'Labour Day','08-14':'Independence Day','09-06':'Defence Day','09-11':'Quaid Anniversary','11-09':'Iqbal Day','12-25':"Quaid's Birthday" }
 
 const todayStr = new Date().toISOString().split('T')[0]
