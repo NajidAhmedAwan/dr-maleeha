@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import AIAssistant from './AIAssistant'
+import { Z_INDEX } from '../constants/zIndex'
 
 const C = {
   teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
@@ -166,7 +167,7 @@ function KPISection({ appointments }) {
     <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.875rem 1.125rem 0' }}>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:'0.5rem' }}>
         {kpis.map(k => (
-          <div key={k.label} style={{ background:k.bg, border:`1px solid ${k.accent}33`, borderRadius:12, padding:'0.75rem', borderLeft:`3px solid ${k.accent}`, animation:'kpi-count 0.4s ease' }}>
+          <div key={k.label} style={{ background:k.bg, border:`1px solid ${k.accent}33`, borderRadius:12, padding:'0.75rem', borderLeft:`3px solid ${k.accent}`, animation:'dash-kpi-count 0.4s ease' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', marginBottom:'0.375rem' }}>
               <span style={{ fontSize:'1rem', lineHeight:1 }}>{k.icon}</span>
             </div>
@@ -225,9 +226,9 @@ function AddEventModal({ date, onClose, onSave }) {
   )
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:700, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+    <div style={{ position:'fixed', inset:0, zIndex:Z_INDEX.MODAL_OVERLAY, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
       <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.4)' }} />
-      <div style={{ position:'relative', background:C.white, borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.25)', width:'100%', maxWidth:440, animation:'modal-in 0.2s ease', zIndex:1, overflow:'hidden' }}>
+      <div style={{ position:'relative', background:C.white, borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.25)', width:'100%', maxWidth:440, animation:'app-modal-in 0.2s ease', zIndex:Z_INDEX.BASE, overflow:'hidden' }}>
         {/* Header */}
         <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
@@ -320,9 +321,9 @@ function DateSidePanel({ date, appointments, onClose, onApprove, onReject, onAdd
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:500, display:'flex', justifyContent:'flex-end' }}>
+    <div style={{ position:'fixed', inset:0, zIndex:Z_INDEX.DRAWER, display:'flex', justifyContent:'flex-end' }}>
       <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)' }} />
-      <div style={{ position:'relative', width:380, maxWidth:'95vw', background:C.white, boxShadow:'-4px 0 40px rgba(0,0,0,0.18)', display:'flex', flexDirection:'column', zIndex:1 }}>
+      <div style={{ position:'relative', width:380, maxWidth:'95vw', background:C.white, boxShadow:'-4px 0 40px rgba(0,0,0,0.18)', display:'flex', flexDirection:'column', zIndex:Z_INDEX.BASE }}>
         {/* Header */}
         <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', flexShrink:0 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.5rem' }}>
@@ -510,7 +511,7 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
               {fmtMY(calDate)} ▾
             </button>
             {showPicker && (
-              <div style={{ position:'absolute', top:'110%', left:0, background: darkMode ? '#1a2744' : C.white, border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:10, boxShadow:'0 8px 28px rgba(0,0,0,0.3)', zIndex:50, width:220, padding:'0.625rem' }}>
+              <div style={{ position:'absolute', top:'110%', left:0, background: darkMode ? '#1a2744' : C.white, border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:10, boxShadow:'0 8px 28px rgba(0,0,0,0.3)', zIndex:Z_INDEX.DROPDOWN, width:220, padding:'0.625rem' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.5rem' }}>
                   <button onClick={() => setPickerY(y => y - 1)} style={{ background:'none', border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:5, width:22, height:22, cursor:'pointer', color: darkMode ? '#94a3b8' : C.muted, fontSize:'0.75rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
                   <span style={{ fontWeight:800, fontSize:'0.625rem', color: darkMode ? '#e2e8f0' : C.text }}>{pickerY}</span>
@@ -657,9 +658,9 @@ function PatientPanel({ appt, onClose, onApprove, onReject }) {
   const TABS = [['overview','Overview'],['preconsult','Pre-Consult'],['history','History']]
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:500, display:'flex', justifyContent:'flex-end' }}>
+    <div style={{ position:'fixed', inset:0, zIndex:Z_INDEX.DRAWER, display:'flex', justifyContent:'flex-end' }}>
       <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)' }} />
-      <div style={{ position:'relative', width:380, maxWidth:'95vw', background:C.white, boxShadow:'-4px 0 40px rgba(0,0,0,0.18)', display:'flex', flexDirection:'column', zIndex:1 }}>
+      <div style={{ position:'relative', width:380, maxWidth:'95vw', background:C.white, boxShadow:'-4px 0 40px rgba(0,0,0,0.18)', display:'flex', flexDirection:'column', zIndex:Z_INDEX.BASE }}>
         <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', flexShrink:0 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
             <div>
@@ -776,7 +777,7 @@ function PatientPanel({ appt, onClose, onApprove, onReject }) {
                               </div>
                             </button>
                             {isExp && !h.current && (
-                              <div style={{ padding:'0 0.5rem 0.5rem', borderTop:`1px solid ${C.border}`, animation:'section-in 0.2s ease' }}>
+                              <div style={{ padding:'0 0.5rem 0.5rem', borderTop:`1px solid ${C.border}`, animation:'app-section-in 0.2s ease' }}>
                                 {h.notes && (
                                   <div style={{ marginTop:'0.375rem' }}>
                                     <p style={{ fontSize:'0.4rem', fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 0.2rem' }}>Visit Notes</p>
@@ -915,8 +916,8 @@ function AiBriefModal({ appt, onClose }) {
   const summaries = AI_SUMMARIES[appt.id] || []
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:400, display:'flex', alignItems:'flex-start', justifyContent:'center', padding:'0.75rem', overflowY:'auto' }}>
-      <div style={{ background:C.white, borderRadius:16, maxWidth:520, width:'100%', boxShadow:'0 20px 60px rgba(0,0,0,0.25)', marginTop:'0.5rem', animation:'modal-in 0.2s ease' }}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:Z_INDEX.MODAL_OVERLAY, display:'flex', alignItems:'flex-start', justifyContent:'center', padding:'0.75rem', overflowY:'auto' }}>
+      <div style={{ background:C.white, borderRadius:16, maxWidth:520, width:'100%', boxShadow:'0 20px 60px rgba(0,0,0,0.25)', marginTop:'0.5rem', animation:'app-modal-in 0.2s ease' }}>
         <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', borderRadius:'16px 16px 0 0', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
           <div>
             <div style={{ fontSize:'0.4375rem', color:'#99f6e4', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:'0.25rem' }}>✦ AI Pre-Consult Brief</div>
@@ -983,8 +984,8 @@ function DelayModal({ todayAppts, onClose }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
-      <div style={{ background:C.white, borderRadius:16, maxWidth:480, width:'100%', boxShadow:'0 20px 60px rgba(0,0,0,0.2)', animation:'modal-in 0.2s ease', overflow:'hidden' }}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:Z_INDEX.MODAL_OVERLAY, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+      <div style={{ background:C.white, borderRadius:16, maxWidth:480, width:'100%', boxShadow:'0 20px 60px rgba(0,0,0,0.2)', animation:'app-modal-in 0.2s ease', overflow:'hidden' }}>
         {/* Header */}
         <div style={{ background:`linear-gradient(135deg,#d97706,#f59e0b)`, padding:'0.875rem 1rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
@@ -1044,7 +1045,7 @@ function DelayModal({ todayAppts, onClose }) {
       </div>
 
       {toast && (
-        <div style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', background:'#16a34a', color:C.white, padding:'0.625rem 1.25rem', borderRadius:30, fontSize:'0.6875rem', fontWeight:700, boxShadow:'0 4px 20px rgba(0,0,0,0.2)', animation:'toast-in 0.3s ease', zIndex:999, whiteSpace:'nowrap' }}>
+        <div style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', background:'#16a34a', color:C.white, padding:'0.625rem 1.25rem', borderRadius:30, fontSize:'0.6875rem', fontWeight:700, boxShadow:'0 4px 20px rgba(0,0,0,0.2)', animation:'app-toast-in 0.3s ease', zIndex:Z_INDEX.TOAST, whiteSpace:'nowrap' }}>
           ✓ {toast}
         </div>
       )}
@@ -1055,8 +1056,8 @@ function DelayModal({ todayAppts, onClose }) {
 // ── Product View Modal ────────────────────────────────────────────────────────
 function ProductViewModal({ product, onClose }) {
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:400, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
-      <div style={{ background:C.white, borderRadius:16, maxWidth:440, width:'100%', boxShadow:'0 20px 60px rgba(0,0,0,0.25)', overflow:'hidden', animation:'modal-in 0.2s ease' }}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:Z_INDEX.MODAL_OVERLAY, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+      <div style={{ background:C.white, borderRadius:16, maxWidth:440, width:'100%', boxShadow:'0 20px 60px rgba(0,0,0,0.25)', overflow:'hidden', animation:'app-modal-in 0.2s ease' }}>
         {/* Image */}
         <div style={{ position:'relative', height:220, background:C.tealLight, overflow:'hidden' }}>
           {product.imageUrl && (
@@ -1103,9 +1104,9 @@ function PaymentDetailModal({ appt, onClose }) {
   const pst = PAID_STYLE[appt.paid] || PAID_STYLE.pending
   const st  = STATUS_STYLE[appt.status] || STATUS_STYLE.pending
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:650, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+    <div style={{ position:'fixed', inset:0, zIndex:Z_INDEX.MODAL_OVERLAY, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
       <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)' }} />
-      <div style={{ position:'relative', background:C.white, borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.25)', width:'100%', maxWidth:400, animation:'modal-in 0.2s ease', zIndex:1, overflow:'hidden' }}>
+      <div style={{ position:'relative', background:C.white, borderRadius:16, boxShadow:'0 24px 60px rgba(0,0,0,0.25)', width:'100%', maxWidth:400, animation:'app-modal-in 0.2s ease', zIndex:Z_INDEX.BASE, overflow:'hidden' }}>
         <div style={{ background:`linear-gradient(135deg,${C.tealDark},${C.teal})`, padding:'0.875rem 1rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
             <div style={{ fontSize:'0.4375rem', color:'#99f6e4', fontWeight:700, letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:'0.25rem' }}>Payment Details</div>
@@ -1502,7 +1503,7 @@ function FinanceTab({ appointments, darkMode }) {
 
       {/* Export toast */}
       {payToast && (
-        <div style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', background:'#0d9488', color:C.white, padding:'0.625rem 1.375rem', borderRadius:30, fontSize:'0.6875rem', fontWeight:700, boxShadow:'0 4px 20px rgba(0,0,0,0.2)', zIndex:999, whiteSpace:'nowrap', animation:'toast-in 0.3s ease' }}>
+        <div style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', background:'#0d9488', color:C.white, padding:'0.625rem 1.375rem', borderRadius:30, fontSize:'0.6875rem', fontWeight:700, boxShadow:'0 4px 20px rgba(0,0,0,0.2)', zIndex:Z_INDEX.TOAST, whiteSpace:'nowrap', animation:'app-toast-in 0.3s ease' }}>
           📊 Export coming soon
         </div>
       )}

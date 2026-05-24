@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_QA, getChatbotQA } from '../data/chatbotQA'
+import { Z_INDEX } from '../constants/zIndex'
 
 const TEAL = '#0d9488'
 const NAVY = '#0d1b2a'
@@ -14,7 +15,7 @@ function TypingDots() {
         <span key={i} style={{
           width: 7, height: 7, borderRadius: '50%', background: 'rgba(255,255,255,0.5)',
           display: 'inline-block',
-          animation: 'chatDot 1.2s ease-in-out infinite',
+          animation: 'cb-dot 1.2s ease-in-out infinite',
           animationDelay: `${i * 0.2}s`
         }} />
       ))}
@@ -130,11 +131,11 @@ export default function ChatbotWidget() {
   return (
     <>
       <style>{`
-        @keyframes chatDot {
+        @keyframes cb-dot {
           0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
           40% { transform: scale(1); opacity: 1; }
         }
-        @keyframes chatSlideUp {
+        @keyframes cb-slide-up {
           from { opacity: 0; transform: translateY(20px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
@@ -145,7 +146,7 @@ export default function ChatbotWidget() {
         onClick={() => setOpen(o => !o)}
         aria-label="Open chat with Dr. Maleeha's assistant"
         style={{
-          position: 'fixed', bottom: 24, right: 24, zIndex: 9998,
+          position: 'fixed', bottom: 24, right: 24, zIndex: Z_INDEX.CHATBOT_BUTTON,
           width: 56, height: 56, borderRadius: '50%',
           background: `linear-gradient(135deg,${TEAL},#0891b2)`,
           border: 'none', cursor: 'pointer', color: '#fff',
@@ -162,13 +163,13 @@ export default function ChatbotWidget() {
       {/* Chat panel */}
       {open && (
         <div style={{
-          position: 'fixed', bottom: 92, right: 24, zIndex: 9999,
+          position: 'fixed', bottom: 92, right: 24, zIndex: Z_INDEX.CHATBOT_WINDOW,
           width: 'min(380px, calc(100vw - 32px))',
           height: 'min(560px, 90vh)',
           background: NAVY, borderRadius: 16,
           boxShadow: '0 16px 60px rgba(0,0,0,0.5)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          animation: 'chatSlideUp 0.22s ease-out'
+          animation: 'cb-slide-up 0.22s ease-out'
         }}>
 
           {/* Header */}

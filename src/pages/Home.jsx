@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ChatbotWidget from '../components/ChatbotWidget'
+import { Z_INDEX } from '../constants/zIndex'
 
 const C = {
   teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
@@ -280,11 +281,11 @@ function ProductModal({ product, onClose }) {
 
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(7,26,46,0.82)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', animation: 'modal-in 0.2s ease-out' }}>
+      style={{ position: 'fixed', inset: 0, background: 'rgba(7,26,46,0.82)', zIndex: Z_INDEX.MODAL_OVERLAY, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', animation: 'app-modal-in 0.2s ease-out' }}>
       <div style={{ background: C.white, borderRadius: 20, width: '100%', maxWidth: 800, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 80px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column' }}>
 
         {/* Sticky header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.875rem 1.25rem', borderBottom: `1px solid ${C.border}`, position: 'sticky', top: 0, background: C.white, zIndex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.875rem 1.25rem', borderBottom: `1px solid ${C.border}`, position: 'sticky', top: 0, background: C.white, zIndex: Z_INDEX.BASE }}>
           <div>
             <p style={{ margin: 0, fontSize: '0.625rem', color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{product.brand}</p>
             <h2 style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 800, color: C.text, letterSpacing: '-0.01em' }}>{product.shortName}</h2>
@@ -373,10 +374,10 @@ function ProcedureModal({ proc, onClose, onBook }) {
   const n = proc.pairs.length
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(7,26,46,0.75)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      style={{ position: 'fixed', inset: 0, background: 'rgba(7,26,46,0.75)', zIndex: Z_INDEX.MODAL_OVERLAY, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
       <div style={{ background: C.white, borderRadius: '22px 22px 0 0', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 -8px 40px rgba(0,0,0,0.25)' }}>
         {/* Handle + close */}
-        <div style={{ position: 'sticky', top: 0, background: C.white, zIndex: 1, padding: '0.75rem 1.25rem 0.625rem', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'sticky', top: 0, background: C.white, zIndex: Z_INDEX.BASE, padding: '0.75rem 1.25rem 0.625rem', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ width: 40, height: 4, background: C.border, borderRadius: 2, flex: 1, marginRight: '1rem', maxWidth: 40 }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flex: 1 }}>
             <span style={{ fontSize: '1.375rem' }}>{proc.icon}</span>
@@ -504,7 +505,7 @@ export default function Home() {
     <div style={{ fontFamily: 'system-ui,-apple-system,sans-serif', color: C.text, background: C.bg, width: '100%', display: 'block' }}>
 
       {/* ── Nav (glassmorphism, fixed over hero) ── */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? 'rgba(7,26,46,0.96)' : 'rgba(7,26,46,0.45)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: scrolled ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.04)', transition: 'background 0.3s, border-color 0.3s' }}>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: Z_INDEX.FLOATING_BAR, background: scrolled ? 'rgba(7,26,46,0.96)' : 'rgba(7,26,46,0.45)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: scrolled ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.04)', transition: 'background 0.3s, border-color 0.3s' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
             <div style={{ width: 36, height: 36, borderRadius: 9, background: `linear-gradient(135deg,${C.teal},#0891b2)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.white, fontWeight: 800, fontSize: 13 }}>Dr</div>
@@ -603,7 +604,7 @@ export default function Home() {
       <section id="how-it-works" style={{ padding: '3.5rem 1.5rem', background: `linear-gradient(135deg,#0d9488 0%,#0f766e 100%)`, borderTop: '3px solid #0f766e', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
         <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 820, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: 820, margin: '0 auto', position: 'relative', zIndex: Z_INDEX.BASE }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', textAlign: 'center', marginBottom: '0.375rem', letterSpacing: '-0.02em' }}>Booking with me is easy</h2>
           <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: '2.5rem' }}>Three steps. Under three minutes. No phone calls needed.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1.25rem' }}>
@@ -734,7 +735,7 @@ export default function Home() {
         {/* Large name header */}
         <div style={{ padding: '3rem 1.5rem 2rem', borderBottom: '1px solid rgba(255,255,255,0.12)', textAlign: 'center', position: 'relative' }}>
           <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 500, height: 500, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ position: 'relative', zIndex: Z_INDEX.BASE }}>
             <div style={{ fontSize: 'clamp(2.5rem,8vw,4.5rem)', fontWeight: 900, color: C.white, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '0.5rem' }}>Dr. Maleeha Jawaid</div>
             <p style={{ fontSize: '0.8125rem', color: C.tealRing, marginBottom: '0.375rem', fontWeight: 600, letterSpacing: '0.02em' }}>In Your Face by Maleeha</p>
             <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)', marginBottom: '1.25rem', letterSpacing: '0.01em' }}>MBBS · MCPS Dermatology (PNS Shifa) · Fellowship · PAADS Member · Islamabad</p>

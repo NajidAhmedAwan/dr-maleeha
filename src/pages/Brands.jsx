@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Z_INDEX } from '../constants/zIndex'
 
 const C = {
   teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
@@ -106,7 +107,7 @@ export default function Brands() {
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: 'system-ui,-apple-system,sans-serif', color: C.text }}>
 
       {/* ── Navbar ── */}
-      <nav style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '0.875rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 50 }}>
+      <nav style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: '0.875rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: Z_INDEX.DROPDOWN }}>
         <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 700, color: C.teal, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
           ← Dr. Maleeha Jawaid
         </button>
@@ -154,7 +155,7 @@ export default function Brands() {
               </div>
               <p style={{ fontSize: '0.8125rem', color: C.muted, lineHeight: 1.6, marginBottom: '0.75rem' }}>{p.desc}</p>
               {activeCard === i && (
-                <div style={{ animation: 'section-in 0.2s ease' }}>
+                <div style={{ animation: 'app-section-in 0.2s ease' }}>
                   <div style={{ marginBottom: '0.625rem' }}>
                     <div style={{ fontSize: '0.5rem', fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.375rem' }}>Deliverables</div>
                     {p.deliverables.map(d => (
@@ -183,7 +184,7 @@ export default function Brands() {
       <section id="inquiry-form" style={{ padding: '2rem 1.5rem 5rem', maxWidth: 640, margin: '0 auto' }}>
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '3rem 1.5rem', background: C.white, border: `1px solid ${C.border}`, borderRadius: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
-            <div style={{ width: 64, height: 64, background: C.tealLight, border: `2px solid ${C.teal}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.75rem', animation: 'check-pop 0.5s ease' }}>✓</div>
+            <div style={{ width: 64, height: 64, background: C.tealLight, border: `2px solid ${C.teal}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.75rem', animation: 'app-check-pop 0.5s ease' }}>✓</div>
             <h2 style={{ fontSize: '1.375rem', fontWeight: 800, color: C.text, marginBottom: '0.5rem' }}>Inquiry Received!</h2>
             <p style={{ fontSize: '0.875rem', color: C.muted, lineHeight: 1.6, marginBottom: '1.5rem' }}>
               Thank you for your interest. Dr. Maleeha's team will review your inquiry and get back to you within 2–3 business days.

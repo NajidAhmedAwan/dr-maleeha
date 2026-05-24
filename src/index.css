@@ -88,63 +88,63 @@ input:focus, select:focus, textarea:focus {
   outline-offset: 1px;
 }
 
-@keyframes bookingPulse {
+@keyframes app-booking-pulse {
   0%, 100% { transform: translateY(0); opacity: 1; }
   50%       { transform: translateY(5px); opacity: 0.6; }
 }
 
-@keyframes dot-pulse {
+@keyframes app-dot-pulse {
   0%, 80%, 100% { transform: scale(1); opacity: 0.4; }
   40%           { transform: scale(1.3); opacity: 1; }
 }
 
-@keyframes modal-in {
+@keyframes app-modal-in {
   from { opacity: 0; transform: scale(0.96) translateY(8px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-@keyframes confetti-fall {
+@keyframes bk-confetti-fall {
   0%   { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
   100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
 }
 
-@keyframes section-in {
+@keyframes app-section-in {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes check-pop {
+@keyframes app-check-pop {
   0%   { transform: scale(0); opacity: 0; }
   60%  { transform: scale(1.25); }
   100% { transform: scale(1); opacity: 1; }
 }
 
-@keyframes toast-in {
+@keyframes app-toast-in {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse-teal {
+@keyframes app-pulse-teal {
   0%, 100% { box-shadow: 0 0 0 0 rgba(13,148,136,0); }
   50%       { box-shadow: 0 0 0 8px rgba(13,148,136,0.18); }
 }
 
-@keyframes kpi-count {
+@keyframes dash-kpi-count {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes panel-slide-in {
+@keyframes app-panel-slide-in {
   from { opacity: 0; transform: translateX(18px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes panel-slide-back {
+@keyframes app-panel-slide-back {
   from { opacity: 0; transform: translateX(-18px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes rec-pulse {
+@keyframes bk-rec-pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.3; }
 }

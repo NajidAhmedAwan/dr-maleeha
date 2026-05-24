@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Z_INDEX } from '../constants/zIndex'
 
 const C = {
   teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
@@ -507,7 +508,7 @@ function LoadingDots() {
       {[0, 1, 2].map(i => (
         <span key={i} style={{
           width: 7, height: 7, borderRadius: '50%', background: C.muted, display: 'inline-block',
-          animation: 'dot-pulse 1.4s ease-in-out infinite',
+          animation: 'app-dot-pulse 1.4s ease-in-out infinite',
           animationDelay: `${i * 0.16}s`,
         }} />
       ))}
@@ -818,6 +819,15 @@ function Newsletter() {
   const [selectedIds, setSelectedIds] = useState([])
   const [modalOpen, setModalOpen] = useState(false)
   const [copyToast, setCopyToast] = useState(false)
+  const [glowing, setGlowing] = useState(false)
+
+  const closeModal = () => {
+    setModalOpen(false)
+    if (selectedIds.length > 0) {
+      setGlowing(true)
+      setTimeout(() => setGlowing(false), 300)
+    }
+  }
 
   const addKeyword = () => {
     const kw = newKeyword.trim()
@@ -881,16 +891,21 @@ function Newsletter() {
   return (
     <>
       <style>{`
-        @keyframes nlFadeSlideUp {
+        @keyframes nl-fade-slide-up {
           from { opacity: 0; transform: translateX(-50%) translateY(10px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
-        .nl-action-bar { animation: nlFadeSlideUp 0.2s ease forwards; }
-        @keyframes nlFadeIn {
+        .nl-action-bar { animation: nl-fade-slide-up 0.2s ease forwards; }
+        @keyframes nl-fade-in {
           from { opacity: 0; }
           to   { opacity: 1; }
         }
-        .nl-overlay { animation: nlFadeIn 0.18s ease forwards; }
+        .nl-overlay { animation: nl-fade-in 0.18s ease forwards; }
+        @keyframes dash-card-glow {
+          0%   { box-shadow: 0 0 0 0 rgba(13,148,136,0); }
+          50%  { box-shadow: 0 0 0 6px rgba(13,148,136,0.35); }
+          100% { box-shadow: 0 0 0 0 rgba(13,148,136,0); }
+        }
       `}</style>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -944,6 +959,17 @@ function Newsletter() {
           </div>
         </div>
 
+        {n > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+            <span style={{ background: '#0d9488', color: '#fff', fontSize: '0.5rem', fontWeight: 700, padding: '0.2rem 0.625rem', borderRadius: 999 }}>
+              {n} article{n !== 1 ? 's' : ''} selected
+            </span>
+            <button onClick={() => setSelectedIds([])} style={{ background: 'none', border: 'none', color: '#0d9488', fontSize: '0.5rem', fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+              Clear selection
+            </button>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
           {cards.map((card, i) => {
             const isSelected = selectedIds.includes(i)
@@ -954,6 +980,7 @@ function Newsletter() {
                 borderRadius: 10, padding: '0.875rem',
                 display: 'flex', flexDirection: 'column', gap: '0.4rem',
                 transition: 'border-color 0.15s',
+                animation: (glowing && isSelected) ? 'dash-card-glow 0.3s ease' : undefined,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -996,7 +1023,7 @@ function Newsletter() {
           borderRadius: 20, padding: '0.75rem 1.25rem',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           boxShadow: '0 4px 24px rgba(13,148,136,0.35)',
-          zIndex: 100, cursor: 'pointer',
+          zIndex: Z_INDEX.FLOATING_BAR, cursor: 'pointer',
         }} onClick={() => setModalOpen(true)}>
           <span style={{ fontSize: '0.5625rem', fontWeight: 700 }}>
             Summarize {n} selected article{n !== 1 ? 's' : ''}
@@ -1014,8 +1041,8 @@ function Newsletter() {
         <div className="nl-overlay" style={{
           position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 200, padding: '1rem',
-        }} onClick={() => setModalOpen(false)}>
+          zIndex: Z_INDEX.MODAL_OVERLAY, padding: '1rem',
+        }} onClick={closeModal}>
           <div style={{
             background: C.white, borderRadius: 16, maxWidth: 600, width: '100%',
             maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
@@ -1055,7 +1082,7 @@ function Newsletter() {
               }}>
                 {copyToast ? '✓ Copied' : 'Copy Summary'}
               </button>
-              <button onClick={() => setModalOpen(false)} style={{
+              <button onClick={closeModal} style={{
                 background: 'none', border: `1px solid ${C.border}`, color: C.muted,
                 padding: '0.4rem 1rem', borderRadius: 8, fontWeight: 600, fontSize: '0.5625rem',
                 cursor: 'pointer',
@@ -1274,7 +1301,7 @@ function Benchmarking() {
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 200, padding: '1rem',
+          zIndex: Z_INDEX.MODAL_OVERLAY, padding: '1rem',
         }} onClick={() => setSourcesModalOpen(false)}>
           <div style={{
             background: C.white, borderRadius: 16, maxWidth: 440, width: '100%',
