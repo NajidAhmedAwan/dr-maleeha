@@ -885,6 +885,220 @@ function ProductViewModal({ product, onClose }) {
   )
 }
 
+// ── Finance Tab ───────────────────────────────────────────────────────────────
+const PROC_COLORS = {
+  'Botox':          '#0d9488',
+  'PLLA Threads':   '#7c3aed',
+  'Chemical Peel':  '#d97706',
+  'Microneedling':  '#2563eb',
+  'Hydrafacial':    '#16a34a',
+  'PRP Treatment':  '#db2777',
+  'Lip Fillers':    '#ea580c',
+  'Skin Boosters':  '#0891b2',
+  'Acne Treatment': '#65a30d',
+  'Consultation':   '#64748b',
+}
+
+const FIN_HIST = [
+  { label:'Jan 26', revenue:88000  },
+  { label:'Feb 26', revenue:115000 },
+  { label:'Mar 26', revenue:147000 },
+  { label:'Apr 26', revenue:172000 },
+]
+
+function DonutChart({ slices }) {
+  const total = slices.reduce((s, x) => s + x.value, 0)
+  const r = 40, cx = 60, cy = 60, sw = 16, circ = 2 * Math.PI * r
+  if (total === 0) return (
+    <svg width={120} height={120} viewBox="0 0 120 120">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e2e8f0" strokeWidth={sw} />
+    </svg>
+  )
+  let cum = 0
+  return (
+    <svg width={120} height={120} viewBox="0 0 120 120">
+      {slices.map((s, i) => {
+        const len = (s.value / total) * circ
+        const off = circ / 4 - cum
+        cum += len
+        return <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={sw} strokeDasharray={`${len} ${circ - len}`} strokeDashoffset={off} />
+      })}
+      <text x={cx} y={cy - 4} textAnchor="middle" style={{ fontSize:'8px', fill:'#64748b', fontFamily:'system-ui', fontWeight:'700' }}>Total</text>
+      <text x={cx} y={cy + 9} textAnchor="middle" style={{ fontSize:'7px', fill:'#0f172a', fontFamily:'system-ui', fontWeight:'800' }}>PKR {Math.round(total/1000)}K</text>
+    </svg>
+  )
+}
+
+function FinanceTab({ appointments, darkMode }) {
+  const paidAppts    = appointments.filter(a => a.paid === 'paid')
+  const pendingAppts = appointments.filter(a => a.paid === 'pending')
+  const refAppts     = appointments.filter(a => a.paid === 'refunded')
+
+  const totalRev   = paidAppts.reduce((s, a) => s + (a.revenue || 0), 0)
+  const pendingRev = pendingAppts.reduce((s, a) => s + (a.revenue || 0), 0)
+
+  const mayPaid = paidAppts.filter(a => a.date.startsWith('2026-05'))
+  const mayRev  = mayPaid.reduce((s, a) => s + (a.revenue || 0), 0)
+  const aprRev  = FIN_HIST[3].revenue
+  const growth  = aprRev > 0 ? Math.round(((mayRev - aprRev) / aprRev) * 100) : 0
+
+  const byProc = {}
+  for (const a of paidAppts) byProc[a.procedure] = (byProc[a.procedure] || 0) + (a.revenue || 0)
+  const sortedProcs = Object.entries(byProc).sort((a, b) => b[1] - a[1])
+  const maxProcRev  = sortedProcs[0]?.[1] || 1
+
+  const maySummary = {}
+  for (const a of mayPaid) maySummary[a.procedure] = (maySummary[a.procedure] || 0) + (a.revenue || 0)
+
+  const allMonths = [...FIN_HIST, { label:'May 26', revenue:mayRev }]
+  const maxMoRev  = Math.max(...allMonths.map(m => m.revenue), 1)
+
+  const onlineRev = paidAppts.filter(a => a.location === 'Online').reduce((s, a) => s + (a.revenue || 0), 0)
+  const clinicRev = totalRev - onlineRev
+
+  const bg    = darkMode ? '#1a2744' : C.white
+  const subBg = darkMode ? '#0d2444' : C.bg
+  const textC = darkMode ? '#e2e8f0' : C.text
+  const brd   = darkMode ? '#2a3a5c' : C.border
+
+  return (
+    <div style={{ maxWidth:1200, margin:'0 auto', padding:'1rem 1.125rem 2rem' }}>
+
+      {/* ── Top stat cards ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.625rem', marginBottom:'1rem' }}>
+        {[
+          { icon:'💰', label:'Total Revenue',    value:`PKR ${(totalRev/1000).toFixed(0)}K`,   sub:'All verified payments',                   accent:'#0d9488', bg:'#f0fdfa', textCol:'#0f766e' },
+          { icon:'📅', label:'This Month (May)', value:`PKR ${(mayRev/1000).toFixed(0)}K`,     sub:`${growth>=0?'▲':'▼'} ${Math.abs(growth)}% vs April`, accent:growth>=0?'#16a34a':'#dc2626', bg:growth>=0?'#dcfce7':'#fee2e2', textCol:growth>=0?'#15803d':'#dc2626' },
+          { icon:'⏳', label:'Pending Revenue',  value:`PKR ${(pendingRev/1000).toFixed(0)}K`, sub:`${pendingAppts.length} unverified payments`, accent:'#d97706', bg:'#fef9c3', textCol:'#a16207' },
+          { icon:'✅', label:'Verified Txns',    value:paidAppts.length,                       sub:`${refAppts.length} refunded`,               accent:'#16a34a', bg:'#dcfce7', textCol:'#15803d' },
+        ].map(k => (
+          <div key={k.label} style={{ background:k.bg, border:`1px solid ${k.accent}33`, borderRadius:12, padding:'0.875rem', borderLeft:`3px solid ${k.accent}` }}>
+            <div style={{ fontSize:'1.125rem', marginBottom:'0.3rem' }}>{k.icon}</div>
+            <div style={{ fontSize:'1.25rem', fontWeight:800, color:k.textCol, lineHeight:1, marginBottom:'0.2rem' }}>{k.value}</div>
+            <div style={{ fontSize:'0.4375rem', fontWeight:700, color:k.textCol, opacity:0.8, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.15rem' }}>{k.label}</div>
+            <div style={{ fontSize:'0.4rem', color:k.textCol, opacity:0.7 }}>{k.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Middle row ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:'0.625rem', marginBottom:'0.625rem' }}>
+
+        {/* Monthly Revenue Bar Chart */}
+        <div style={{ background:bg, border:`1px solid ${brd}`, borderRadius:12, padding:'0.875rem' }}>
+          <div style={{ fontWeight:800, fontSize:'0.6875rem', color:textC, marginBottom:'0.75rem' }}>Monthly Revenue Trend (PKR)</div>
+          <div style={{ display:'flex', alignItems:'flex-end', gap:'0.5rem', height:110, paddingBottom:'0.25rem' }}>
+            {allMonths.map(m => {
+              const barH  = Math.max(Math.round((m.revenue / maxMoRev) * 96), 6)
+              const isCur = m.label === 'May 26'
+              return (
+                <div key={m.label} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'0.2rem' }}>
+                  <span style={{ fontSize:'0.375rem', color:isCur ? C.teal : C.muted, fontWeight:isCur?800:500 }}>
+                    PKR {(m.revenue/1000).toFixed(0)}K
+                  </span>
+                  <div style={{ width:'100%', height:barH, background:isCur ? C.teal : `${C.teal}55`, borderRadius:'4px 4px 0 0' }} />
+                  <span style={{ fontSize:'0.35rem', color:C.muted, textAlign:'center', lineHeight:1.2 }}>{m.label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Online vs Clinic Donut */}
+        <div style={{ background:bg, border:`1px solid ${brd}`, borderRadius:12, padding:'0.875rem' }}>
+          <div style={{ fontWeight:800, fontSize:'0.6875rem', color:textC, marginBottom:'0.625rem' }}>Revenue by Channel</div>
+          <div style={{ display:'flex', alignItems:'center', gap:'1rem' }}>
+            <DonutChart slices={[
+              { value:clinicRev, color:C.teal,    label:'Clinic' },
+              { value:onlineRev, color:'#7c3aed', label:'Online' },
+            ]} />
+            <div style={{ flex:1 }}>
+              {[
+                { label:'Clinic', value:clinicRev, color:C.teal    },
+                { label:'Online', value:onlineRev, color:'#7c3aed' },
+              ].map(s => {
+                const pct = totalRev > 0 ? Math.round((s.value / totalRev) * 100) : 0
+                return (
+                  <div key={s.label} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.625rem' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'0.3rem' }}>
+                      <div style={{ width:9, height:9, borderRadius:2, background:s.color, flexShrink:0 }} />
+                      <span style={{ fontSize:'0.5rem', color:textC, fontWeight:600 }}>{s.label}</span>
+                    </div>
+                    <div style={{ textAlign:'right' }}>
+                      <div style={{ fontSize:'0.5625rem', fontWeight:800, color:s.color }}>PKR {(s.value/1000).toFixed(0)}K</div>
+                      <div style={{ fontSize:'0.375rem', color:C.muted }}>{pct}%</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bottom row ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.625rem' }}>
+
+        {/* Procedure Revenue bars */}
+        <div style={{ background:bg, border:`1px solid ${brd}`, borderRadius:12, padding:'0.875rem' }}>
+          <div style={{ fontWeight:800, fontSize:'0.6875rem', color:textC, marginBottom:'0.625rem' }}>Revenue by Procedure (All Time)</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
+            {sortedProcs.map(([proc, rev]) => (
+              <div key={proc}>
+                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.175rem' }}>
+                  <span style={{ fontSize:'0.5rem', color:textC, fontWeight:600 }}>{proc}</span>
+                  <span style={{ fontSize:'0.5rem', color:PROC_COLORS[proc]||C.teal, fontWeight:700 }}>PKR {(rev/1000).toFixed(0)}K</span>
+                </div>
+                <div style={{ height:5, background:darkMode?'#2a3a5c':'#e2e8f0', borderRadius:3, overflow:'hidden' }}>
+                  <div style={{ height:'100%', width:`${(rev/maxProcRev)*100}%`, background:PROC_COLORS[proc]||C.teal, borderRadius:3 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Payment status + May breakdown table */}
+        <div style={{ background:bg, border:`1px solid ${brd}`, borderRadius:12, padding:'0.875rem' }}>
+          <div style={{ fontWeight:800, fontSize:'0.6875rem', color:textC, marginBottom:'0.625rem' }}>Payment Status</div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'0.4rem', marginBottom:'0.875rem' }}>
+            {[
+              { label:'Verified', count:paidAppts.length,    amount:totalRev,   color:'#16a34a', bg:'#dcfce7', icon:'✓'  },
+              { label:'Pending',  count:pendingAppts.length, amount:pendingRev, color:'#d97706', bg:'#fef9c3', icon:'⏳' },
+              { label:'Refunded', count:refAppts.length,     amount:0,          color:'#dc2626', bg:'#fee2e2', icon:'↩'  },
+            ].map(s => (
+              <div key={s.label} style={{ background:s.bg, border:`1px solid ${s.color}33`, borderRadius:9, padding:'0.5rem', textAlign:'center' }}>
+                <div style={{ fontSize:'0.875rem', marginBottom:'0.2rem' }}>{s.icon}</div>
+                <div style={{ fontSize:'1.125rem', fontWeight:800, color:s.color, lineHeight:1 }}>{s.count}</div>
+                <div style={{ fontSize:'0.375rem', fontWeight:700, color:s.color, textTransform:'uppercase', letterSpacing:'0.05em', marginTop:'0.15rem' }}>{s.label}</div>
+                <div style={{ fontSize:'0.375rem', color:s.color, opacity:0.7, marginTop:'0.1rem' }}>PKR {(s.amount/1000).toFixed(0)}K</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ fontWeight:700, fontSize:'0.5625rem', color:textC, marginBottom:'0.375rem' }}>May 2026 — Procedure Breakdown</div>
+          <div style={{ background:subBg, border:`1px solid ${brd}`, borderRadius:8, overflow:'hidden' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 36px 68px', padding:'0.2rem 0.5rem', background:darkMode?'#1a2744':C.tealLight }}>
+              {['Procedure','Qty','Revenue'].map((h,i) => (
+                <span key={h} style={{ fontSize:'0.375rem', fontWeight:800, color:C.teal, textTransform:'uppercase', letterSpacing:'0.05em', textAlign:i>0?'right':'left' }}>{h}</span>
+              ))}
+            </div>
+            {Object.entries(maySummary).sort((a,b)=>b[1]-a[1]).map(([proc, rev]) => {
+              const qty = mayPaid.filter(a => a.procedure === proc).length
+              return (
+                <div key={proc} style={{ display:'grid', gridTemplateColumns:'1fr 36px 68px', padding:'0.25rem 0.5rem', borderTop:`1px solid ${brd}` }}>
+                  <span style={{ fontSize:'0.4375rem', color:textC }}>{proc}</span>
+                  <span style={{ fontSize:'0.4375rem', color:C.muted, textAlign:'right' }}>{qty}</span>
+                  <span style={{ fontSize:'0.4375rem', color:PROC_COLORS[proc]||C.teal, fontWeight:700, textAlign:'right' }}>PKR {(rev/1000).toFixed(0)}K</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const todayStr = dsOf(new Date())
@@ -969,7 +1183,7 @@ export default function Dashboard() {
       {/* ── View Tabs ── */}
       <div style={{ background: darkMode ? '#1a2744' : C.white, borderBottom:`1px solid ${C.border}` }}>
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.5rem 1.125rem', display:'flex', gap:'0.5rem' }}>
-          {[['calendar','📅','Calendar'],['ai','✦','AI Assistant']].map(([v, icon, label]) => {
+          {[['calendar','📅','Calendar'],['finance','💰','Finance'],['ai','✦','AI Assistant']].map(([v, icon, label]) => {
             const active = activeView === v
             return (
               <button key={v} onClick={() => setActiveView(v)} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.625rem 1.375rem', border:`2px solid ${active ? C.teal : C.border}`, borderRadius:10, background: active ? C.teal : C.white, color: active ? C.white : C.muted, fontWeight: active ? 700 : 500, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.18s', boxShadow: active ? '0 2px 12px rgba(13,148,136,0.3)' : 'none' }}>
@@ -1111,7 +1325,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {activeView === 'ai' && <AIAssistant appointments={appointments} onStatusChange={setStatus} />}
+      {activeView === 'ai'      && <AIAssistant appointments={appointments} onStatusChange={setStatus} />}
+      {activeView === 'finance' && <FinanceTab  appointments={appointments} darkMode={darkMode} />}
 
       {/* ── Overlays ── */}
       {calDateModal  && <DateDetailModal date={calDateModal} appointments={appointments.filter(a => a.date === calDateModal)} onClose={() => setCalDateModal(null)} onApprove={setStatus} onReject={setStatus} />}
