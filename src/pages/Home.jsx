@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ChatbotWidget from '../components/ChatbotWidget'
 
 const C = {
   teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
@@ -725,6 +726,8 @@ export default function Home() {
 
       {selectedProduct && <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
       {selectedProc    && <ProcedureModal proc={selectedProc} onClose={() => setSelectedProc(null)} onBook={() => { setSelectedProc(null); navigate('/booking', { state: { procedure: selectedProc.name } }) }} />}
+
+      <ChatbotWidget />
 
       {/* ── Footer ── */}
       <footer id="contact" style={{ background: '#0d4a6e', borderTop: '3px solid #0d9488', position: 'relative', overflow: 'hidden', width: '100%', display: 'block' }}>
