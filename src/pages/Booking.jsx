@@ -234,7 +234,8 @@ function InlineCalendar({ value, onChange, city }) {
           const isSel = ds === value
           const mmdd  = ds.slice(5)
 
-          const disabled = state === 'past' || state === 'full' || state === 'holiday' || state === 'closed'
+          // 'closed' is NOT HTML-disabled so clicking shows the "Closed on this day" feedback
+          const disabled = state === 'past' || state === 'full' || state === 'holiday'
 
           let bg     = 'transparent'
           let color  = N.text
@@ -984,18 +985,18 @@ export default function Booking() {
                   const sel  = form.time === slot.label
                   if (!slot.available) {
                     return (
-                      <div key={slot.hour} style={{
+                      <button key={slot.hour} disabled data-testid="time-slot" style={{
                         padding:'0.625rem 0.25rem', borderRadius:10, textAlign:'center',
                         background:'#1a2744', opacity:0.4, cursor:'not-allowed',
                         border:`1.5px solid ${N.border}`,
                         color:N.muted, fontSize:'0.6875rem',
                       }}>
                         {slot.label}
-                      </div>
+                      </button>
                     )
                   }
                   return (
-                    <button key={slot.hour} onClick={() => handleSelectTime(slot)}
+                    <button key={slot.hour} data-testid="time-slot" onClick={() => handleSelectTime(slot)}
                       style={{
                         padding:'0.625rem 0.25rem', borderRadius:10, cursor:'pointer', textAlign:'center',
                         border: sel ? `2px solid ${N.teal}` : full ? `1.5px solid ${N.amber}33` : `1.5px solid ${N.border}`,
@@ -1279,18 +1280,18 @@ export default function Booking() {
                             const sel  = form.time === slot.label
                             if (!slot.available) {
                               return (
-                                <div key={slot.hour} style={{
+                                <button key={slot.hour} disabled data-testid="time-slot" style={{
                                   padding:'0.625rem 0.25rem', borderRadius:10, textAlign:'center',
                                   background:'#1a2744', opacity:0.4, cursor:'not-allowed',
                                   border:`1.5px solid ${N.border}`,
                                   color:N.muted, fontSize:'0.6875rem',
                                 }}>
                                   {slot.label}
-                                </div>
+                                </button>
                               )
                             }
                             return (
-                              <button key={slot.hour} onClick={() => handleSelectTime(slot)}
+                              <button key={slot.hour} data-testid="time-slot" onClick={() => handleSelectTime(slot)}
                                 style={{
                                   padding:'0.625rem 0.25rem', borderRadius:10, cursor:'pointer', textAlign:'center',
                                   border: sel ? `2px solid ${N.teal}` : full ? `1.5px solid ${N.amber}33` : `1.5px solid ${N.border}`,
