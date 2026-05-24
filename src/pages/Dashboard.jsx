@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import AIAssistant from './AIAssistant'
 import { Z_INDEX } from '../constants/zIndex'
+import { getInquiries, updateInquiry, STATUSES } from '../data/brandInquiries'
 
 const C = {
   teal: '#0d9488', tealDark: '#0f766e', tealLight: '#f0fdfa', tealRing: '#99f6e4',
@@ -1704,6 +1705,175 @@ function DepositConfigSection({ darkMode }) {
   )
 }
 
+// ── Partnerships Tab ──────────────────────────────────────────────────────────
+const INQ_STATUS_STYLE = {
+  'New':       { bg:'#f0fdfa', color:'#0d9488', border:'#99f6e4' },
+  'In Review': { bg:'#fef3c7', color:'#d97706', border:'#fcd34d' },
+  'Accepted':  { bg:'#dcfce7', color:'#16a34a', border:'#86efac' },
+  'Rejected':  { bg:'#f1f5f9', color:'#64748b', border:'#cbd5e1' },
+}
+
+function fmtRelDate(iso) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const days = Math.floor(diff / 86400000)
+  if (days === 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  if (days < 7)  return `${days} days ago`
+  if (days < 30) return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? 's' : ''} ago`
+  return new Date(iso).toLocaleDateString('en-PK', { day:'numeric', month:'short', year:'numeric' })
+}
+
+function PartnershipsTab() {
+  const [version,    setVersion]    = useState(0)
+  const [filterSt,   setFilterSt]   = useState('All')
+  const [expandedId, setExpandedId] = useState(null)
+
+  const inquiries = useMemo(() => getInquiries(), [version])
+
+  const bump = () => setVersion(v => v + 1)
+
+  const filtered = filterSt === 'All' ? inquiries : inquiries.filter(i => i.status === filterSt)
+
+  const counts = {
+    Total:     inquiries.length,
+    New:       inquiries.filter(i => i.status === 'New').length,
+    'In Review': inquiries.filter(i => i.status === 'In Review').length,
+    Accepted:  inquiries.filter(i => i.status === 'Accepted').length,
+    Rejected:  inquiries.filter(i => i.status === 'Rejected').length,
+  }
+
+  const handleStatus = (id, val) => { updateInquiry(id, { status: val }); bump() }
+  const handleNotes  = (id, val) => { updateInquiry(id, { notes: val });  bump() }
+
+  return (
+    <div style={{ maxWidth:1200, margin:'0 auto', padding:'1rem 1.125rem 2rem' }}>
+
+      {/* Header + filter pills */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'0.5rem', marginBottom:'0.75rem' }}>
+        <h2 style={{ fontSize:'1rem', fontWeight:800, color:C.text, margin:0 }}>Brand Partnerships</h2>
+        <div style={{ display:'flex', gap:'0.375rem', flexWrap:'wrap' }}>
+          {['All', ...STATUSES].map(s => {
+            const active = filterSt === s
+            return (
+              <button key={s} onClick={() => setFilterSt(s)}
+                style={{ padding:'0.3rem 0.75rem', border:`1.5px solid ${active ? C.teal : C.border}`, borderRadius:20, background: active ? C.teal : C.white, color: active ? C.white : C.muted, fontWeight: active ? 700 : 500, fontSize:'0.5rem', cursor:'pointer', transition:'all 0.15s' }}>
+                {s}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* KPI strip */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'0.5rem', marginBottom:'1rem' }}>
+        {[
+          { label:'Total',     value:counts.Total,       accent:'#0d9488', bg:'#f0fdfa', textCol:'#0f766e' },
+          { label:'New',       value:counts.New,         accent:'#0d9488', bg:'#f0fdfa', textCol:'#0f766e' },
+          { label:'In Review', value:counts['In Review'],accent:'#d97706', bg:'#fef9c3', textCol:'#a16207' },
+          { label:'Accepted',  value:counts.Accepted,    accent:'#16a34a', bg:'#dcfce7', textCol:'#15803d' },
+          { label:'Rejected',  value:counts.Rejected,    accent:'#64748b', bg:'#f1f5f9', textCol:'#475569' },
+        ].map(k => (
+          <div key={k.label} style={{ background:k.bg, border:`1px solid ${k.accent}33`, borderRadius:10, padding:'0.625rem 0.75rem', borderLeft:`3px solid ${k.accent}` }}>
+            <div style={{ fontSize:'1.125rem', fontWeight:800, color:k.textCol, lineHeight:1, marginBottom:'0.2rem' }}>{k.value}</div>
+            <div style={{ fontSize:'0.4375rem', fontWeight:700, color:k.textCol, opacity:0.8, textTransform:'uppercase', letterSpacing:'0.06em' }}>{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Inquiry list */}
+      {filtered.length === 0 ? (
+        <div style={{ textAlign:'center', padding:'3rem', background:C.white, borderRadius:12, border:`1px solid ${C.border}` }}>
+          <div style={{ fontSize:'2rem', marginBottom:'0.5rem' }}>📭</div>
+          <div style={{ fontSize:'0.625rem', fontWeight:600, color:C.text, marginBottom:'0.375rem' }}>No inquiries here yet.</div>
+          <div style={{ fontSize:'0.5rem', color:C.muted }}>Brand inquiries from /brands show up automatically.</div>
+        </div>
+      ) : (
+        <div style={{ display:'flex', flexDirection:'column', gap:'0.625rem' }}>
+          {filtered.map(inq => {
+            const ss  = INQ_STATUS_STYLE[inq.status] || INQ_STATUS_STYLE['New']
+            const exp = expandedId === inq.id
+            const wa  = inq.whatsapp.replace(/\D/g, '')
+            return (
+              <div key={inq.id} style={{ background:C.white, border:`1px solid ${C.border}`, borderRadius:12, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
+
+                {/* Card header — always visible */}
+                <div
+                  onClick={() => setExpandedId(exp ? null : inq.id)}
+                  style={{ padding:'0.75rem 1rem', cursor:'pointer', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'0.75rem' }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexWrap:'wrap', marginBottom:'0.25rem' }}>
+                      <h3 style={{ fontSize:'0.75rem', fontWeight:800, color:C.text, margin:0 }}>{inq.brandName}</h3>
+                      <span style={{ padding:'0.1rem 0.45rem', borderRadius:20, fontSize:'0.4375rem', fontWeight:700, background:ss.bg, color:ss.color, border:`1px solid ${ss.border}` }}>{inq.status}</span>
+                    </div>
+                    <div style={{ fontSize:'0.45rem', color:C.muted, marginBottom:'0.25rem' }}>{fmtRelDate(inq.submittedAt)}</div>
+                    <div style={{ display:'flex', gap:'0.75rem', flexWrap:'wrap' }}>
+                      <span style={{ fontSize:'0.45rem', color:C.text }}>{inq.contactPerson}</span>
+                      <span style={{ fontSize:'0.45rem', color:C.muted }}>{inq.email}</span>
+                      <span style={{ fontSize:'0.45rem', color:C.muted }}>{inq.whatsapp}</span>
+                    </div>
+                    <div style={{ display:'flex', gap:'0.5rem', marginTop:'0.375rem', flexWrap:'wrap' }}>
+                      <span style={{ fontSize:'0.4rem', background:'#f0f9ff', color:'#0369a1', border:'1px solid #bae6fd', borderRadius:4, padding:'0.1rem 0.35rem', fontWeight:600 }}>{inq.partnershipType}</span>
+                      <span style={{ fontSize:'0.4rem', background:'#faf5ff', color:'#7c3aed', border:'1px solid #ddd6fe', borderRadius:4, padding:'0.1rem 0.35rem', fontWeight:600 }}>{inq.budgetRange}</span>
+                      <span style={{ fontSize:'0.4rem', background:C.bg, color:C.muted, border:`1px solid ${C.border}`, borderRadius:4, padding:'0.1rem 0.35rem', fontWeight:600 }}>{inq.timeline}</span>
+                    </div>
+                  </div>
+                  <span style={{ fontSize:'0.75rem', color:C.muted, flexShrink:0, transition:'transform 0.2s', display:'inline-block', transform: exp ? 'rotate(180deg)' : 'none' }}>▾</span>
+                </div>
+
+                {/* Expanded section */}
+                {exp && (
+                  <div style={{ borderTop:`1px solid ${C.border}`, padding:'0.875rem 1rem', background:C.bg }}>
+
+                    {/* Campaign brief */}
+                    <div style={{ marginBottom:'0.875rem' }}>
+                      <div style={{ fontSize:'0.4375rem', fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.375rem' }}>Campaign Brief</div>
+                      <p style={{ fontSize:'0.5625rem', color:C.text, lineHeight:1.65, margin:0, background:C.white, border:`1px solid ${C.border}`, borderRadius:8, padding:'0.5rem 0.625rem' }}>{inq.campaignBrief}</p>
+                    </div>
+
+                    {/* Status + Notes row */}
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1.5fr', gap:'0.75rem', marginBottom:'0.75rem' }}>
+                      <div>
+                        <div style={{ fontSize:'0.4375rem', fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.375rem' }}>Status</div>
+                        <select
+                          value={inq.status}
+                          onChange={e => handleStatus(inq.id, e.target.value)}
+                          style={{ width:'100%', padding:'0.45rem 0.625rem', border:`1.5px solid ${C.teal}`, borderRadius:8, fontSize:'0.5625rem', color:C.text, background:C.white, cursor:'pointer', outline:'none' }}>
+                          {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <div style={{ fontSize:'0.4375rem', fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.375rem' }}>Notes</div>
+                        <textarea
+                          defaultValue={inq.notes}
+                          onBlur={e => handleNotes(inq.id, e.target.value)}
+                          placeholder="Add internal notes…"
+                          rows={2}
+                          style={{ width:'100%', padding:'0.45rem 0.625rem', border:`1px solid ${C.border}`, borderRadius:8, fontSize:'0.5rem', fontFamily:'inherit', resize:'none', color:C.text, lineHeight:1.6, boxSizing:'border-box', outline:'none' }} />
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
+                      <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display:'inline-flex', alignItems:'center', gap:'0.3rem', padding:'0.4rem 0.875rem', background:'#dcfce7', color:'#16a34a', border:'1px solid #86efac', borderRadius:8, fontWeight:700, fontSize:'0.5rem', textDecoration:'none', cursor:'pointer' }}>
+                        💬 Open WhatsApp
+                      </a>
+                      <a href={`mailto:${inq.email}`}
+                        style={{ display:'inline-flex', alignItems:'center', gap:'0.3rem', padding:'0.4rem 0.875rem', background:'#eff6ff', color:'#2563eb', border:'1px solid #bfdbfe', borderRadius:8, fontWeight:700, fontSize:'0.5rem', textDecoration:'none', cursor:'pointer' }}>
+                        ✉ Email
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const todayStr = dsOf(new Date())
@@ -1787,7 +1957,7 @@ export default function Dashboard() {
       {/* ── View Tabs ── */}
       <div style={{ background: darkMode ? '#1a2744' : C.white, borderBottom:`1px solid ${C.border}` }}>
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.5rem 1.125rem', display:'flex', gap:'0.5rem' }}>
-          {[['calendar','📅','Calendar'],['finance','💰','Finance'],['shop','🛍','Shop'],['ai','✦','AI Assistant'],['settings','⚙️','Settings']].map(([v, icon, label]) => {
+          {[['calendar','📅','Calendar'],['finance','💰','Finance'],['shop','🛍','Shop'],['ai','✦','AI Assistant'],['partnerships','🤝','Partnerships'],['settings','⚙️','Settings']].map(([v, icon, label]) => {
             const active = activeView === v
             return (
               <button key={v} onClick={() => setActiveView(v)} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.625rem 1.375rem', border:`2px solid ${active ? C.teal : C.border}`, borderRadius:10, background: active ? C.teal : C.white, color: active ? C.white : C.muted, fontWeight: active ? 700 : 500, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.18s', boxShadow: active ? '0 2px 12px rgba(13,148,136,0.3)' : 'none' }}>
@@ -1869,9 +2039,10 @@ export default function Dashboard() {
         </div>
       )}
 
-      {activeView === 'ai'       && <AIAssistant appointments={appointments} onStatusChange={setStatus} />}
-      {activeView === 'finance'  && <FinanceTab  appointments={appointments} darkMode={darkMode} />}
-      {activeView === 'settings' && <DepositConfigSection darkMode={darkMode} />}
+      {activeView === 'ai'           && <AIAssistant appointments={appointments} onStatusChange={setStatus} />}
+      {activeView === 'finance'      && <FinanceTab  appointments={appointments} darkMode={darkMode} />}
+      {activeView === 'settings'     && <DepositConfigSection darkMode={darkMode} />}
+      {activeView === 'partnerships' && <PartnershipsTab />}
 
       {activeView === 'shop' && (
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'1rem 1.125rem 2rem', display:'flex', gap:'1rem', alignItems:'flex-start' }}>
