@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { findPatientById } from '../data/patients'
@@ -6,6 +6,8 @@ import { googleCalendarUrl, outlookCalendarUrl, downloadIcs } from '../utils/cal
 import { generatePatientId } from '../utils/patientId'
 import { MapPin, Video } from 'lucide-react'
 import { Z_INDEX } from '../constants/zIndex'
+import { getSlotsForDate, isCityOpenOn } from '../utils/slots'
+import { calculateDeposit } from '../utils/deposit'
 
 // ── Color tokens (dark navy theme) ────────────────────────────────────────────
 const N = {
@@ -83,33 +85,33 @@ const LOCATIONS = [
 ]
 
 const PROCEDURES = [
-  { name: 'Botox',              note: 'Fine lines & wrinkles',      price: 'From PKR 18,000', duration: '45 min' },
-  { name: 'PLLA Threads',       note: 'Skin lifting & tightening',  price: 'From PKR 35,000', duration: '90 min' },
-  { name: 'Chemical Peel',      note: 'Pigmentation & texture',     price: 'From PKR 8,000',  duration: '45 min' },
-  { name: 'Consultation',       note: 'Skin assessment & plan',     price: 'PKR 3,000',       duration: '30 min' },
-  { name: 'Microneedling',      note: 'Collagen induction therapy', price: 'From PKR 12,000', duration: '60 min' },
-  { name: 'Laser Treatment',    note: 'Pigmentation & hair removal',price: 'From PKR 22,000', duration: '60 min' },
-  { name: 'Hydrafacial',        note: 'Deep cleanse & hydration',   price: 'From PKR 9,000',  duration: '60 min' },
-  { name: 'PRP Treatment',      note: 'Platelet-rich plasma',       price: 'From PKR 28,000', duration: '75 min' },
-  { name: 'Lip Fillers',        note: 'Volume & definition',        price: 'From PKR 30,000', duration: '60 min' },
-  { name: 'Skin Boosters',      note: 'Deep skin hydration',        price: 'From PKR 15,000', duration: '45 min' },
-  { name: 'Acne Treatment',     note: 'Breakouts & active acne',    price: 'From PKR 5,000',  duration: '30 min' },
-  { name: 'Acne Scar Treatment',note: 'Resurfacing & scar repair',  price: 'From PKR 10,000', duration: '60 min' },
+  { name: 'Botox',              note: 'Fine lines & wrinkles',      price: 'From PKR 18,000', priceValue: 18000, duration: '45 min' },
+  { name: 'PLLA Threads',       note: 'Skin lifting & tightening',  price: 'From PKR 35,000', priceValue: 35000, duration: '90 min' },
+  { name: 'Chemical Peel',      note: 'Pigmentation & texture',     price: 'From PKR 8,000',  priceValue: 8000,  duration: '45 min' },
+  { name: 'Consultation',       note: 'Skin assessment & plan',     price: 'PKR 3,000',       priceValue: 3000,  duration: '30 min' },
+  { name: 'Microneedling',      note: 'Collagen induction therapy', price: 'From PKR 12,000', priceValue: 12000, duration: '60 min' },
+  { name: 'Laser Treatment',    note: 'Pigmentation & hair removal',price: 'From PKR 22,000', priceValue: 22000, duration: '60 min' },
+  { name: 'Hydrafacial',        note: 'Deep cleanse & hydration',   price: 'From PKR 9,000',  priceValue: 9000,  duration: '60 min' },
+  { name: 'PRP Treatment',      note: 'Platelet-rich plasma',       price: 'From PKR 28,000', priceValue: 28000, duration: '75 min' },
+  { name: 'Lip Fillers',        note: 'Volume & definition',        price: 'From PKR 30,000', priceValue: 30000, duration: '60 min' },
+  { name: 'Skin Boosters',      note: 'Deep skin hydration',        price: 'From PKR 15,000', priceValue: 15000, duration: '45 min' },
+  { name: 'Acne Treatment',     note: 'Breakouts & active acne',    price: 'From PKR 5,000',  priceValue: 5000,  duration: '30 min' },
+  { name: 'Acne Scar Treatment',note: 'Resurfacing & scar repair',  price: 'From PKR 10,000', priceValue: 10000, duration: '60 min' },
 ]
 
 const ONLINE_CONCERNS = [
-  { name: 'Acne & Breakouts',  desc: 'Pimples, cysts, blackheads',    icon: '🔬', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Pigmentation',      desc: 'Dark spots, melasma, uneven',   icon: '🌑', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Hair Loss',         desc: 'Thinning, shedding, patches',   icon: '💇', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Eczema',            desc: 'Dry, itchy, inflamed patches',  icon: '🌿', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Rosacea',           desc: 'Flushing, visible vessels',     icon: '🌹', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Melasma',           desc: 'Hormonal dark patches',         icon: '☁️', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Anti-Aging',        desc: 'Wrinkles, fine lines',          icon: '✨', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Skin Allergies',    desc: 'Rashes, hives, dermatitis',     icon: '⚡', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Dandruff & Scalp',  desc: 'Flaking, itching, seborrhea',   icon: '❄️', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Psoriasis',         desc: 'Scaly plaques, redness',        icon: '🩹', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'Nail Issues',       desc: 'Fungal, brittle, discolour',    icon: '💅', price: 'PKR 2,500', duration: '30 min' },
-  { name: 'General Concern',   desc: 'Other dermatology questions',   icon: '🩺', price: 'PKR 2,500', duration: '30 min' },
+  { name: 'Acne & Breakouts',  desc: 'Pimples, cysts, blackheads',    icon: '🔬', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Pigmentation',      desc: 'Dark spots, melasma, uneven',   icon: '🌑', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Hair Loss',         desc: 'Thinning, shedding, patches',   icon: '💇', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Eczema',            desc: 'Dry, itchy, inflamed patches',  icon: '🌿', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Rosacea',           desc: 'Flushing, visible vessels',     icon: '🌹', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Melasma',           desc: 'Hormonal dark patches',         icon: '☁️', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Anti-Aging',        desc: 'Wrinkles, fine lines',          icon: '✨', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Skin Allergies',    desc: 'Rashes, hives, dermatitis',     icon: '⚡', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Dandruff & Scalp',  desc: 'Flaking, itching, seborrhea',   icon: '❄️', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Psoriasis',         desc: 'Scaly plaques, redness',        icon: '🩹', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'Nail Issues',       desc: 'Fungal, brittle, discolour',    icon: '💅', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
+  { name: 'General Concern',   desc: 'Other dermatology questions',   icon: '🩺', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
 ]
 
 const COUNTRY_CODES = [
@@ -128,6 +130,13 @@ const PK_HOLIDAYS  = { '03-23':'Pakistan Day','05-01':'Labour Day','08-14':'Inde
 
 const todayStr = new Date().toISOString().split('T')[0]
 function pad(n) { return String(n).padStart(2,'0') }
+
+function getOpenDaysLabel(city) {
+  if (city === 'Islamabad') return 'Tue, Thu & Sat'
+  if (city === 'Karachi')   return 'every day'
+  if (city === 'Online')    return 'every day'
+  return ''
+}
 
 function claimWindow(ds) {
   const diff = Math.ceil((new Date(ds+'T00:00:00') - new Date()) / 86400000)
@@ -177,7 +186,7 @@ function Confetti() {
 }
 
 // ── Inline Calendar (dark themed) ─────────────────────────────────────────────
-function InlineCalendar({ value, onChange }) {
+function InlineCalendar({ value, onChange, city }) {
   const today = new Date()
   const [vy, setVy] = useState(today.getFullYear())
   const [vm, setVm] = useState(today.getMonth())
@@ -195,7 +204,8 @@ function InlineCalendar({ value, onChange }) {
 
   const getState = ds => {
     const mmdd = ds.slice(5)
-    if (ds < todayStr)       return 'past'
+    if (ds < todayStr) return 'past'
+    if (city && !isCityOpenOn(city, new Date(ds + 'T12:00:00'))) return 'closed'
     if (FULL_DAYS.has(ds))   return 'full'
     if (PK_HOLIDAYS[mmdd])   return 'holiday'
     return 'available'
@@ -224,17 +234,18 @@ function InlineCalendar({ value, onChange }) {
           const isSel = ds === value
           const mmdd  = ds.slice(5)
 
-          const disabled = state === 'past' || state === 'full' || state === 'holiday'
+          const disabled = state === 'past' || state === 'full' || state === 'holiday' || state === 'closed'
 
           let bg     = 'transparent'
           let color  = N.text
           let border = '1.5px solid transparent'
           let label  = null
 
-          if (isSel)                  { bg = N.teal;  color = '#fff'; border = `1.5px solid ${N.teal}` }
-          else if (ds === todayStr)   { bg = N.tealLight; color = N.teal; border = `1.5px solid ${N.tealBord}` }
-          else if (state === 'past')  { color = 'rgba(255,255,255,0.18)' }
-          else if (state === 'full')  { bg = 'rgba(255,255,255,0.04)'; color = 'rgba(255,255,255,0.25)'; label = 'FULL' }
+          if (isSel)                    { bg = N.teal;  color = '#fff'; border = `1.5px solid ${N.teal}` }
+          else if (ds === todayStr)     { bg = N.tealLight; color = N.teal; border = `1.5px solid ${N.tealBord}` }
+          else if (state === 'past')    { color = 'rgba(255,255,255,0.18)' }
+          else if (state === 'closed')  { color = 'rgba(255,255,255,0.18)' }
+          else if (state === 'full')    { bg = 'rgba(255,255,255,0.04)'; color = 'rgba(255,255,255,0.25)'; label = 'FULL' }
           else if (state === 'holiday') { bg = 'rgba(245,158,11,0.1)'; color = N.amber; border = '1.5px solid rgba(245,158,11,0.2)'; label = '📅' }
 
           return (
@@ -248,7 +259,7 @@ function InlineCalendar({ value, onChange }) {
                   width:'100%', aspectRatio:'1', border, borderRadius:9, cursor:disabled?'default':'pointer',
                   background:bg, color, fontSize:'0.8125rem', fontWeight: isSel || ds===todayStr ? 700 : 400,
                   display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-                  gap:1, transition:'all 0.12s', opacity: state==='past' ? 0.35 : 1,
+                  gap:1, transition:'all 0.12s', opacity: (state==='past' || state==='closed') ? 0.3 : 1,
                   textDecoration: state==='full' ? 'line-through' : 'none',
                 }}>
                 {d}
@@ -442,7 +453,7 @@ export default function Booking() {
   const [step, setStep] = useState('procedure')
 
   const [form, setForm] = useState({
-    city: '', procedure: '', date: '', time: '',
+    city: '', procedure: '', date: '', time: '', timeIso: '',
     isWaitlisted: false, waitlistPos: null,
     name: '', email: '', countryCode: '+92', phone: '',
     concern: '', wantsUpdates: true,
@@ -491,6 +502,15 @@ export default function Booking() {
   const country    = COUNTRY_CODES.find(c => c.code === form.countryCode) || COUNTRY_CODES[0]
   const isSlotFull = !!(form.date && form.time && FULL_SLOTS.has(`${form.date}|${form.time}`))
 
+  const slots = useMemo(() => {
+    if (!form.date) return []
+    return getSlotsForDate(form.city, new Date(form.date + 'T12:00:00'))
+  }, [form.city, form.date])
+
+  const deposit = (form.city && selItem?.priceValue && form.timeIso)
+    ? calculateDeposit(form.city, selItem.priceValue, form.timeIso)
+    : null
+
   const canConfirm = !!form.city && !!form.procedure && !!form.date && !!form.time &&
     (!isSlotFull || form.isWaitlisted) &&
     form.name.trim().length > 1 && form.email.includes('@') &&
@@ -522,11 +542,11 @@ export default function Booking() {
   }
 
   const handleSelectTime = (slot) => {
-    const full = FULL_SLOTS.has(`${form.date}|${slot}`)
+    const full = FULL_SLOTS.has(`${form.date}|${slot.label}`)
     if (full) {
-      setForm(f => ({ ...f, time: slot, isWaitlisted: true, waitlistPos: Math.floor(Math.random()*4)+1 }))
+      setForm(f => ({ ...f, time: slot.label, timeIso: slot.iso, isWaitlisted: true, waitlistPos: Math.floor(Math.random()*4)+1 }))
     } else {
-      setForm(f => ({ ...f, time: slot, isWaitlisted: false, waitlistPos: null }))
+      setForm(f => ({ ...f, time: slot.label, timeIso: slot.iso, isWaitlisted: false, waitlistPos: null }))
     }
     setStep('contact')
   }
@@ -944,32 +964,53 @@ export default function Booking() {
       <SectionLabel step={3} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
       <InlineCalendar
         value={form.date}
-        onChange={d => { set('date',d); set('time',''); set('isWaitlisted',false); set('waitlistPos',null) }}
+        city={form.city}
+        onChange={d => { set('date',d); set('time',''); set('timeIso',''); set('isWaitlisted',false); set('waitlistPos',null) }}
       />
       {form.date && (
         <div style={{ marginTop:'1rem', animation:'app-section-in 0.25s ease' }}>
-          <div style={{ fontSize:'0.5625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.625rem' }}>
-            Available times — {form.date}
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.5rem' }}>
-            {TIME_SLOTS.map(slot => {
-              const full = FULL_SLOTS.has(`${form.date}|${slot}`)
-              const sel  = form.time === slot
-              return (
-                <button key={slot} onClick={() => handleSelectTime(slot)}
-                  style={{
-                    padding:'0.625rem 0.25rem', borderRadius:10, cursor:'pointer', textAlign:'center',
-                    border: sel ? `2px solid ${N.teal}` : full ? `1.5px solid ${N.amber}33` : `1.5px solid ${N.border}`,
-                    background: sel && !full ? N.teal : sel && full ? N.amberBg : full ? N.amberBg : 'rgba(255,255,255,0.04)',
-                    color: sel && !full ? '#fff' : full ? N.amber : N.text,
-                    fontSize:'0.6875rem', fontWeight: sel ? 700 : 400, transition:'all 0.12s',
-                  }}>
-                  {slot}
-                  {full && <div style={{ fontSize:'0.4rem', fontWeight:700, marginTop:1, color:N.amber, opacity:0.8 }}>Waitlist</div>}
-                </button>
-              )
-            })}
-          </div>
+          {slots.length === 0 ? (
+            <div style={{ padding:'0.875rem', background:'rgba(255,255,255,0.03)', border:`1px solid ${N.border}`, borderRadius:10, fontSize:'0.75rem', color:N.muted, lineHeight:1.5 }}>
+              Closed on this day. {form.city} sees patients on <strong style={{ color:N.text }}>{getOpenDaysLabel(form.city)}</strong>.
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize:'0.5625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.625rem' }}>
+                Available times — {form.date}
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.5rem' }}>
+                {slots.map(slot => {
+                  const full = FULL_SLOTS.has(`${form.date}|${slot.label}`)
+                  const sel  = form.time === slot.label
+                  if (!slot.available) {
+                    return (
+                      <div key={slot.hour} style={{
+                        padding:'0.625rem 0.25rem', borderRadius:10, textAlign:'center',
+                        background:'#1a2744', opacity:0.4, cursor:'not-allowed',
+                        border:`1.5px solid ${N.border}`,
+                        color:N.muted, fontSize:'0.6875rem',
+                      }}>
+                        {slot.label}
+                      </div>
+                    )
+                  }
+                  return (
+                    <button key={slot.hour} onClick={() => handleSelectTime(slot)}
+                      style={{
+                        padding:'0.625rem 0.25rem', borderRadius:10, cursor:'pointer', textAlign:'center',
+                        border: sel ? `2px solid ${N.teal}` : full ? `1.5px solid ${N.amber}33` : `1.5px solid ${N.border}`,
+                        background: sel && !full ? N.teal : sel && full ? N.amberBg : full ? N.amberBg : 'rgba(255,255,255,0.04)',
+                        color: sel && !full ? '#fff' : full ? N.amber : N.text,
+                        fontSize:'0.6875rem', fontWeight: sel ? 700 : 400, transition:'all 0.12s',
+                      }}>
+                      {slot.label}
+                      {full && <div style={{ fontSize:'0.4rem', fontWeight:700, marginTop:1, color:N.amber, opacity:0.8 }}>Waitlist</div>}
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
           {form.isWaitlisted && (
             <div style={{ background:N.amberBg, border:`1px solid ${N.amber}33`, borderRadius:10, padding:'0.75rem', marginTop:'0.75rem', animation:'app-section-in 0.25s ease' }}>
               <div style={{ fontWeight:700, fontSize:'0.75rem', color:N.amber, marginBottom:'0.25rem' }}>⏰ You're on the waitlist</div>
@@ -1067,19 +1108,33 @@ export default function Booking() {
 
   // ── Right panel footer (desktop) ─────────────────────────────────────────
   const rightFooter = (
-    <div style={{ borderTop:`1px solid ${N.border}`, padding:'0.75rem 1rem', background:N.card, display:'flex', alignItems:'center', gap:'0.75rem', flexShrink:0 }}>
-      <div style={{ flex:1, display:'flex', flexWrap:'wrap', alignItems:'center', gap:'0.25rem 0.375rem', minWidth:0 }}>
-        {form.city && <span style={{ fontSize:'0.6875rem', color:N.textDim, fontWeight:600 }}>{form.city}</span>}
-        {form.procedure && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim, fontWeight:600 }}>{form.procedure}</span></>}
-        {form.date && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim }}>{form.date}</span></>}
-        {form.time && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim }}>{form.time}</span></>}
-        {selItem?.price && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.teal, fontWeight:700 }}>{selItem.price}</span></>}
-        {!form.city && !form.procedure && <span style={{ fontSize:'0.6875rem', color:N.muted, fontStyle:'italic' }}>Select city to begin</span>}
+    <div style={{ borderTop:`1px solid ${N.border}`, padding:'0.75rem 1rem', background:N.card, flexShrink:0 }}>
+      {deposit && (
+        <div style={{ marginBottom:'0.5rem', display:'flex', alignItems:'center', flexWrap:'wrap', gap:'0.5rem' }}>
+          {deposit.isSameDay && (
+            <span style={{ background:'#2a1810', color:'#ff9966', border:'1px solid #ff9966', borderRadius:20, padding:'4px 10px', fontSize:12, display:'inline-flex', alignItems:'center', whiteSpace:'nowrap' }}>
+              Same-day booking — full payment required
+            </span>
+          )}
+          <span style={{ fontSize:'0.6875rem', color:N.teal, fontWeight:700 }}>
+            Deposit due now: PKR {deposit.amount.toLocaleString()} ({deposit.percent}%)
+          </span>
+        </div>
+      )}
+      <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
+        <div style={{ flex:1, display:'flex', flexWrap:'wrap', alignItems:'center', gap:'0.25rem 0.375rem', minWidth:0 }}>
+          {form.city && <span style={{ fontSize:'0.6875rem', color:N.textDim, fontWeight:600 }}>{form.city}</span>}
+          {form.procedure && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim, fontWeight:600 }}>{form.procedure}</span></>}
+          {form.date && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim }}>{form.date}</span></>}
+          {form.time && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim }}>{form.time}</span></>}
+          {selItem?.price && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.teal, fontWeight:700 }}>{selItem.price}</span></>}
+          {!form.city && !form.procedure && <span style={{ fontSize:'0.6875rem', color:N.muted, fontStyle:'italic' }}>Select city to begin</span>}
+        </div>
+        <button onClick={handleFooterBtn} disabled={!stepCanContinue}
+          style={{ flexShrink:0, padding:'0.75rem 1.25rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.06)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', transition:'all 0.2s', boxShadow: stepCanContinue ? '0 4px 20px rgba(13,148,136,0.4)' : 'none', whiteSpace:'nowrap' }}>
+          {step === 'contact' ? (form.isWaitlisted ? 'Join Waitlist ✓' : 'Confirm Booking →') : 'Continue →'}
+        </button>
       </div>
-      <button onClick={handleFooterBtn} disabled={!stepCanContinue}
-        style={{ flexShrink:0, padding:'0.75rem 1.25rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.06)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', transition:'all 0.2s', boxShadow: stepCanContinue ? '0 4px 20px rgba(13,148,136,0.4)' : 'none', whiteSpace:'nowrap' }}>
-        {step === 'contact' ? (form.isWaitlisted ? 'Join Waitlist ✓' : 'Confirm Booking →') : 'Continue →'}
-      </button>
     </div>
   )
 
@@ -1204,32 +1259,53 @@ export default function Booking() {
                 <SectionLabel step={3} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
                 <InlineCalendar
                   value={form.date}
-                  onChange={d => { set('date',d); set('time',''); set('isWaitlisted',false); set('waitlistPos',null) }}
+                  city={form.city}
+                  onChange={d => { set('date',d); set('time',''); set('timeIso',''); set('isWaitlisted',false); set('waitlistPos',null) }}
                 />
                 {form.date && (
                   <div style={{ marginTop:'1rem', animation:'app-section-in 0.25s ease' }}>
-                    <div style={{ fontSize:'0.5625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.625rem' }}>
-                      Available times — {form.date}
-                    </div>
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.5rem' }}>
-                      {TIME_SLOTS.map(slot => {
-                        const full = FULL_SLOTS.has(`${form.date}|${slot}`)
-                        const sel  = form.time === slot
-                        return (
-                          <button key={slot} onClick={() => handleSelectTime(slot)}
-                            style={{
-                              padding:'0.625rem 0.25rem', borderRadius:10, cursor:'pointer', textAlign:'center',
-                              border: sel ? `2px solid ${N.teal}` : full ? `1.5px solid ${N.amber}33` : `1.5px solid ${N.border}`,
-                              background: sel && !full ? N.teal : sel && full ? N.amberBg : full ? N.amberBg : 'rgba(255,255,255,0.04)',
-                              color: sel && !full ? '#fff' : full ? N.amber : N.text,
-                              fontSize:'0.6875rem', fontWeight: sel ? 700 : 400, transition:'all 0.12s',
-                            }}>
-                            {slot}
-                            {full && <div style={{ fontSize:'0.4rem', fontWeight:700, marginTop:1, color:N.amber, opacity:0.8 }}>Waitlist</div>}
-                          </button>
-                        )
-                      })}
-                    </div>
+                    {slots.length === 0 ? (
+                      <div style={{ padding:'0.875rem', background:'rgba(255,255,255,0.03)', border:`1px solid ${N.border}`, borderRadius:10, fontSize:'0.75rem', color:N.muted, lineHeight:1.5 }}>
+                        Closed on this day. {form.city} sees patients on <strong style={{ color:N.text }}>{getOpenDaysLabel(form.city)}</strong>.
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ fontSize:'0.5625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.625rem' }}>
+                          Available times — {form.date}
+                        </div>
+                        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'0.5rem' }}>
+                          {slots.map(slot => {
+                            const full = FULL_SLOTS.has(`${form.date}|${slot.label}`)
+                            const sel  = form.time === slot.label
+                            if (!slot.available) {
+                              return (
+                                <div key={slot.hour} style={{
+                                  padding:'0.625rem 0.25rem', borderRadius:10, textAlign:'center',
+                                  background:'#1a2744', opacity:0.4, cursor:'not-allowed',
+                                  border:`1.5px solid ${N.border}`,
+                                  color:N.muted, fontSize:'0.6875rem',
+                                }}>
+                                  {slot.label}
+                                </div>
+                              )
+                            }
+                            return (
+                              <button key={slot.hour} onClick={() => handleSelectTime(slot)}
+                                style={{
+                                  padding:'0.625rem 0.25rem', borderRadius:10, cursor:'pointer', textAlign:'center',
+                                  border: sel ? `2px solid ${N.teal}` : full ? `1.5px solid ${N.amber}33` : `1.5px solid ${N.border}`,
+                                  background: sel && !full ? N.teal : sel && full ? N.amberBg : full ? N.amberBg : 'rgba(255,255,255,0.04)',
+                                  color: sel && !full ? '#fff' : full ? N.amber : N.text,
+                                  fontSize:'0.6875rem', fontWeight: sel ? 700 : 400, transition:'all 0.12s',
+                                }}>
+                                {slot.label}
+                                {full && <div style={{ fontSize:'0.4rem', fontWeight:700, marginTop:1, color:N.amber, opacity:0.8 }}>Waitlist</div>}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )}
                     {form.isWaitlisted && (
                       <div style={{ background:N.amberBg, border:`1px solid ${N.amber}33`, borderRadius:10, padding:'0.75rem', marginTop:'0.75rem', animation:'app-section-in 0.25s ease' }}>
                         <div style={{ fontWeight:700, fontSize:'0.75rem', color:N.amber, marginBottom:'0.25rem' }}>⏰ You're on the waitlist</div>
@@ -1250,19 +1326,33 @@ export default function Booking() {
 
       {/* ── Mobile sticky footer ── */}
       {isMobile && (
-        <div style={{ position:'fixed', bottom:0, left:0, right:0, background:'rgba(13,27,42,0.97)', backdropFilter:'blur(16px)', borderTop:`1px solid ${N.border}`, padding:'0.75rem 1rem', zIndex:Z_INDEX.FLOATING_BAR, display:'flex', gap:'0.625rem', alignItems:'center' }}>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:'0.5rem', color:N.muted, marginBottom:1 }}>
-              {[form.city, form.procedure, form.date, form.time].filter(Boolean).join(' · ') || 'Select location to begin'}
+        <div style={{ position:'fixed', bottom:0, left:0, right:0, background:'rgba(13,27,42,0.97)', backdropFilter:'blur(16px)', borderTop:`1px solid ${N.border}`, padding:'0.75rem 1rem', zIndex:Z_INDEX.FLOATING_BAR }}>
+          {deposit && (
+            <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:'0.375rem', marginBottom:'0.5rem' }}>
+              {deposit.isSameDay && (
+                <span style={{ background:'#2a1810', color:'#ff9966', border:'1px solid #ff9966', borderRadius:20, padding:'4px 10px', fontSize:12, display:'inline-flex', alignItems:'center', whiteSpace:'nowrap' }}>
+                  Same-day booking — full payment required
+                </span>
+              )}
+              <span style={{ fontSize:'0.6875rem', color:N.teal, fontWeight:700 }}>
+                Deposit: PKR {deposit.amount.toLocaleString()} ({deposit.percent}%)
+              </span>
             </div>
-            <div style={{ fontSize:'0.875rem', fontWeight:700, color: selItem ? N.teal : N.muted }}>
-              {selItem?.price || 'Choose options above'}
+          )}
+          <div style={{ display:'flex', gap:'0.625rem', alignItems:'center' }}>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:'0.5rem', color:N.muted, marginBottom:1 }}>
+                {[form.city, form.procedure, form.date, form.time].filter(Boolean).join(' · ') || 'Select location to begin'}
+              </div>
+              <div style={{ fontSize:'0.875rem', fontWeight:700, color: selItem ? N.teal : N.muted }}>
+                {selItem?.price || 'Choose options above'}
+              </div>
             </div>
+            <button onClick={handleFooterBtn} disabled={!stepCanContinue}
+              style={{ flexShrink:0, padding:'0.75rem 1.375rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.07)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', whiteSpace:'nowrap' }}>
+              {step === 'contact' ? (form.isWaitlisted ? 'Join Waitlist' : 'Confirm') : 'Continue →'}
+            </button>
           </div>
-          <button onClick={handleFooterBtn} disabled={!stepCanContinue}
-            style={{ flexShrink:0, padding:'0.75rem 1.375rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.07)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', whiteSpace:'nowrap' }}>
-            {step === 'contact' ? (form.isWaitlisted ? 'Join Waitlist' : 'Confirm') : 'Continue →'}
-          </button>
         </div>
       )}
     </main>
