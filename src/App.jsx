@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Booking from './pages/Booking'
 import Dashboard from './pages/Dashboard'
+import Brands from './pages/Brands'
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/brands" element={<Brands />} />
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>
