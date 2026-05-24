@@ -292,25 +292,25 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
       {/* Toolbar */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0.75rem 1.25rem', borderBottom:`1px solid ${C.border}`, background: darkMode ? '#0d2444' : C.bg }}>
         <div style={{ display:'flex', gap:'0.25rem' }}>
-          <button onClick={() => navCal(-1)} style={{ width:30, height:30, border:`1px solid ${C.border}`, borderRadius:7, background:C.white, cursor:'pointer', color:C.muted, fontSize:'0.875rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
+          <button onClick={() => navCal(-1)} style={{ width:30, height:30, border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:7, background: darkMode ? '#1a2744' : C.white, cursor:'pointer', color: darkMode ? '#94a3b8' : C.muted, fontSize:'0.875rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
           <div ref={pickerRef} style={{ position:'relative' }}>
             <button onClick={() => { setShowPicker(p => !p); setPickerY(calDate.getFullYear()) }}
               style={{ fontWeight:800, fontSize:'0.75rem', color:C.teal, border:'none', background:'transparent', cursor:'pointer', padding:'0.25rem 0.375rem' }}>
               {fmtMY(calDate)} ▾
             </button>
             {showPicker && (
-              <div style={{ position:'absolute', top:'110%', left:0, background:C.white, border:`1px solid ${C.border}`, borderRadius:10, boxShadow:'0 8px 28px rgba(0,0,0,0.14)', zIndex:50, width:220, padding:'0.625rem' }}>
+              <div style={{ position:'absolute', top:'110%', left:0, background: darkMode ? '#1a2744' : C.white, border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:10, boxShadow:'0 8px 28px rgba(0,0,0,0.3)', zIndex:50, width:220, padding:'0.625rem' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.5rem' }}>
-                  <button onClick={() => setPickerY(y => y - 1)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:5, width:22, height:22, cursor:'pointer', color:C.muted, fontSize:'0.75rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
-                  <span style={{ fontWeight:800, fontSize:'0.625rem', color:C.text }}>{pickerY}</span>
-                  <button onClick={() => setPickerY(y => y + 1)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:5, width:22, height:22, cursor:'pointer', color:C.muted, fontSize:'0.75rem', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
+                  <button onClick={() => setPickerY(y => y - 1)} style={{ background:'none', border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:5, width:22, height:22, cursor:'pointer', color: darkMode ? '#94a3b8' : C.muted, fontSize:'0.75rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
+                  <span style={{ fontWeight:800, fontSize:'0.625rem', color: darkMode ? '#e2e8f0' : C.text }}>{pickerY}</span>
+                  <button onClick={() => setPickerY(y => y + 1)} style={{ background:'none', border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:5, width:22, height:22, cursor:'pointer', color: darkMode ? '#94a3b8' : C.muted, fontSize:'0.75rem', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
                 </div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:3 }}>
                   {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, mi) => {
                     const active = calDate.getMonth() === mi && calDate.getFullYear() === pickerY
                     return (
                       <button key={m} onClick={() => { setCalDate(new Date(pickerY, mi, 1)); setShowPicker(false) }}
-                        style={{ padding:'0.3rem', border:'none', borderRadius:6, background: active ? C.teal : 'transparent', color: active ? C.white : C.text, fontWeight: active ? 700 : 400, fontSize:'0.5rem', cursor:'pointer' }}>
+                        style={{ padding:'0.3rem', border:'none', borderRadius:6, background: active ? C.teal : 'transparent', color: active ? C.white : (darkMode ? '#e2e8f0' : C.text), fontWeight: active ? 700 : 400, fontSize:'0.5rem', cursor:'pointer' }}>
                         {m}
                       </button>
                     )
@@ -319,21 +319,21 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
               </div>
             )}
           </div>
-          <button onClick={() => navCal(1)}  style={{ width:30, height:30, border:`1px solid ${C.border}`, borderRadius:7, background:C.white, cursor:'pointer', color:C.muted, fontSize:'0.875rem', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
+          <button onClick={() => navCal(1)}  style={{ width:30, height:30, border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:7, background: darkMode ? '#1a2744' : C.white, cursor:'pointer', color: darkMode ? '#94a3b8' : C.muted, fontSize:'0.875rem', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
         </div>
 
         <button onClick={() => { setCalDate(new Date()); onDateClick(today) }}
-          style={{ fontSize:'0.5rem', padding:'0.25rem 0.625rem', border:`1px solid ${C.border}`, borderRadius:6, background:C.white, color:C.teal, cursor:'pointer', fontWeight:600 }}>Today</button>
+          style={{ fontSize:'0.5rem', padding:'0.25rem 0.625rem', border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:6, background: darkMode ? '#1a2744' : C.white, color:C.teal, cursor:'pointer', fontWeight:600 }}>Today</button>
       </div>
 
       {/* Legend */}
       <div style={{ display:'flex', gap:'0.75rem', padding:'0.375rem 1.25rem', borderBottom:`1px solid ${C.border}`, flexWrap:'wrap', background: darkMode ? '#0d2444' : C.bg }}>
         {[['#fee2e2','🚫 Unavailable'],['#fef3c7','🎌 Holiday'],['#dbeafe','Drag-select'],['#f0fdfa','Full'],['#fef9c3','Waitlist']].map(([bg, t]) => (
-          <span key={t} style={{ display:'flex', alignItems:'center', gap:'0.25rem', fontSize:'0.4375rem', color:C.muted }}>
+          <span key={t} style={{ display:'flex', alignItems:'center', gap:'0.25rem', fontSize:'0.4375rem', color: darkMode ? '#94a3b8' : C.muted }}>
             <span style={{ width:8, height:8, borderRadius:2, background:bg, display:'inline-block', border:'1px solid rgba(0,0,0,0.06)' }} />{t}
           </span>
         ))}
-        <span style={{ fontSize:'0.4375rem', color:C.muted }}>· Drag to block ranges · Click to view</span>
+        <span style={{ fontSize:'0.4375rem', color: darkMode ? '#94a3b8' : C.muted }}>· Drag to block ranges · Click to view</span>
       </div>
 
       {blockTip && (
@@ -341,17 +341,17 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
       )}
 
       {/* Day headers */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', borderBottom:`1px solid ${C.border}` }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', borderBottom:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, background: darkMode ? '#0d2444' : C.bg }}>
         {DOW.map(d => (
-          <div key={d} style={{ textAlign:'center', fontSize:'0.5rem', fontWeight:800, color:C.muted, padding:'0.5rem 0', textTransform:'uppercase', letterSpacing:'0.07em', borderRight:`1px solid ${C.border}`, ':last-child':{borderRight:'none'} }}>{d}</div>
+          <div key={d} style={{ textAlign:'center', fontSize:'0.5rem', fontWeight:800, color: darkMode ? '#94a3b8' : C.muted, padding:'0.5rem 0', textTransform:'uppercase', letterSpacing:'0.07em', borderRight:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, ':last-child':{borderRight:'none'} }}>{d}</div>
         ))}
       </div>
 
       {/* Weeks */}
       {Array.from({ length: Math.ceil(cells.length / 7) }, (_, wi) => (
-        <div key={wi} style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', borderBottom: wi < Math.ceil(cells.length/7)-1 ? `1px solid ${C.border}` : 'none' }}>
+        <div key={wi} style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', borderBottom: wi < Math.ceil(cells.length/7)-1 ? `1px solid ${darkMode ? '#2a3a5c' : C.border}` : 'none' }}>
           {cells.slice(wi * 7, wi * 7 + 7).map((day, di) => {
-            if (!day) return <div key={di} style={{ minHeight:88, background:'#fafafa', borderRight:`1px solid ${C.border}` }} />
+            if (!day) return <div key={di} style={{ minHeight:88, background: darkMode ? '#0d2444' : '#fafafa', borderRight:`1px solid ${darkMode ? '#2a3a5c' : C.border}` }} />
             const ds        = dsOf(day)
             const bl        = blocked[ds]
             const isToday   = ds === today
@@ -361,19 +361,19 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
             const hi        = isHi(ds)
             const dayAppts  = appointments.filter(a => a.date === ds)
 
-            let cellBg = C.white
-            if (hi)                     cellBg = '#dbeafe'
-            else if (bl === 'unavailable') cellBg = '#fff5f5'
-            else if (bl === 'holiday' || isHoliday) cellBg = '#fffbeb'
+            let cellBg = darkMode ? '#1a2744' : C.white
+            if (hi)                                    cellBg = darkMode ? '#1e3a6e' : '#dbeafe'
+            else if (bl === 'unavailable')             cellBg = darkMode ? '#3a1a1a' : '#fff5f5'
+            else if (bl === 'holiday' || isHoliday)   cellBg = darkMode ? '#3a2e0a' : '#fffbeb'
 
-            const numColor = isToday ? C.white : bl === 'unavailable' ? '#dc2626' : (bl === 'holiday' || isHoliday) ? '#d97706' : C.text
+            const numColor = isToday ? C.white : bl === 'unavailable' ? '#dc2626' : (bl === 'holiday' || isHoliday) ? '#d97706' : (darkMode ? '#e2e8f0' : C.text)
 
             return (
               <div key={di}
                 onMouseDown={e => { e.preventDefault(); setIsDrag(true); setDragS(ds); setDragE(ds); setSel(null); setHasDragged(false) }}
                 onMouseEnter={() => { if (isDrag && ds !== dragS) { setDragE(ds); setHasDragged(true) } }}
                 onClick={() => { if (!hasDragged) onDateClick(ds) }}
-                style={{ minHeight:88, background:cellBg, borderRight:`1px solid ${C.border}`, padding:'0.3rem 0.375rem', cursor:'pointer', userSelect:'none', transition:'background 0.1s', position:'relative', overflow:'hidden' }}>
+                style={{ minHeight:88, background:cellBg, borderRight:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, padding:'0.3rem 0.375rem', cursor:'pointer', userSelect:'none', transition:'background 0.1s', position:'relative', overflow:'hidden' }}>
 
                 {/* Day number */}
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.2rem' }}>
@@ -407,7 +407,7 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
                   )
                 })}
                 {dayAppts.length > 3 && (
-                  <div style={{ fontSize:'0.3rem', color:C.muted, fontWeight:600 }}>+{dayAppts.length - 3} more</div>
+                  <div style={{ fontSize:'0.3rem', color: darkMode ? '#94a3b8' : C.muted, fontWeight:600 }}>+{dayAppts.length - 3} more</div>
                 )}
               </div>
             )
@@ -424,8 +424,8 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
           <div style={{ display:'flex', gap:'0.2rem' }}>
             <button onClick={() => applyBlock('unavailable')} style={{ fontSize:'0.5rem', padding:'0.2rem 0.4rem', border:'1px solid #fca5a5', borderRadius:5, background:'#fee2e2', color:'#dc2626', cursor:'pointer', fontWeight:700 }}>🚫 Unavailable</button>
             <button onClick={() => applyBlock('holiday')}     style={{ fontSize:'0.5rem', padding:'0.2rem 0.4rem', border:'1px solid #fcd34d', borderRadius:5, background:'#fef3c7', color:'#d97706', cursor:'pointer', fontWeight:700 }}>🎌 Holiday</button>
-            <button onClick={() => applyBlock('clear')}       style={{ fontSize:'0.5rem', padding:'0.2rem 0.4rem', border:`1px solid ${C.border}`, borderRadius:5, background:C.white, color:C.muted, cursor:'pointer', fontWeight:600 }}>✕ Clear</button>
-            <button onClick={() => setSel(null)}              style={{ fontSize:'0.5rem', padding:'0.2rem 0.4rem', border:`1px solid ${C.border}`, borderRadius:5, background:C.white, color:C.muted, cursor:'pointer' }}>Deselect</button>
+            <button onClick={() => applyBlock('clear')}       style={{ fontSize:'0.5rem', padding:'0.2rem 0.4rem', border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:5, background: darkMode ? '#1a2744' : C.white, color: darkMode ? '#94a3b8' : C.muted, cursor:'pointer', fontWeight:600 }}>✕ Clear</button>
+            <button onClick={() => setSel(null)}              style={{ fontSize:'0.5rem', padding:'0.2rem 0.4rem', border:`1px solid ${darkMode ? '#2a3a5c' : C.border}`, borderRadius:5, background: darkMode ? '#1a2744' : C.white, color: darkMode ? '#94a3b8' : C.muted, cursor:'pointer' }}>Deselect</button>
           </div>
         </div>
       )}
