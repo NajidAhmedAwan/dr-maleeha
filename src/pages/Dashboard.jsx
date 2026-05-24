@@ -223,7 +223,7 @@ function DateDetailModal({ date, appointments, onClose, onApprove, onReject }) {
 }
 
 // ── CalendarPanel (full-width, Google Calendar style) ─────────────────────────
-function CalendarPanel({ appointments, onDateClick }) {
+function CalendarPanel({ appointments, onDateClick, darkMode }) {
   const [calDate,    setCalDate]    = useState(new Date())
   const [blocked,    setBlocked]    = useState(INIT_CLINIC_BLOCKED)
   const [isDrag,     setIsDrag]     = useState(false)
@@ -288,9 +288,9 @@ function CalendarPanel({ appointments, onDateClick }) {
   }
 
   return (
-    <div style={{ background:C.white, border:`1px solid ${C.border}`, borderRadius:14, overflow:'hidden', boxShadow:'0 2px 8px rgba(0,0,0,0.05)' }}>
+    <div style={{ background: darkMode ? '#1a2744' : C.white, border:`1px solid ${C.border}`, borderRadius:14, overflow:'hidden', boxShadow:'0 2px 8px rgba(0,0,0,0.05)' }}>
       {/* Toolbar */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0.75rem 1.25rem', borderBottom:`1px solid ${C.border}`, background:C.bg }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0.75rem 1.25rem', borderBottom:`1px solid ${C.border}`, background: darkMode ? '#0d2444' : C.bg }}>
         <div style={{ display:'flex', gap:'0.25rem' }}>
           <button onClick={() => navCal(-1)} style={{ width:30, height:30, border:`1px solid ${C.border}`, borderRadius:7, background:C.white, cursor:'pointer', color:C.muted, fontSize:'0.875rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
           <div ref={pickerRef} style={{ position:'relative' }}>
@@ -327,7 +327,7 @@ function CalendarPanel({ appointments, onDateClick }) {
       </div>
 
       {/* Legend */}
-      <div style={{ display:'flex', gap:'0.75rem', padding:'0.375rem 1.25rem', borderBottom:`1px solid ${C.border}`, flexWrap:'wrap', background:C.bg }}>
+      <div style={{ display:'flex', gap:'0.75rem', padding:'0.375rem 1.25rem', borderBottom:`1px solid ${C.border}`, flexWrap:'wrap', background: darkMode ? '#0d2444' : C.bg }}>
         {[['#fee2e2','🚫 Unavailable'],['#fef3c7','🎌 Holiday'],['#dbeafe','Drag-select'],['#f0fdfa','Full'],['#fef9c3','Waitlist']].map(([bg, t]) => (
           <span key={t} style={{ display:'flex', alignItems:'center', gap:'0.25rem', fontSize:'0.4375rem', color:C.muted }}>
             <span style={{ width:8, height:8, borderRadius:2, background:bg, display:'inline-block', border:'1px solid rgba(0,0,0,0.06)' }} />{t}
@@ -905,6 +905,9 @@ export default function Dashboard() {
   const [viewingProd,  setViewingProd]  = useState(null)
   const [showShop,     setShowShop]     = useState(false)
   const [activeView,   setActiveView]   = useState('calendar')
+  const [darkMode,     setDarkMode]     = useState(() => localStorage.getItem('drm_dark') === 'true')
+
+  const toggleDark = () => setDarkMode(d => { const n = !d; localStorage.setItem('drm_dark', String(n)); return n })
 
   const setStatus = (id, status) => setAppointments(p => p.map(a => a.id === id ? { ...a, status } : a))
 
@@ -945,7 +948,7 @@ export default function Dashboard() {
   const STATUS_TABS = [['all','All'],['pending','Pending'],['confirmed','Confirmed'],['rejected','Rejected']]
 
   return (
-    <div style={{ background:C.bg, fontFamily:'system-ui,-apple-system,sans-serif', minHeight:'100vh' }}>
+    <div style={{ background: darkMode ? '#0d1b2a' : C.bg, fontFamily:'system-ui,-apple-system,sans-serif', minHeight:'100vh' }}>
 
       {/* ── Header ── */}
       <div style={{ background:`linear-gradient(135deg,#0f766e,${C.teal})`, padding:'0.75rem 1.125rem', color:C.white }}>
@@ -957,13 +960,14 @@ export default function Dashboard() {
           <div style={{ display:'flex', gap:'0.3rem', alignItems:'center' }}>
             <button onClick={() => setShowShop(s => !s)} style={{ background: showShop ? C.tealDark : 'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.55rem', borderRadius:6, fontSize:'0.5rem', fontWeight:700, cursor:'pointer' }}>🛍 Shop</button>
             <button onClick={() => setShowDelay(true)} style={{ background:'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.55rem', borderRadius:6, fontSize:'0.5rem', fontWeight:700, cursor:'pointer' }}>📢 Delay</button>
+            <button onClick={toggleDark} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={{ background:'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.45rem', borderRadius:6, fontSize:'0.875rem', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>{darkMode ? '☀️' : '🌙'}</button>
             <div style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:'0.7rem' }}>M</div>
           </div>
         </div>
       </div>
 
       {/* ── View Tabs ── */}
-      <div style={{ background:C.white, borderBottom:`1px solid ${C.border}` }}>
+      <div style={{ background: darkMode ? '#1a2744' : C.white, borderBottom:`1px solid ${C.border}` }}>
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.5rem 1.125rem', display:'flex', gap:'0.5rem' }}>
           {[['calendar','📅','Calendar'],['ai','✦','AI Assistant']].map(([v, icon, label]) => {
             const active = activeView === v
@@ -1001,12 +1005,12 @@ export default function Dashboard() {
           </div>
 
           {/* ── Calendar (full width) ── */}
-          <CalendarPanel appointments={appointments} onDateClick={setCalDateModal} />
+          <CalendarPanel appointments={appointments} onDateClick={setCalDateModal} darkMode={darkMode} />
 
           {/* ── Appointment Status Tabs + List ── */}
-          <div style={{ marginTop:'1rem', background:C.white, border:`1px solid ${C.border}`, borderRadius:12, overflow:'hidden' }}>
+          <div style={{ marginTop:'1rem', background: darkMode ? '#1a2744' : C.white, border:`1px solid ${C.border}`, borderRadius:12, overflow:'hidden' }}>
             {/* Status tabs */}
-            <div style={{ display:'flex', borderBottom:`1px solid ${C.border}`, background:C.bg }}>
+            <div style={{ display:'flex', borderBottom:`1px solid ${C.border}`, background: darkMode ? '#0d2444' : C.bg }}>
               {STATUS_TABS.map(([key, label]) => {
                 const active = statusFilter === key
                 return (
@@ -1076,7 +1080,7 @@ export default function Dashboard() {
 
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:'0.5rem' }}>
                 {shopProducts.map(p => (
-                  <div key={p.id} style={{ background:C.white, border:`1px solid ${C.border}`, borderRadius:10, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div key={p.id} style={{ background: darkMode ? '#1a2744' : C.white, border:`1px solid ${C.border}`, borderRadius:10, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                     {/* Product image */}
                     <div style={{ height:140, background:C.tealLight, position:'relative', overflow:'hidden' }}>
                       {p.imageUrl ? (
