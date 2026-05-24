@@ -163,7 +163,7 @@ export default function ChatbotWidget() {
       {/* Chat panel */}
       {open && (
         <div style={{
-          position: 'fixed', bottom: 92, right: 24, zIndex: Z_INDEX.CHATBOT_WINDOW,
+          position: 'fixed', bottom: 92, right: 24, zIndex: Z_INDEX.CHATBOT_PANEL,
           width: 'min(380px, calc(100vw - 32px))',
           height: 'min(560px, 90vh)',
           background: NAVY, borderRadius: 16,
