@@ -77,8 +77,8 @@ export default function DateStrip({ city, selectedDate, onSelectDate, onOpenPick
               key={key}
               data-day-key={key}
               data-testid={`date-pill-${key}`}
-              onClick={() => isOpen && onSelectDate(d)}
-              disabled={!isOpen}
+              aria-label={String(dateNum)}
+              onClick={() => onSelectDate(d)}
               style={{
                 flex: '0 0 auto',
                 scrollSnapAlign: 'center',
@@ -90,7 +90,7 @@ export default function DateStrip({ city, selectedDate, onSelectDate, onOpenPick
                 border: isSelected ? '1px solid #0a6e66' : '1px solid #2a3a5a',
                 borderRadius: '16px',
                 padding: '10px 4px',
-                cursor: isOpen ? 'pointer' : 'not-allowed',
+                cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',

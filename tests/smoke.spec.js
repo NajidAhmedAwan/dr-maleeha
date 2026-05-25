@@ -98,12 +98,7 @@ test.describe('Booking — slots + deposit (Batch 1)', () => {
     await page.getByRole('button', { name: /acne/i }).first().click();
     const future = new Date();
     future.setDate(future.getDate() + 10);
-    // Navigate to the correct month if needed
-    const currentMonth = new Date().getMonth();
-    const targetMonth  = future.getMonth();
-    if (targetMonth !== currentMonth) {
-      await page.getByRole('button', { name: '›' }).click();
-    }
+    // DateStrip shows 14 days so +10 is always visible without month navigation
     await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
     const slots = page.locator('[data-testid="time-slot"]:not([disabled])');
     await slots.first().click();
