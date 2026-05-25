@@ -11,6 +11,12 @@ import { calculateDeposit } from '../utils/deposit'
 import ContactForm from '../components/ContactForm'
 import ReturningPatientToggle from '../components/ReturningPatientToggle'
 import { saveConfirmed } from '../utils/bookingStorage'
+import { dateKey } from '../utils/dashboardData'
+import { getLastBookingCity } from '../utils/lastBookingHint'
+import ReturningCityBanner from '../components/ReturningCityBanner'
+import DateStrip from '../components/DateStrip'
+import DatePickerModal from '../components/DatePickerModal'
+import TimeSlotStrip from '../components/TimeSlotStrip'
 
 // ── Color tokens (dark navy theme) ────────────────────────────────────────────
 const N = {
@@ -480,6 +486,9 @@ export default function Booking() {
   const [foundPatient,  setFoundPatient]  = useState(null)
   const [showCalMenu,      setShowCalMenu]      = useState(false)
   const calMenuRef = useRef(null)
+  const [lastCity,        setLastCity]        = useState(null)
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [pickerOpen,      setPickerOpen]      = useState(false)
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768)
@@ -495,6 +504,10 @@ export default function Booking() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [showCalMenu])
+
+  useEffect(() => {
+    setLastCity(getLastBookingCity())
+  }, [])
 
   const set    = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const clearE = k      => setErrors(e => { const n = { ...e }; delete n[k]; return n })
@@ -995,64 +1008,39 @@ export default function Booking() {
   const datetimeContent = (
     <div style={{ padding:'1rem' }}>
       <SectionLabel step={3} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
-      <InlineCalendar
-        value={form.date}
-        city={form.city}
-        onChange={d => { set('date',d); set('time',''); set('timeIso',''); set('isWaitlisted',false); set('waitlistPos',null) }}
-      />
-      {form.date && (
-        <div style={{ marginTop:'1rem', animation:'app-section-in 0.25s ease' }}>
-          {slots.length === 0 ? (
-            <div style={{ padding:'0.875rem', background:'rgba(255,255,255,0.03)', border:`1px solid ${N.border}`, borderRadius:10, fontSize:'0.75rem', color:N.muted, lineHeight:1.5 }}>
-              Closed on this day. {form.city} sees patients on <strong style={{ color:N.text }}>{getOpenDaysLabel(form.city)}</strong>.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <DateStrip
+          city={form.city}
+          selectedDate={form.date ? new Date(form.date + 'T12:00:00') : null}
+          onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
+          onOpenPicker={() => setPickerOpen(true)}
+        />
+        {form.date && (
+          <div data-testid="time-slots-section">
+            <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '10px' }}>
+              Available times for {new Date(form.date + 'T12:00:00').toLocaleDateString('en-PK', { weekday: 'long', month: 'short', day: 'numeric' })}
             </div>
-          ) : (
-            <>
-              <div style={{ fontSize:'0.5625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.625rem' }}>
-                Available times — {form.date}
+            {slots.length === 0 ? (
+              <div style={{ color: '#9ca3af', fontSize: '13px', padding: '12px', background: '#1a2744', borderRadius: '12px' }}>
+                Closed on this day. {form.city} sees patients on {getOpenDaysLabel(form.city)}.
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'0.5rem' }}>
-                {slots.map(slot => {
-                  const full = FULL_SLOTS.has(`${form.date}|${slot.label}`)
-                  const sel  = form.time === slot.label
-                  if (!slot.available) {
-                    return (
-                      <button key={slot.hour} disabled data-testid="time-slot" style={{
-                        padding:'0.625rem 0.25rem', borderRadius:10, textAlign:'center',
-                        background:'#1a2744', opacity:0.4, cursor:'not-allowed',
-                        border:`1.5px solid ${N.border}`,
-                        color:N.muted, fontSize:'0.6875rem',
-                      }}>
-                        {slot.label}
-                      </button>
-                    )
-                  }
-                  return (
-                    <button key={slot.hour} data-testid="time-slot" onClick={() => handleSelectTime(slot)}
-                      style={{
-                        padding:'0.625rem 0.25rem', borderRadius:10, cursor:'pointer', textAlign:'center',
-                        border: sel ? `2px solid ${N.teal}` : full ? `1.5px solid ${N.amber}33` : `1.5px solid ${N.border}`,
-                        background: sel && !full ? N.teal : sel && full ? N.amberBg : full ? N.amberBg : 'rgba(255,255,255,0.04)',
-                        color: sel && !full ? '#fff' : full ? N.amber : N.text,
-                        fontSize:'0.6875rem', fontWeight: sel ? 700 : 400, transition:'all 0.12s',
-                      }}>
-                      {slot.label}
-                      {full && <div style={{ fontSize:'0.4rem', fontWeight:700, marginTop:1, color:N.amber, opacity:0.8 }}>Waitlist</div>}
-                    </button>
-                  )
-                })}
-              </div>
-            </>
-          )}
-          {form.isWaitlisted && (
-            <div style={{ background:N.amberBg, border:`1px solid ${N.amber}33`, borderRadius:10, padding:'0.75rem', marginTop:'0.75rem', animation:'app-section-in 0.25s ease' }}>
-              <div style={{ fontWeight:700, fontSize:'0.75rem', color:N.amber, marginBottom:'0.25rem' }}>⏰ You're on the waitlist</div>
-              <div style={{ fontSize:'0.625rem', color:N.amber, opacity:0.8, lineHeight:1.5 }}>
-                Position <strong>#{form.waitlistPos}</strong> · You'll have <strong>{claimWindow(form.date)}</strong> to claim if a slot opens.
-              </div>
-            </div>
-          )}
-        </div>
+            ) : (
+              <TimeSlotStrip
+                slots={slots}
+                selectedSlot={form.timeIso ? { iso: form.timeIso } : null}
+                onSelect={handleSelectTime}
+              />
+            )}
+          </div>
+        )}
+      </div>
+      {pickerOpen && (
+        <DatePickerModal
+          city={form.city}
+          initialDate={form.date ? new Date(form.date + 'T12:00:00') : null}
+          onClose={() => setPickerOpen(false)}
+          onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
+        />
       )}
     </div>
   )
@@ -1170,6 +1158,13 @@ export default function Booking() {
           {/* LEFT 40%: city cards, always visible */}
           <div style={{ width:'40%', flexShrink:0, overflowY:'auto', padding:'1.5rem', borderRight:`1px solid ${N.border}`, background:N.bg }}>
             <SectionLabel step={1} label="Where are you booking?" done={!!form.city} />
+            {!bannerDismissed && lastCity && !form.city && (
+              <ReturningCityBanner
+                city={lastCity}
+                onAccept={() => handleSelectCity(lastCity)}
+                onDismiss={() => setBannerDismissed(true)}
+              />
+            )}
             {renderCityCards(160)}
           </div>
 
@@ -1195,6 +1190,13 @@ export default function Booking() {
           {/* City cards always visible */}
           <div style={{ marginBottom:'1.5rem' }}>
             <SectionLabel step={1} label="Where are you booking?" done={!!form.city} />
+            {!bannerDismissed && lastCity && !form.city && (
+              <ReturningCityBanner
+                city={lastCity}
+                onAccept={() => handleSelectCity(lastCity)}
+                onDismiss={() => setBannerDismissed(true)}
+              />
+            )}
             {renderCityCards(140)}
           </div>
 
@@ -1254,64 +1256,39 @@ export default function Booking() {
             {step === 'datetime' && (
               <div>
                 <SectionLabel step={3} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
-                <InlineCalendar
-                  value={form.date}
-                  city={form.city}
-                  onChange={d => { set('date',d); set('time',''); set('timeIso',''); set('isWaitlisted',false); set('waitlistPos',null) }}
-                />
-                {form.date && (
-                  <div style={{ marginTop:'1rem', animation:'app-section-in 0.25s ease' }}>
-                    {slots.length === 0 ? (
-                      <div style={{ padding:'0.875rem', background:'rgba(255,255,255,0.03)', border:`1px solid ${N.border}`, borderRadius:10, fontSize:'0.75rem', color:N.muted, lineHeight:1.5 }}>
-                        Closed on this day. {form.city} sees patients on <strong style={{ color:N.text }}>{getOpenDaysLabel(form.city)}</strong>.
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <DateStrip
+                    city={form.city}
+                    selectedDate={form.date ? new Date(form.date + 'T12:00:00') : null}
+                    onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
+                    onOpenPicker={() => setPickerOpen(true)}
+                  />
+                  {form.date && (
+                    <div data-testid="time-slots-section">
+                      <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '10px' }}>
+                        Available times for {new Date(form.date + 'T12:00:00').toLocaleDateString('en-PK', { weekday: 'long', month: 'short', day: 'numeric' })}
                       </div>
-                    ) : (
-                      <>
-                        <div style={{ fontSize:'0.5625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.625rem' }}>
-                          Available times — {form.date}
+                      {slots.length === 0 ? (
+                        <div style={{ color: '#9ca3af', fontSize: '13px', padding: '12px', background: '#1a2744', borderRadius: '12px' }}>
+                          Closed on this day. {form.city} sees patients on {getOpenDaysLabel(form.city)}.
                         </div>
-                        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'0.5rem' }}>
-                          {slots.map(slot => {
-                            const full = FULL_SLOTS.has(`${form.date}|${slot.label}`)
-                            const sel  = form.time === slot.label
-                            if (!slot.available) {
-                              return (
-                                <button key={slot.hour} disabled data-testid="time-slot" style={{
-                                  padding:'0.625rem 0.25rem', borderRadius:10, textAlign:'center',
-                                  background:'#1a2744', opacity:0.4, cursor:'not-allowed',
-                                  border:`1.5px solid ${N.border}`,
-                                  color:N.muted, fontSize:'0.6875rem',
-                                }}>
-                                  {slot.label}
-                                </button>
-                              )
-                            }
-                            return (
-                              <button key={slot.hour} data-testid="time-slot" onClick={() => handleSelectTime(slot)}
-                                style={{
-                                  padding:'0.625rem 0.25rem', borderRadius:10, cursor:'pointer', textAlign:'center',
-                                  border: sel ? `2px solid ${N.teal}` : full ? `1.5px solid ${N.amber}33` : `1.5px solid ${N.border}`,
-                                  background: sel && !full ? N.teal : sel && full ? N.amberBg : full ? N.amberBg : 'rgba(255,255,255,0.04)',
-                                  color: sel && !full ? '#fff' : full ? N.amber : N.text,
-                                  fontSize:'0.6875rem', fontWeight: sel ? 700 : 400, transition:'all 0.12s',
-                                }}>
-                                {slot.label}
-                                {full && <div style={{ fontSize:'0.4rem', fontWeight:700, marginTop:1, color:N.amber, opacity:0.8 }}>Waitlist</div>}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </>
-                    )}
-                    {form.isWaitlisted && (
-                      <div style={{ background:N.amberBg, border:`1px solid ${N.amber}33`, borderRadius:10, padding:'0.75rem', marginTop:'0.75rem', animation:'app-section-in 0.25s ease' }}>
-                        <div style={{ fontWeight:700, fontSize:'0.75rem', color:N.amber, marginBottom:'0.25rem' }}>⏰ You're on the waitlist</div>
-                        <div style={{ fontSize:'0.625rem', color:N.amber, opacity:0.8, lineHeight:1.5 }}>
-                          Position <strong>#{form.waitlistPos}</strong> · You'll have <strong>{claimWindow(form.date)}</strong> to claim if a slot opens.
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <TimeSlotStrip
+                          slots={slots}
+                          selectedSlot={form.timeIso ? { iso: form.timeIso } : null}
+                          onSelect={handleSelectTime}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+                {pickerOpen && (
+                  <DatePickerModal
+                    city={form.city}
+                    initialDate={form.date ? new Date(form.date + 'T12:00:00') : null}
+                    onClose={() => setPickerOpen(false)}
+                    onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
+                  />
                 )}
               </div>
             )}

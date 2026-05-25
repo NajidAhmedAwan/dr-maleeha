@@ -347,3 +347,135 @@ test.describe('Booking — returning patient lookup (Batch 6)', () => {
     await expect(page.locator('[data-testid="input-name"]')).toHaveValue('Real Test Patient');
   });
 });
+
+test.describe('Booking — mobile-first UX (Batch 7)', () => {
+  test.use({ viewport: { width: 390, height: 844 } }); // iPhone 14
+
+  test('Date strip renders 14 pills', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    await expect(page.locator('[data-testid="date-strip"]')).toBeVisible();
+    const pills = page.locator('[data-testid^="date-pill-"]');
+    await expect(pills).toHaveCount(14);
+  });
+
+  test('Tapping a date pill reveals time slots', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    // Tap the third pill (skipping today and tomorrow to avoid same-day edge cases)
+    await page.locator('[data-testid^="date-pill-"]').nth(3).click();
+    await expect(page.locator('[data-testid="time-slot-strip"]')).toBeVisible();
+    await expect(page.locator('[data-testid="time-slot"]')).toHaveCount(7);
+  });
+
+  test('Pick later date opens full-screen modal', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    await page.locator('[data-testid="open-date-picker"]').click();
+    await expect(page.locator('[data-testid="date-picker-modal"]')).toBeVisible();
+    // Modal should have 42 day cells
+    await expect(page.locator('[data-testid^="picker-day-"]')).toHaveCount(42);
+  });
+
+  test('Modal Next month shifts forward', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    await page.locator('[data-testid="open-date-picker"]').click();
+    const monthBefore = await page.locator('[data-testid="picker-month-label"]').textContent();
+    await page.locator('[data-testid="picker-next"]').click();
+    const monthAfter = await page.locator('[data-testid="picker-month-label"]').textContent();
+    expect(monthBefore).not.toBe(monthAfter);
+  });
+
+  test('Picking date in modal closes it and selects that date in strip', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    await page.locator('[data-testid="open-date-picker"]').click();
+    // Pick first available day in current month view
+    await page.locator('[data-testid^="picker-day-"]:not([disabled])').first().click();
+    await expect(page.locator('[data-testid="date-picker-modal"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="time-slot-strip"]')).toBeVisible();
+  });
+
+  test('Returning patient banner appears with prior booking', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => {
+      const prior = [{
+        reference: 'MAL-7777', city: 'Karachi',
+        procedure: { name: 'Botox', price: 30000 },
+        slotIso: new Date(Date.now() - 86400000).toISOString(),
+        contactDetails: { name: 'Past', phone: '+923001112222', email: '' },
+        confirmedAt: new Date(Date.now() - 86400000).toISOString(),
+      }];
+      localStorage.setItem('maleeha_confirmed_bookings', JSON.stringify(prior));
+      localStorage.removeItem('maleeha_booking_draft');
+    });
+    await page.reload();
+    await expect(page.locator('[data-testid="returning-city-banner"]')).toBeVisible();
+    await expect(page.locator('[data-testid="banner-accept"]')).toContainText('Karachi');
+  });
+
+  test('Banner Yes button skips to procedure step', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => {
+      const prior = [{
+        reference: 'MAL-7777', city: 'Islamabad',
+        procedure: { name: 'Botox', price: 30000 },
+        slotIso: new Date().toISOString(),
+        contactDetails: { name: 'Past', phone: '+923001112222', email: '' },
+        confirmedAt: new Date().toISOString(),
+      }];
+      localStorage.setItem('maleeha_confirmed_bookings', JSON.stringify(prior));
+      localStorage.removeItem('maleeha_booking_draft');
+    });
+    await page.reload();
+    await page.locator('[data-testid="banner-accept"]').click();
+    await expect(page.getByRole('button', { name: /botox|consultation/i }).first()).toBeVisible();
+  });
+
+  test('Banner Dismiss closes it', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => {
+      const prior = [{
+        reference: 'MAL-7777', city: 'Karachi',
+        procedure: { name: 'Botox', price: 30000 },
+        slotIso: new Date().toISOString(),
+        contactDetails: { name: 'Past', phone: '+923001112222', email: '' },
+        confirmedAt: new Date().toISOString(),
+      }];
+      localStorage.setItem('maleeha_confirmed_bookings', JSON.stringify(prior));
+      localStorage.removeItem('maleeha_booking_draft');
+    });
+    await page.reload();
+    await page.locator('[data-testid="banner-dismiss"]').click();
+    await expect(page.locator('[data-testid="returning-city-banner"]')).not.toBeVisible();
+  });
+
+  test('No horizontal page scroll on datetime step at 390px viewport', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    await page.locator('[data-testid^="date-pill-"]').nth(3).click();
+    const hasHorizontalScroll = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+    );
+    expect(hasHorizontalScroll).toBe(false);
+  });
+});
