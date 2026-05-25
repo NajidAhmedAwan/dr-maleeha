@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { findPatientById } from '../data/patients'
 import { googleCalendarUrl, outlookCalendarUrl, downloadIcs } from '../utils/calendar'
 import { generatePatientId } from '../utils/patientId'
+import { normalizePhone } from '../utils/validation'
 import { MapPin, Video } from 'lucide-react'
 import { Z_INDEX } from '../constants/zIndex'
 import { getSlotsForDate, isCityOpenOn } from '../utils/slots'
@@ -478,6 +479,8 @@ export default function Booking() {
   const [showConfetti,     setShowConfetti]     = useState(false)
   const [bookingRef,       setBookingRef]       = useState('')
   const [patientId,        setPatientId]        = useState('')
+  const [isSubmitting,     setIsSubmitting]     = useState(false)
+  const [submitError,      setSubmitError]      = useState(null)
   const [isMobile,         setIsMobile]         = useState(window.innerWidth < 768)
   const [errors,           setErrors]           = useState({})
   const [patientType,   setPatientType]   = useState('new')
@@ -539,7 +542,7 @@ export default function Booking() {
   const stepCanContinue =
     step === 'procedure' ? !!form.procedure :
     step === 'datetime'  ? !!(form.date && form.time && (!isSlotFull || form.isWaitlisted)) :
-    step === 'contact'   ? canConfirm :
+    step === 'contact'   ? (canConfirm && !isSubmitting) :
     false
 
   // ── Transitions ─────────────────────────────────────────────────────────
@@ -597,6 +600,114 @@ export default function Booking() {
     }
   }
 
+  // ── Booking submission (real Supabase or mock fallback) ─────────────────
+  const submitBooking = async (normalizedPhone) => {
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+
+    if (!supabaseUrl) {
+      // Feature flag: Supabase not configured — mock fallback for local dev
+      console.warn('[booking] VITE_SUPABASE_URL not set — using mock fallback')
+      const ref = genRef()
+      const pid = patientType === 'returning' && foundPatient ? foundPatient.id : generatePatientId()
+      saveConfirmed({
+        reference: pid,
+        city: form.city,
+        procedure: { name: form.procedure, price: selItem?.priceValue || 0 },
+        slotIso: form.timeIso,
+        contactDetails: { name: form.name, phone: normalizedPhone, email: form.email },
+        confirmedAt: new Date().toISOString(),
+      })
+      setBookingRef(ref)
+      setPatientId(pid)
+      setStep('confirmation')
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 4000)
+      setIsSubmitting(false)
+      return
+    }
+
+    try {
+      const { supabase } = await import('../lib/supabase')
+      const phone = normalizedPhone || normalizePhone(form.phone)
+
+      // 1. Look up existing patient by phone
+      const { data: existing, error: lookupErr } = await supabase
+        .from('patients').select('*').eq('phone', phone).maybeSingle()
+      if (lookupErr) throw lookupErr
+
+      let dbPatientId, malNumber
+
+      if (existing) {
+        dbPatientId = existing.id
+        malNumber   = existing.mal_number
+      } else {
+        // 2. Generate MAL number via DB function (concurrency-safe sequence)
+        const { data: mal, error: malErr } = await supabase.rpc('generate_mal_number')
+        if (malErr) throw malErr
+
+        // 3. Insert new patient
+        const { data: newPatient, error: insertErr } = await supabase
+          .from('patients')
+          .insert({ mal_number: mal, name: form.name.trim(), phone, email: form.email.trim() || null })
+          .select('id, mal_number')
+          .single()
+
+        if (insertErr) {
+          // Duplicate phone race condition: retry lookup once
+          if (insertErr.code === '23505') {
+            const { data: retry } = await supabase
+              .from('patients').select('*').eq('phone', phone).maybeSingle()
+            if (retry) { dbPatientId = retry.id; malNumber = retry.mal_number }
+            else throw insertErr
+          } else {
+            throw insertErr
+          }
+        } else {
+          dbPatientId = newPatient.id
+          malNumber   = newPatient.mal_number
+        }
+      }
+
+      // 4. Insert booking
+      const procedureSlug = form.procedure.toLowerCase().replace(/[\s&]+/g, '-').replace(/[^a-z0-9-]/g, '')
+      const { error: bookingErr } = await supabase.from('bookings').insert({
+        patient_id:       dbPatientId,
+        city:             form.city.toLowerCase(),
+        procedure:        procedureSlug,
+        booking_datetime: form.timeIso,
+        notes:            form.concern || null,
+      })
+      if (bookingErr) throw bookingErr
+
+      // 5. Confirm with real MAL number
+      const ref = genRef()
+      saveConfirmed({
+        reference: malNumber,
+        city: form.city,
+        procedure: { name: form.procedure, price: selItem?.priceValue || 0 },
+        slotIso: form.timeIso,
+        contactDetails: { name: form.name, phone, email: form.email },
+        confirmedAt: new Date().toISOString(),
+      })
+      setBookingRef(ref)
+      setPatientId(malNumber)
+      setStep('confirmation')
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 4000)
+    } catch (err) {
+      console.error('[booking] submission error:', err)
+      const msg = err?.message?.toLowerCase().includes('fetch') || err?.message?.toLowerCase().includes('network')
+        ? "Couldn't reach our servers. Please try again or call the clinic directly."
+        : 'Something went wrong. Please call (021) 35170881 or DM @inyourfacebymaleeha.'
+      setSubmitError(msg)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const handleConfirm = () => {
     const e = {}
     if (form.name.trim().length < 2)  e.name  = 'Enter your full name'
@@ -604,43 +715,14 @@ export default function Booking() {
     if (form.phone.replace(/\D/g,'').length < country.digits) e.phone = 'Enter a valid number'
     setErrors(e)
     if (Object.keys(e).length) return
-    const ref = genRef()
-    const pid = patientType === 'returning' && foundPatient ? foundPatient.id : generatePatientId()
-    saveConfirmed({
-      reference: pid,
-      city: form.city,
-      procedure: { name: form.procedure, price: selItem?.priceValue || 0 },
-      slotIso: form.timeIso,
-      contactDetails: { name: form.name, phone: form.phone, email: form.email },
-      confirmedAt: new Date().toISOString(),
-    })
-    setBookingRef(ref)
-    setPatientId(pid)
-    setStep('confirmation')
-    setShowConfetti(true)
-    setTimeout(() => setShowConfetti(false), 4000)
+    submitBooking(normalizePhone(form.phone))
   }
 
   // ContactForm wiring: derive from form state so lookup pre-fill propagates automatically
   const contactDetails = { name: form.name, phone: form.phone, email: form.email }
   const handleSetContactDetails = (d) => setForm(f => ({ ...f, name: d.name, phone: d.phone, email: d.email }))
-  const handleConfirmBooking = () => {
-    const ref = genRef()
-    const pid = generatePatientId()
-    saveConfirmed({
-      reference: pid,
-      city: form.city,
-      procedure: { name: form.procedure, price: selItem?.priceValue || 0 },
-      slotIso: form.timeIso,
-      contactDetails: { name: form.name, phone: form.phone, email: form.email },
-      confirmedAt: new Date().toISOString(),
-    })
-    setBookingRef(ref)
-    setPatientId(pid)
-    setStep('confirmation')
-    setShowConfetti(true)
-    setTimeout(() => setShowConfetti(false), 4000)
-  }
+  // Called by ContactForm after it normalizes the phone — phone is already normalized here
+  const handleConfirmBooking = () => submitBooking(normalizePhone(form.phone))
 
   // ── Confirmation screen ──────────────────────────────────────────────────
   if (step === 'confirmation') {
@@ -911,7 +993,13 @@ export default function Booking() {
         value={contactDetails}
         onChange={handleSetContactDetails}
         onSubmit={handleConfirmBooking}
+        isSubmitting={isSubmitting}
       />
+      {submitError && (
+        <div data-testid="booking-submit-error" style={{ marginTop:'0.75rem', padding:'0.75rem', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:10, color:'#ef4444', fontSize:'0.75rem', lineHeight:1.5 }}>
+          {submitError}
+        </div>
+      )}
       {/* Photo upload — optional for all cities, required path for media-capture tests */}
       <div style={{ marginTop:'1rem', border:`1.5px dashed ${form.photos.length > 0 ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:'rgba(255,255,255,0.02)' }}>
         <div style={{ fontSize:'0.625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>📷 Upload photos <span style={{ fontWeight:400, textTransform:'none' }}>(optional)</span></div>

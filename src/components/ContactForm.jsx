@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { validateContactForm, formatPhoneForDisplay, normalizePhone } from '../utils/validation';
 
-export default function ContactForm({ value, onChange, onSubmit, isReturningPatient = false }) {
+export default function ContactForm({ value, onChange, onSubmit, isReturningPatient = false, isSubmitting = false }) {
   const [touched, setTouched] = useState({ name: false, phone: false, email: false });
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
@@ -64,22 +64,22 @@ export default function ContactForm({ value, onChange, onSubmit, isReturningPati
 
       <button
         onClick={handleSubmit}
-        disabled={!isValid && submitAttempted}
+        disabled={(!isValid && submitAttempted) || isSubmitting}
         data-testid="submit-booking"
         style={{
-          background: isValid ? '#0a6e66' : '#1a2744',
-          color: isValid ? '#fff' : '#9ca3af',
+          background: isValid && !isSubmitting ? '#0a6e66' : '#1a2744',
+          color: isValid && !isSubmitting ? '#fff' : '#9ca3af',
           border: 'none',
           borderRadius: '20px',
           padding: '14px 24px',
           fontSize: '15px',
           fontWeight: 600,
-          cursor: isValid ? 'pointer' : 'not-allowed',
+          cursor: (isValid && !isSubmitting) ? 'pointer' : 'not-allowed',
           marginTop: '8px',
           transition: 'background 150ms',
         }}
       >
-        Confirm booking
+        {isSubmitting ? 'Confirming…' : 'Confirm booking'}
       </button>
 
       {submitAttempted && !isValid && (
