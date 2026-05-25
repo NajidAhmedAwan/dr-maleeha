@@ -9,6 +9,7 @@ import { Z_INDEX } from '../constants/zIndex'
 import { getSlotsForDate, isCityOpenOn } from '../utils/slots'
 import { calculateDeposit } from '../utils/deposit'
 import ContactForm from '../components/ContactForm'
+import { saveConfirmed } from '../utils/bookingStorage'
 
 // ── Color tokens (dark navy theme) ────────────────────────────────────────────
 const N = {
@@ -591,6 +592,14 @@ export default function Booking() {
     if (Object.keys(e).length) return
     const ref = genRef()
     const pid = patientType === 'returning' && foundPatient ? foundPatient.id : generatePatientId()
+    saveConfirmed({
+      reference: ref,
+      city: form.city,
+      procedure: { name: form.procedure, price: selItem?.priceValue || 0 },
+      slotIso: form.timeIso,
+      contactDetails: { name: form.name, phone: form.phone, email: form.email },
+      confirmedAt: new Date().toISOString(),
+    })
     setBookingRef(ref)
     setPatientId(pid)
     setStep('confirmation')
@@ -604,6 +613,14 @@ export default function Booking() {
   const handleConfirmBooking = () => {
     const ref = genRef()
     const pid = patientType === 'returning' && foundPatient ? foundPatient.id : generatePatientId()
+    saveConfirmed({
+      reference: ref,
+      city: form.city,
+      procedure: { name: form.procedure, price: selItem?.priceValue || 0 },
+      slotIso: form.timeIso,
+      contactDetails: { name: form.name, phone: form.phone, email: form.email },
+      confirmedAt: new Date().toISOString(),
+    })
     setBookingRef(ref)
     setPatientId(pid)
     setStep('confirmation')

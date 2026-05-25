@@ -196,3 +196,73 @@ test.describe('Booking — contact form validation (Batch 3)', () => {
     await expect(page.locator('[data-testid="booking-reference"]')).toContainText(/^MAL-\d{4}$/);
   });
 });
+
+test.describe('Dashboard — real bookings (Batch 5)', () => {
+  async function createOneBooking(page, { city = 'Karachi', name = 'Test Patient', phone = '03001234567' } = {}) {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.getByRole('button', { name: new RegExp(city, 'i') }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    const future = new Date();
+    future.setDate(future.getDate() + 5);
+    await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
+    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+    await page.locator('[data-testid="input-name"]').fill(name);
+    await page.locator('[data-testid="input-phone"]').fill(phone);
+    await page.locator('[data-testid="submit-booking"]').click();
+    await page.waitForSelector('[data-testid="booking-confirmation"]');
+  }
+
+  test('Empty dashboard shows empty state for recent bookings', async ({ page }) => {
+    await page.goto(`${BASE_URL}/dashboard`);
+    await page.evaluate(() => {
+      localStorage.removeItem('maleeha_confirmed_bookings');
+      localStorage.removeItem('maleeha_dashboard_last_viewed');
+    });
+    await page.reload();
+    await expect(page.locator('[data-testid="recent-bookings-empty"]')).toBeVisible();
+  });
+
+  test('Real booking appears in dashboard list', async ({ page }) => {
+    await page.evaluate(() => localStorage.clear()).catch(() => {});
+    await createOneBooking(page, { name: 'Ayesha Khan' });
+    await page.goto(`${BASE_URL}/dashboard`);
+    await expect(page.locator('[data-testid="recent-bookings-list"]')).toBeVisible();
+    await expect(page.getByText('Ayesha Khan')).toBeVisible();
+  });
+
+  test('NEW badge appears on first dashboard view, gone after revisit', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await createOneBooking(page, { name: 'Fresh Patient' });
+    // First dashboard visit — should show NEW
+    await page.goto(`${BASE_URL}/dashboard`);
+    await expect(page.locator('[data-testid="new-badge"]').first()).toBeVisible();
+    // Wait > 1.5s for markDashboardViewed timer to fire
+    await page.waitForTimeout(2000);
+    // Second visit — NEW should be gone
+    await page.goto(`${BASE_URL}/dashboard`);
+    await expect(page.locator('[data-testid="new-badge"]')).not.toBeVisible();
+  });
+
+  test('Mock data still visible (real bookings ADD, not REPLACE)', async ({ page }) => {
+    await page.evaluate(() => localStorage.clear()).catch(() => {});
+    await page.goto(`${BASE_URL}/dashboard`);
+    // At least one of the mock patient names should still be on the page
+    const mockNames = ['Sara Khan', 'Fatima Ahmed', 'Ayesha Malik', 'Noor Hussain', 'Zara Siddiqui'];
+    let found = false;
+    for (const n of mockNames) {
+      if (await page.getByText(n).first().isVisible().catch(() => false)) { found = true; break; }
+    }
+    expect(found).toBe(true);
+  });
+
+  test('Online booking shows in dashboard with Online indicator', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await createOneBooking(page, { city: 'Online', name: 'Online Test' });
+    await page.goto(`${BASE_URL}/dashboard`);
+    const card = page.locator('[data-testid^="booking-card-MAL-"]', { hasText: 'Online Test' });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText('Online');
+  });
+});

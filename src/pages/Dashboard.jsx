@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { getRealBookings, getNewBookingsSinceLastView, markDashboardViewed, dateKey } from '../utils/dashboardData'
+import RecentBookingsList from '../components/RecentBookingsList'
 import { Helmet } from 'react-helmet-async'
 import AIAssistant from './AIAssistant'
 import { Z_INDEX } from '../constants/zIndex'
@@ -141,7 +143,7 @@ const PAID_STYLE = {
 const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
 // ── KPI Section ───────────────────────────────────────────────────────────────
-function KPISection({ appointments }) {
+function KPISection({ appointments, newBookingsCount = 0 }) {
   const confirmed  = appointments.filter(a => a.status === 'confirmed')
   const pending    = appointments.filter(a => a.status === 'pending')
   const rejected   = appointments.filter(a => a.status === 'rejected')
@@ -169,11 +171,16 @@ function KPISection({ appointments }) {
     <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.875rem 1.125rem 0' }}>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:'0.5rem' }}>
         {kpis.map(k => (
-          <div key={k.label} style={{ background:k.bg, border:`1px solid ${k.accent}33`, borderRadius:12, padding:'0.75rem', borderLeft:`3px solid ${k.accent}`, animation:'dash-kpi-count 0.4s ease' }}>
+          <div key={k.label} data-testid={k.label === 'Pending' ? 'kpi-pending' : undefined} style={{ background:k.bg, border:`1px solid ${k.accent}33`, borderRadius:12, padding:'0.75rem', borderLeft:`3px solid ${k.accent}`, animation:'dash-kpi-count 0.4s ease' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', marginBottom:'0.375rem' }}>
               <span style={{ fontSize:'1rem', lineHeight:1 }}>{k.icon}</span>
             </div>
-            <div style={{ fontSize:'1.125rem', fontWeight:800, color:k.textCol, lineHeight:1, marginBottom:'0.2rem' }}>{k.value}</div>
+            <div style={{ fontSize:'1.125rem', fontWeight:800, color:k.textCol, lineHeight:1, marginBottom:'0.2rem', display:'flex', alignItems:'center', gap:'0.25rem', flexWrap:'wrap' }}>
+              {k.value}
+              {k.label === 'Pending' && newBookingsCount > 0 && (
+                <span data-testid="kpi-new-badge" style={{ background:'#0a6e66', color:'#fff', borderRadius:'20px', padding:'2px 8px', fontSize:'11px', fontWeight:700 }}>+{newBookingsCount} new</span>
+              )}
+            </div>
             <div style={{ fontSize:'0.4375rem', fontWeight:700, color:k.textCol, opacity:0.8, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'0.15rem' }}>{k.label}</div>
             <div style={{ fontSize:'0.4rem', color:k.textCol, opacity:0.6 }}>{k.sub}</div>
           </div>
@@ -584,6 +591,7 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
 
             return (
               <div key={di}
+                data-testid={`calendar-cell-${ds}`}
                 onMouseDown={e => { e.preventDefault(); setIsDrag(true); setDragS(ds); setDragE(ds); setSel(null); setHasDragged(false) }}
                 onMouseEnter={() => { if (isDrag && ds !== dragS) { setDragE(ds); setHasDragged(true) } }}
                 onClick={() => { if (!hasDragged) onDateClick(ds) }}
@@ -622,6 +630,9 @@ function CalendarPanel({ appointments, onDateClick, darkMode }) {
                 })}
                 {dayAppts.length > 3 && (
                   <div style={{ fontSize:'0.3rem', color: darkMode ? '#94a3b8' : C.muted, fontWeight:600 }}>+{dayAppts.length - 3} more</div>
+                )}
+                {dayAppts.length > 0 && dayAppts.some(a => a.isReal) && (
+                  <div data-testid="booking-dot-real" style={{ width:6, height:6, background:'#0a6e66', borderRadius:'50%', margin:'2px 0 0' }} />
                 )}
               </div>
             )
@@ -1880,6 +1891,29 @@ export default function Dashboard() {
   const todayStr = dsOf(new Date())
 
   const [appointments, setAppointments] = useState(MOCK)
+  const [realBookings,     setRealBookings]     = useState([])
+  const [newBookingsCount, setNewBookingsCount] = useState(0)
+
+  useEffect(() => {
+    setRealBookings(getRealBookings())
+    setNewBookingsCount(getNewBookingsSinceLastView().length)
+    const timer = setTimeout(() => markDashboardViewed(), 1500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const normalizedReal = useMemo(() => realBookings.map(b => ({
+    ...b,
+    name: b.patientName,
+    date: dateKey(b.date),
+    time: b.date.toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit', hour12: true }),
+    location: b.city,
+    revenue: b.price,
+    paid: 'pending',
+    method: 'Cash',
+  })), [realBookings])
+
+  const allBookings = useMemo(() => [...appointments, ...normalizedReal], [appointments, normalizedReal])
+
   const [locFilter,    setLocFilter]    = useState('All')
   const [statusFilter, setStatusFilter] = useState('all')
   const [showDelay,    setShowDelay]    = useState(false)
@@ -1912,19 +1946,19 @@ export default function Dashboard() {
     cancelEdit()
   }
 
-  // Filter appointments
-  const locFiltered = locFilter === 'All' ? appointments : appointments.filter(a =>
+  // Filter appointments (includes real bookings via allBookings)
+  const locFiltered = locFilter === 'All' ? allBookings : allBookings.filter(a =>
     locFilter === 'Online' ? a.location === 'Online' : a.location === locFilter
   )
   const statusFiltered = locFiltered.filter(a => statusFilter === 'all' || a.status === statusFilter || (statusFilter === 'pending' && a.status === 'waitlisted'))
     .sort((a, b) => { if (a.date !== b.date) return a.date > b.date ? 1 : -1; return tToMin(a.time) - tToMin(b.time) })
 
-  const todayAppts = appointments.filter(a => a.date === todayStr)
+  const todayAppts = allBookings.filter(a => a.date === todayStr)
 
-  // Counts per location for tab badges
-  const locCounts = { All:appointments.length }
+  // Counts per location for tab badges (includes real bookings)
+  const locCounts = { All:allBookings.length }
   for (const loc of ['Karachi','Islamabad','Online']) {
-    locCounts[loc] = appointments.filter(a => loc === 'Online' ? a.location === 'Online' : a.location === loc).length
+    locCounts[loc] = allBookings.filter(a => loc === 'Online' ? a.location === 'Online' : a.location === loc).length
   }
 
   // Counts per status for status tab badges
@@ -1979,7 +2013,7 @@ export default function Dashboard() {
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0.875rem 1.125rem 2rem' }}>
 
           {/* ── KPI Cards ── */}
-          <KPISection appointments={appointments} />
+          <KPISection appointments={allBookings} newBookingsCount={newBookingsCount} />
 
           {/* ── Location Tabs ── */}
           <div style={{ marginTop:'1rem', marginBottom:'0.75rem' }}>
@@ -1999,7 +2033,7 @@ export default function Dashboard() {
           </div>
 
           {/* ── Calendar (full width) ── */}
-          <CalendarPanel appointments={appointments} onDateClick={setCalDateModal} darkMode={darkMode} />
+          <CalendarPanel appointments={allBookings} onDateClick={setCalDateModal} darkMode={darkMode} />
 
           {/* ── Appointment Status Tabs + List ── */}
           <div style={{ marginTop:'1rem', background: darkMode ? '#1a2744' : C.white, border:`1px solid ${C.border}`, borderRadius:12, overflow:'hidden' }}>
@@ -2040,6 +2074,11 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* ── Real bookings from booking flow ── */}
+          <div style={{ marginTop:'24px' }}>
+            <RecentBookingsList />
           </div>
 
         </div>
@@ -2148,7 +2187,7 @@ export default function Dashboard() {
       )}
 
       {/* ── Overlays ── */}
-      {calDateModal  && <DateSidePanel date={calDateModal} appointments={appointments.filter(a => a.date === calDateModal)} onClose={() => setCalDateModal(null)} onApprove={setStatus} onReject={setStatus} onAddEvent={appt => setAppointments(p => [...p, appt])} />}
+      {calDateModal  && <DateSidePanel date={calDateModal} appointments={allBookings.filter(a => a.date === calDateModal)} onClose={() => setCalDateModal(null)} onApprove={setStatus} onReject={setStatus} onAddEvent={appt => setAppointments(p => [...p, appt])} />}
       {detailAppt    && <PatientPanel    appt={detailAppt} onClose={() => setDetailAppt(null)} onApprove={() => { setStatus(detailAppt.id,'confirmed'); setDetailAppt(null) }} onReject={() => { setStatus(detailAppt.id,'rejected'); setDetailAppt(null) }} />}
       {aiBriefAppt   && <AiBriefModal    appt={aiBriefAppt} onClose={() => setAiBriefAppt(null)} />}
       {(showDelay || delayAppt) && <DelayModal todayAppts={delayAppt ? [delayAppt] : todayAppts} onClose={() => { setShowDelay(false); setDelayAppt(null) }} />}
