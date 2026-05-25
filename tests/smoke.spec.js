@@ -268,3 +268,82 @@ test.describe('Dashboard — real bookings (Batch 5)', () => {
     await expect(card).toContainText('Online');
   });
 });
+
+test.describe('Booking — returning patient lookup (Batch 6)', () => {
+  async function navigateToContactStep(page) {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    const future = new Date();
+    future.setDate(future.getDate() + 5);
+    await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
+    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+    await page.waitForSelector('[data-testid="contact-form"]');
+  }
+
+  test('Toggle reveals reference lookup panel', async ({ page }) => {
+    await navigateToContactStep(page);
+    await expect(page.locator('[data-testid="returning-patient-panel"]')).not.toBeVisible();
+    await page.locator('[data-testid="toggle-returning-patient"]').click();
+    await expect(page.locator('[data-testid="returning-patient-panel"]')).toBeVisible();
+  });
+
+  test('Valid mock reference (MAL-1042) pre-fills Sara Khan', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="toggle-returning-patient"]').click();
+    await page.locator('[data-testid="input-reference"]').fill('MAL-1042');
+    await page.locator('[data-testid="submit-reference"]').click();
+    await expect(page.locator('[data-testid="lookup-success"]')).toBeVisible();
+    await expect(page.locator('[data-testid="lookup-success"]')).toContainText('Sara Khan');
+    await expect(page.locator('[data-testid="input-name"]')).toHaveValue('Sara Khan');
+    // Phone may be formatted on display; assert it contains digits
+    const phoneValue = await page.locator('[data-testid="input-phone"]').inputValue();
+    expect(phoneValue.replace(/\D/g, '')).toContain('923001234001');
+  });
+
+  test('Invalid reference shows not-found message', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="toggle-returning-patient"]').click();
+    await page.locator('[data-testid="input-reference"]').fill('MAL-9999');
+    await page.locator('[data-testid="submit-reference"]').click();
+    await expect(page.locator('[data-testid="lookup-not-found"]')).toBeVisible();
+    // Name field should remain empty
+    await expect(page.locator('[data-testid="input-name"]')).toHaveValue('');
+  });
+
+  test('Loose reference format "1156" normalizes to MAL-1156 and finds Fatima', async ({ page }) => {
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="toggle-returning-patient"]').click();
+    await page.locator('[data-testid="input-reference"]').fill('1156');
+    await page.locator('[data-testid="submit-reference"]').click();
+    await expect(page.locator('[data-testid="input-name"]')).toHaveValue('Fatima Ahmed');
+  });
+
+  test('After lookup, returning patient can submit booking end-to-end', async ({ page }) => {
+    await page.evaluate(() => localStorage.clear()).catch(() => {});
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="toggle-returning-patient"]').click();
+    await page.locator('[data-testid="input-reference"]').fill('MAL-1273');
+    await page.locator('[data-testid="submit-reference"]').click();
+    await expect(page.locator('[data-testid="input-name"]')).toHaveValue('Ayesha Malik');
+    await page.locator('[data-testid="submit-booking"]').click();
+    await expect(page.locator('[data-testid="booking-confirmation"]')).toBeVisible();
+  });
+
+  test('Real booking reference is lookable after being saved', async ({ page }) => {
+    // First, create a real booking
+    await page.evaluate(() => localStorage.clear()).catch(() => {});
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="input-name"]').fill('Real Test Patient');
+    await page.locator('[data-testid="input-phone"]').fill('03007777777');
+    await page.locator('[data-testid="input-email"]').fill('real@example.com');
+    await page.locator('[data-testid="submit-booking"]').click();
+    const reference = await page.locator('[data-testid="booking-reference"]').textContent();
+    // Now start a new booking and try to look up that reference
+    await navigateToContactStep(page);
+    await page.locator('[data-testid="toggle-returning-patient"]').click();
+    await page.locator('[data-testid="input-reference"]').fill(reference);
+    await page.locator('[data-testid="submit-reference"]').click();
+    await expect(page.locator('[data-testid="input-name"]')).toHaveValue('Real Test Patient');
+  });
+});

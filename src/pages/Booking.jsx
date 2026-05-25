@@ -9,6 +9,7 @@ import { Z_INDEX } from '../constants/zIndex'
 import { getSlotsForDate, isCityOpenOn } from '../utils/slots'
 import { calculateDeposit } from '../utils/deposit'
 import ContactForm from '../components/ContactForm'
+import ReturningPatientToggle from '../components/ReturningPatientToggle'
 import { saveConfirmed } from '../utils/bookingStorage'
 
 // ── Color tokens (dark navy theme) ────────────────────────────────────────────
@@ -593,7 +594,7 @@ export default function Booking() {
     const ref = genRef()
     const pid = patientType === 'returning' && foundPatient ? foundPatient.id : generatePatientId()
     saveConfirmed({
-      reference: ref,
+      reference: pid,
       city: form.city,
       procedure: { name: form.procedure, price: selItem?.priceValue || 0 },
       slotIso: form.timeIso,
@@ -612,9 +613,9 @@ export default function Booking() {
   const handleSetContactDetails = (d) => setForm(f => ({ ...f, name: d.name, phone: d.phone, email: d.email }))
   const handleConfirmBooking = () => {
     const ref = genRef()
-    const pid = patientType === 'returning' && foundPatient ? foundPatient.id : generatePatientId()
+    const pid = generatePatientId()
     saveConfirmed({
-      reference: ref,
+      reference: pid,
       city: form.city,
       procedure: { name: form.procedure, price: selItem?.priceValue || 0 },
       slotIso: form.timeIso,
@@ -1059,56 +1060,12 @@ export default function Booking() {
   const contactContent = (
     <div style={{ padding:'1rem' }}>
       <SectionLabel step={4} label="Your details" done={canConfirm} />
-
-      {/* Patient type pill toggle */}
-      <div style={{ display:'flex', background:'rgba(255,255,255,0.05)', borderRadius:100, padding:3, marginBottom:'1.25rem', width:'fit-content' }}>
-        {[['new','New patient'],['returning','Returning patient']].map(([type, label]) => (
-          <button key={type} onClick={() => handlePatientTypeToggle(type)}
-            style={{ padding:'0.375rem 1rem', borderRadius:100, border:'none', background: patientType === type ? N.teal : 'transparent', color: patientType === type ? '#fff' : N.muted, fontSize:'0.75rem', fontWeight:700, cursor:'pointer', transition:'all 0.18s', whiteSpace:'nowrap' }}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Returning patient lookup */}
-      {patientType === 'returning' && (
-        <div style={{ marginBottom:'1rem' }}>
-          <div style={{ display:'flex', gap:'0.5rem', marginBottom:'0.5rem' }}>
-            <input
-              type="text" value={lookupInput}
-              placeholder="Enter your patient number (e.g. MAL-1042)"
-              onChange={e => { setLookupInput(e.target.value); setLookupError('') }}
-              style={{ flex:1, padding:'0.75rem 0.875rem', border:`1.5px solid ${lookupError ? N.red : N.border}`, borderRadius:10, fontSize:'0.875rem', color:N.text, background:N.card, outline:'none', boxSizing:'border-box' }}
-            />
-            <button onClick={handlePatientLookup}
-              style={{ padding:'0.75rem 1rem', background:N.teal, border:'none', borderRadius:10, color:'#fff', fontSize:'0.75rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
-              Lookup
-            </button>
-          </div>
-          {lookupError && (
-            <div style={{ fontSize:'0.625rem', color:N.red, fontWeight:600, marginBottom:'0.5rem' }}>{lookupError}</div>
-          )}
-          {foundPatient && (
-            <div style={{ background:'rgba(34,197,94,0.1)', border:'1px solid rgba(34,197,94,0.3)', borderRadius:10, padding:'0.75rem', marginBottom:'0.75rem', animation:'app-section-in 0.25s ease' }}>
-              <div style={{ fontWeight:700, fontSize:'0.8125rem', color:N.green, marginBottom:'0.25rem' }}>
-                Welcome back, {foundPatient.name}! We've pre-filled your details.
-              </div>
-              <div style={{ fontSize:'0.625rem', color:'rgba(34,197,94,0.75)' }}>
-                {foundPatient.visits} previous visits.
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Contact form — always for new; only after lookup for returning */}
-      {(patientType === 'new' || foundPatient) && (
-        <ContactForm
-          value={contactDetails}
-          onChange={handleSetContactDetails}
-          onSubmit={handleConfirmBooking}
-        />
-      )}
+      <ReturningPatientToggle onPrefill={handleSetContactDetails} />
+      <ContactForm
+        value={contactDetails}
+        onChange={handleSetContactDetails}
+        onSubmit={handleConfirmBooking}
+      />
     </div>
   )
 
