@@ -785,6 +785,7 @@ export default function Booking() {
         const sel = form.city === loc.name
         return (
           <button key={loc.name}
+            data-testid={`booking-city-${loc.name.toLowerCase()}`}
             onClick={() => { if (!loc.comingSoon) handleSelectCity(loc.name) }}
             style={{
               position:'relative', padding:0, textAlign:'left', cursor: loc.comingSoon ? 'default' : 'pointer',
@@ -817,151 +818,6 @@ export default function Booking() {
     </div>
   )
 
-  // ── Shared contact form ──────────────────────────────────────────────────
-  const contactFormBody = (
-    <div style={{ display:'flex', flexDirection:'column', gap:'0.875rem' }}>
-      {/* Name */}
-      <div>
-        <label style={{ display:'block', fontSize:'0.5rem', fontWeight:800, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.375rem' }}>Full Name</label>
-        <input type="text" value={form.name} placeholder="e.g. Fatima Ahmed"
-          onChange={e => { set('name', e.target.value); clearE('name') }}
-          style={{ width:'100%', padding:'0.8125rem 0.875rem', border:`1.5px solid ${errors.name ? N.red : form.name.trim().length > 1 ? N.teal : N.border}`, borderRadius:10, fontSize:'0.9375rem', color:N.text, background:N.card, boxSizing:'border-box', outline:'none' }} />
-        {errors.name && <p style={{ fontSize:'0.625rem', color:N.red, margin:'0.25rem 0 0' }}>{errors.name}</p>}
-      </div>
-
-      {/* Email */}
-      <div>
-        <label style={{ display:'block', fontSize:'0.5rem', fontWeight:800, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.375rem' }}>Email</label>
-        <input type="email" value={form.email} placeholder="fatima@email.com"
-          onChange={e => { set('email', e.target.value); clearE('email') }}
-          style={{ width:'100%', padding:'0.8125rem 0.875rem', border:`1.5px solid ${errors.email ? N.red : form.email.includes('@') ? N.teal : N.border}`, borderRadius:10, fontSize:'0.9375rem', color:N.text, background:N.card, boxSizing:'border-box', outline:'none' }} />
-        {errors.email && <p style={{ fontSize:'0.625rem', color:N.red, margin:'0.25rem 0 0' }}>{errors.email}</p>}
-      </div>
-
-      {/* WhatsApp */}
-      <div>
-        <label htmlFor="country-code" style={{ display:'block', fontSize:'0.5rem', fontWeight:800, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.375rem' }}>WhatsApp</label>
-        <div style={{ display:'flex', gap:'0.5rem' }}>
-          <select id="country-code" value={form.countryCode} onChange={e => { set('countryCode', e.target.value); set('phone','') }}
-            style={{ padding:'0.8125rem 0.5rem', border:`1.5px solid ${N.border}`, borderRadius:10, fontSize:'0.875rem', color:N.text, background:N.card, cursor:'pointer', outline:'none' }}>
-            {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
-          </select>
-          <input type="tel" value={form.phone} placeholder={country.ph}
-            onChange={e => { set('phone', e.target.value); clearE('phone') }}
-            style={{ flex:1, padding:'0.8125rem 0.875rem', border:`1.5px solid ${errors.phone ? N.red : N.border}`, borderRadius:10, fontSize:'0.9375rem', color:N.text, background:N.card, minWidth:0, outline:'none', boxSizing:'border-box' }} />
-        </div>
-        {errors.phone && <p style={{ fontSize:'0.625rem', color:N.red, margin:'0.25rem 0 0' }}>{errors.phone}</p>}
-      </div>
-
-      {/* Concern */}
-      <div>
-        <label style={{ display:'block', fontSize:'0.5rem', fontWeight:800, color:N.muted, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.375rem' }}>
-          Describe your concern <span style={{ fontWeight:400, textTransform:'none', fontSize:'0.5rem', color:'rgba(255,255,255,0.2)' }}>(optional)</span>
-        </label>
-        <textarea value={form.concern} onChange={e => set('concern', e.target.value)}
-          placeholder="Tell Dr. Maleeha about your skin concern or reason for this visit…" rows={3}
-          style={{ width:'100%', padding:'0.8125rem 0.875rem', border:`1.5px solid ${N.border}`, borderRadius:10, fontSize:'0.875rem', color:N.text, background:N.card, boxSizing:'border-box', resize:'vertical', fontFamily:'inherit', lineHeight:1.6, outline:'none' }} />
-      </div>
-
-      {/* Online media uploads */}
-      {isOnline && (
-        <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
-          <div style={{ fontWeight:700, fontSize:'0.75rem', color:N.teal }}>📋 Pre-Consult Media <span style={{ fontWeight:400, color:N.muted }}>(all optional)</span></div>
-
-          {/* Photos */}
-          <div style={{ border:`1.5px dashed ${form.photos.length > 0 ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:'rgba(255,255,255,0.02)' }}>
-            <div style={{ fontSize:'0.625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>📷 Photos</div>
-            <div style={{ display:'flex', gap:'0.5rem', marginBottom: form.photos.length > 0 ? '0.625rem' : 0 }}>
-              <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background:N.tealLight, color:N.teal, border:`1px solid ${N.tealBord}`, borderRadius:7, cursor:'pointer', fontSize:'0.625rem', fontWeight:700 }}>
-                <input type="file" accept="image/*" multiple onChange={e => {
-                  const files = Array.from(e.target.files).slice(0,5)
-                  const newPhotos = files.map(f => ({ blob:f, name:f.name, url:URL.createObjectURL(f) }))
-                  setForm(prev => ({ ...prev, photos: [...prev.photos, ...newPhotos].slice(0,5) }))
-                }} style={{ display:'none' }} />
-                📂 Upload Photos
-              </label>
-              <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background:'rgba(255,255,255,0.04)', color:N.textDim, border:`1px solid ${N.border}`, borderRadius:7, cursor:'pointer', fontSize:'0.625rem', fontWeight:700 }}>
-                <input type="file" accept="image/*" capture="environment" onChange={e => {
-                  const f = e.target.files[0]
-                  if (f) setForm(prev => ({ ...prev, photos: [...prev.photos, { blob:f, name:f.name, url:URL.createObjectURL(f) }].slice(0,5) }))
-                }} style={{ display:'none' }} />
-                📷 Take Photo
-              </label>
-            </div>
-            {form.photos.length > 0 && (
-              <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
-                {form.photos.map((ph, idx) => (
-                  <div key={idx} style={{ position:'relative', width:64, height:64 }}>
-                    <img src={ph.url} alt={ph.name} style={{ width:64, height:64, objectFit:'cover', borderRadius:7, border:`1px solid ${N.border}` }} />
-                    <button onClick={() => setForm(prev => ({ ...prev, photos: prev.photos.filter((_,i) => i !== idx) }))}
-                      style={{ position:'absolute', top:-6, right:-6, width:18, height:18, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:'0.5rem', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>✕</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Voice Note */}
-          <div style={{ border:`1.5px dashed ${(form.voiceRec || form.voiceFile) ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:'rgba(255,255,255,0.02)' }}>
-            <div style={{ fontSize:'0.625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>🎙 Voice Note</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
-              {!form.voiceRec && (
-                <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background:'rgba(255,255,255,0.04)', color:N.textDim, border:`1px solid ${N.border}`, borderRadius:7, cursor:'pointer', fontSize:'0.625rem', fontWeight:700, width:'fit-content' }}>
-                  <input type="file" accept="audio/*" onChange={e => { const f = e.target.files[0]; if (f) set('voiceFile', f) }} style={{ display:'none' }} />
-                  📂 Upload Audio {form.voiceFile && <span style={{ color:N.teal }}>— {form.voiceFile.name}</span>}
-                </label>
-              )}
-              {!form.voiceFile && (
-                <VoiceRecorder
-                  saved={form.voiceRec}
-                  onSave={v => set('voiceRec', v)}
-                  onClear={() => set('voiceRec', null)}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Video */}
-          <div style={{ border:`1.5px dashed ${(form.videoRec || form.videoFile) ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:'rgba(255,255,255,0.02)' }}>
-            <div style={{ fontSize:'0.625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>🎥 Video</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
-              {!form.videoRec && (
-                <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background:'rgba(255,255,255,0.04)', color:N.textDim, border:`1px solid ${N.border}`, borderRadius:7, cursor:'pointer', fontSize:'0.625rem', fontWeight:700, width:'fit-content' }}>
-                  <input type="file" accept="video/*" onChange={e => { const f = e.target.files[0]; if (f) set('videoFile', f) }} style={{ display:'none' }} />
-                  📂 Upload Video {form.videoFile && <span style={{ color:N.teal }}>— {form.videoFile.name}</span>}
-                </label>
-              )}
-              {!form.videoFile && (
-                <VideoRecorder
-                  saved={form.videoRec}
-                  onSave={v => set('videoRec', v)}
-                  onClear={() => set('videoRec', null)}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* WhatsApp updates toggle */}
-      <label style={{ display:'flex', alignItems:'flex-start', gap:'0.625rem', cursor:'pointer' }}>
-        <div onClick={() => set('wantsUpdates', !form.wantsUpdates)}
-          style={{ width:38, height:22, borderRadius:11, background: form.wantsUpdates ? N.teal : 'rgba(255,255,255,0.12)', position:'relative', cursor:'pointer', transition:'background 0.2s', flexShrink:0, marginTop:1 }}>
-          <div style={{ width:18, height:18, borderRadius:'50%', background:'#fff', position:'absolute', top:2, left: form.wantsUpdates ? 18 : 2, transition:'left 0.2s', boxShadow:'0 1px 4px rgba(0,0,0,0.4)' }} />
-        </div>
-        <span style={{ fontSize:'0.75rem', color:N.textDim, lineHeight:1.5 }}>Send me appointment reminders via WhatsApp</span>
-      </label>
-
-      {/* Inline confirm button on mobile */}
-      {isMobile && (
-        <button onClick={handleConfirm} disabled={!canConfirm}
-          style={{ width:'100%', padding:'1rem', border:'none', borderRadius:12, background: canConfirm ? N.teal : 'rgba(255,255,255,0.06)', color: canConfirm ? '#fff' : N.muted, fontWeight:700, fontSize:'1rem', cursor: canConfirm ? 'pointer' : 'not-allowed', boxShadow: canConfirm ? '0 4px 20px rgba(13,148,136,0.4)' : 'none', marginTop:'0.25rem' }}>
-          {form.isWaitlisted ? 'Join Waitlist ✓' : 'Confirm Booking →'}
-        </button>
-      )}
-    </div>
-  )
-
   // ── Step content ─────────────────────────────────────────────────────────
   const procedureContent = (
     <div style={{ padding:'1rem' }}>
@@ -976,7 +832,9 @@ export default function Booking() {
             {items.map(item => {
               const sel = form.procedure === item.name
               return (
-                <button key={item.name} onClick={() => handleSelectProcedure(item.name)}
+                <button key={item.name}
+                  data-testid={`booking-procedure-${item.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
+                  onClick={() => handleSelectProcedure(item.name)}
                   title={`${item.note || item.desc} — ${item.price}`}
                   style={{
                     padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
@@ -1054,6 +912,36 @@ export default function Booking() {
         onChange={handleSetContactDetails}
         onSubmit={handleConfirmBooking}
       />
+      {/* Photo upload — optional for all cities, required path for media-capture tests */}
+      <div style={{ marginTop:'1rem', border:`1.5px dashed ${form.photos.length > 0 ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:'rgba(255,255,255,0.02)' }}>
+        <div style={{ fontSize:'0.625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>📷 Upload photos <span style={{ fontWeight:400, textTransform:'none' }}>(optional)</span></div>
+        <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background:N.tealLight, color:N.teal, border:`1px solid ${N.tealBord}`, borderRadius:7, cursor:'pointer', fontSize:'0.625rem', fontWeight:700, width:'fit-content' }}>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            data-testid="booking-media-upload"
+            onChange={e => {
+              const files = Array.from(e.target.files).slice(0,5)
+              const newPhotos = files.map(f => ({ blob:f, name:f.name, url:URL.createObjectURL(f) }))
+              setForm(prev => ({ ...prev, photos: [...prev.photos, ...newPhotos].slice(0,5) }))
+            }}
+            style={{ display:'none' }}
+          />
+          📂 Upload Photos
+        </label>
+        {form.photos.length > 0 && (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem', marginTop:'0.625rem' }}>
+            {form.photos.map((ph, idx) => (
+              <div key={idx} style={{ position:'relative', width:56, height:56 }}>
+                <img src={ph.url} alt={ph.name} style={{ width:56, height:56, objectFit:'cover', borderRadius:7, border:`1px solid ${N.border}` }} />
+                <button onClick={() => setForm(prev => ({ ...prev, photos: prev.photos.filter((_,i) => i !== idx) }))}
+                  style={{ position:'absolute', top:-5, right:-5, width:16, height:16, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:'0.5rem', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 
@@ -1224,7 +1112,9 @@ export default function Booking() {
                       {items.map(item => {
                         const sel = form.procedure === item.name
                         return (
-                          <button key={item.name} onClick={() => handleSelectProcedure(item.name)}
+                          <button key={item.name}
+                            data-testid={`booking-procedure-${item.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
+                            onClick={() => handleSelectProcedure(item.name)}
                             title={`${item.note || item.desc} — ${item.price}`}
                             style={{
                               padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,

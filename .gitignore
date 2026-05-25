@@ -24,3 +24,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# QA reports (HTML too heavy to commit)
+qa-reports/
+
+# Playwright output
+playwright-report/
+test-results/

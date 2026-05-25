@@ -474,3 +474,113 @@ test.describe('Booking — mobile-first UX (Batch 7)', () => {
     expect(hasHorizontalScroll).toBe(false);
   });
 });
+
+// ── Helper: find next occurrence of given JS weekday (0=Sun…6=Sat) ───────────
+function nextWeekday(targetDay) {
+  const d = new Date();
+  const diff = (targetDay - d.getDay() + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+// ── Helper: navigate to contact step for a given city + procedure ─────────────
+async function navigateToContact(page, { city, procedureTestId }) {
+  await page.goto(`${BASE_URL}/booking`);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+
+  // Select city
+  await page.locator(`[data-testid="booking-city-${city.toLowerCase()}"]`).first().click();
+
+  // Select procedure / concern
+  await page.locator(`[data-testid="${procedureTestId}"]`).first().click();
+
+  // Pick a date — for Islamabad use next open day (Tue/Thu/Sat), others use pill index 2
+  let datePill;
+  if (city === 'Islamabad') {
+    // Find next Tue(2), Thu(4), or Sat(6)
+    const candidates = [2, 4, 6].map(nextWeekday).sort((a, b) => a - b);
+    const nearest = candidates[0];
+    const key = `${nearest.getFullYear()}-${String(nearest.getMonth()+1).padStart(2,'0')}-${String(nearest.getDate()).padStart(2,'0')}`;
+    datePill = page.locator(`[data-testid="date-pill-${key}"]`);
+    // If not visible in strip, open modal and pick it
+    const visible = await datePill.isVisible().catch(() => false);
+    if (!visible) {
+      await page.locator('[data-testid="open-date-picker"]').click();
+      await page.locator(`[data-testid="picker-day-${key}"]`).click();
+    } else {
+      await datePill.click();
+    }
+  } else {
+    // Pick the 3rd pill (index 2) — avoids today's same-day edge cases
+    await page.locator('[data-testid^="date-pill-"]').nth(2).click();
+  }
+
+  // Pick the first available time slot
+  await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+
+  // Should now be on contact step
+  await page.waitForSelector('[data-testid="contact-form"]');
+}
+
+test.describe('Booking — end-to-end happy paths (Batch 6)', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('Path A — Karachi Botox booking', async ({ page }) => {
+    await navigateToContact(page, {
+      city: 'Karachi',
+      procedureTestId: 'booking-procedure-botox',
+    });
+
+    await page.locator('[data-testid="input-name"]').fill('Fatima Khan');
+    await page.locator('[data-testid="input-phone"]').fill('03001234567');
+    await page.locator('[data-testid="input-email"]').fill('fatima@example.com');
+    await page.locator('[data-testid="submit-booking"]').click();
+
+    await expect(page.locator('[data-testid="booking-confirmation"]')).toBeVisible();
+    await expect(page.locator('[data-testid="booking-reference"]')).toContainText(/MAL-\d{4}/);
+  });
+
+  test('Path B — Online consultation booking (no clinic address)', async ({ page }) => {
+    await navigateToContact(page, {
+      city: 'Online',
+      procedureTestId: 'booking-procedure-general-concern',
+    });
+
+    await page.locator('[data-testid="input-name"]').fill('Sara Malik');
+    await page.locator('[data-testid="input-phone"]').fill('03219876543');
+    await page.locator('[data-testid="input-email"]').fill('sara@example.com');
+    await page.locator('[data-testid="submit-booking"]').click();
+
+    await expect(page.locator('[data-testid="booking-confirmation"]')).toBeVisible();
+    await expect(page.locator('[data-testid="booking-reference"]')).toContainText(/MAL-\d{4}/);
+
+    // Online booking must NOT show a clinic street address link
+    const addressLinks = page.locator('a[href*="maps.google.com"]');
+    await expect(addressLinks).toHaveCount(0);
+  });
+
+  test('Path C — Islamabad Acne Treatment with media upload', async ({ page }) => {
+    await navigateToContact(page, {
+      city: 'Islamabad',
+      procedureTestId: 'booking-procedure-acne-treatment',
+    });
+
+    // Upload the fixture photo via the media-upload input
+    const fileInput = page.locator('[data-testid="booking-media-upload"]');
+    await fileInput.setInputFiles('./tests/fixtures/test-photo.jpg');
+
+    await page.locator('[data-testid="input-name"]').fill('Zara Sheikh');
+    await page.locator('[data-testid="input-phone"]').fill('03456667777');
+    await page.locator('[data-testid="input-email"]').fill('zara@example.com');
+    await page.locator('[data-testid="submit-booking"]').click();
+
+    await expect(page.locator('[data-testid="booking-confirmation"]')).toBeVisible();
+    await expect(page.locator('[data-testid="booking-reference"]')).toContainText(/MAL-\d{4}/);
+
+    // Islamabad confirmation must show the clinic address (Google Maps link)
+    const mapsLink = page.locator('a[href*="maps.google.com"]');
+    await expect(mapsLink.first()).toBeVisible();
+    await expect(mapsLink.first()).toContainText(/Faisal Market|F-7/i);
+  });
+});
