@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { getRealBookings, getNewBookingsSinceLastView, markDashboardViewed, dateKey } from '../utils/dashboardData'
+import { getRealBookings, getNewBookingsSinceLastView, markDashboardViewed, dateKey, fetchSupabaseBookings } from '../utils/dashboardData'
+import { signOut } from '../lib/auth'
 import RecentBookingsList from '../components/RecentBookingsList'
 import { Helmet } from 'react-helmet-async'
 import AIAssistant from './AIAssistant'
@@ -160,8 +161,8 @@ function KPISection({ appointments, newBookingsCount = 0 }) {
   const kpis = [
     { icon:'📅', label:'Total Appointments', value:appointments.length, sub:`All time`,                    accent:'#0a6e66', bg:'#f0fdfa', textCol:'#0f766e' },
     { icon:'🕐', label:'Pending',            value:pending.length,     sub:`${waitlisted.length} waitlisted`, accent:'#d97706', bg:'#fef9c3', textCol:'#a16207' },
-    { icon:'✓',  label:'Confirmed',          value:confirmed.length,   sub:`${Math.round(confirmed.length/appointments.length*100)}% rate`, accent:'#16a34a', bg:'#dcfce7', textCol:'#15803d' },
-    { icon:'✕',  label:'Rejected',           value:rejected.length,    sub:`${Math.round(rejected.length/appointments.length*100)}% rate`,  accent:'#dc2626', bg:'#fee2e2', textCol:'#dc2626' },
+    { icon:'✓',  label:'Confirmed',          value:confirmed.length,   sub:`${appointments.length > 0 ? Math.round(confirmed.length/appointments.length*100) : 0}% rate`, accent:'#16a34a', bg:'#dcfce7', textCol:'#15803d' },
+    { icon:'✕',  label:'Rejected',           value:rejected.length,    sub:`${appointments.length > 0 ? Math.round(rejected.length/appointments.length*100) : 0}% rate`,  accent:'#dc2626', bg:'#fee2e2', textCol:'#dc2626' },
     { icon:'💰', label:'Total Revenue',      value:`PKR ${(totalRev/1000).toFixed(0)}K`, sub:'All confirmed',         accent:'#0a6e66', bg:'#f0fdfa', textCol:'#0f766e' },
     { icon:'📈', label:'This Month',         value:`PKR ${(monthRev/1000).toFixed(0)}K`, sub:`${growth > 0 ? '▲' : '▼'} ${Math.abs(growth)}% vs last month`, accent: growth >= 0 ? '#16a34a' : '#dc2626', bg: growth >= 0 ? '#dcfce7' : '#fee2e2', textCol: growth >= 0 ? '#15803d' : '#dc2626' },
     { icon:'👤', label:'Avg per Patient',    value:`PKR ${(avg/1000).toFixed(1)}K`, sub:`${unique} unique patients`, accent:'#7c3aed', bg:'#f5f3ff', textCol:'#6d28d9' },
@@ -1886,19 +1887,80 @@ function PartnershipsTab() {
   )
 }
 
+// ── Live Bookings Table (Supabase) ────────────────────────────────────────────
+function LiveBookingsTable({ bookings, loading }) {
+  if (loading) return (
+    <div style={{ textAlign:'center', padding:'2rem 1rem', color:'#64748b' }}>
+      <div style={{ display:'inline-block', width:24, height:24, border:'3px solid #e2e8f0', borderTop:'3px solid #0a6e66', borderRadius:'50%', animation:'spin 0.8s linear infinite', marginBottom:'0.625rem' }} />
+      <p style={{ fontSize:'0.5625rem', fontWeight:600, margin:0 }}>Loading live bookings…</p>
+      <style>{`@keyframes spin { to { transform:rotate(360deg) } }`}</style>
+    </div>
+  )
+
+  if (bookings.length === 0) return (
+    <div style={{ textAlign:'center', padding:'2rem 1rem', color:'#64748b' }}>
+      <div style={{ fontSize:'2rem', marginBottom:'0.5rem' }}>📭</div>
+      <p style={{ fontSize:'0.5625rem', fontWeight:700, color:'#0f172a', margin:'0 0 0.25rem' }}>No bookings yet — share your booking link</p>
+      <code style={{ fontSize:'0.5rem', background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'0.2rem 0.5rem', color:'#0a6e66' }}>
+        /booking
+      </code>
+    </div>
+  )
+
+  return (
+    <div style={{ overflowX:'auto' }}>
+      <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.5rem' }}>
+        <thead>
+          <tr style={{ background:'#f8fafc' }}>
+            {['MAL #','Patient','Procedure','City','Date / Time','Status'].map(h => (
+              <th key={h} style={{ padding:'0.5rem 0.625rem', textAlign:'left', fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', borderBottom:'1px solid #e2e8f0', whiteSpace:'nowrap' }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {bookings.map((b, i) => {
+            const st = STATUS_STYLE[b.status] || STATUS_STYLE.pending
+            return (
+              <tr key={b.id} style={{ background: i % 2 === 0 ? '#fff' : '#f8fafc', borderBottom:'1px solid #f1f5f9' }}>
+                <td style={{ padding:'0.5rem 0.625rem', color:'#0a6e66', fontWeight:700, whiteSpace:'nowrap' }}>{b.malNumber}</td>
+                <td style={{ padding:'0.5rem 0.625rem', fontWeight:600, color:'#0f172a', whiteSpace:'nowrap' }}>{b.name}</td>
+                <td style={{ padding:'0.5rem 0.625rem', color:'#475569' }}>{b.procedure}</td>
+                <td style={{ padding:'0.5rem 0.625rem', color:'#475569', whiteSpace:'nowrap' }}>{b.location}</td>
+                <td style={{ padding:'0.5rem 0.625rem', color:'#475569', whiteSpace:'nowrap' }}>{b.date} · {b.time}</td>
+                <td style={{ padding:'0.5rem 0.625rem' }}>
+                  <span style={{ background:st.bg, color:st.color, borderRadius:4, padding:'0.1rem 0.35rem', fontWeight:700, whiteSpace:'nowrap' }}>{st.label}</span>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const todayStr = dsOf(new Date())
 
-  const [appointments, setAppointments] = useState(MOCK)
+  const [appointments,     setAppointments]     = useState(MOCK)
   const [realBookings,     setRealBookings]     = useState([])
   const [newBookingsCount, setNewBookingsCount] = useState(0)
+  const [supabaseAppts,    setSupabaseAppts]    = useState([])
+  const [supabaseLoading,  setSupabaseLoading]  = useState(true)
 
   useEffect(() => {
     setRealBookings(getRealBookings())
     setNewBookingsCount(getNewBookingsSinceLastView().length)
     const timer = setTimeout(() => markDashboardViewed(), 1500)
     return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    fetchSupabaseBookings().then(data => {
+      setSupabaseAppts(data)
+      setSupabaseLoading(false)
+    })
   }, [])
 
   const normalizedReal = useMemo(() => realBookings.map(b => ({
@@ -1912,7 +1974,7 @@ export default function Dashboard() {
     method: 'Cash',
   })), [realBookings])
 
-  const allBookings = useMemo(() => [...appointments, ...normalizedReal], [appointments, normalizedReal])
+  const allBookings = useMemo(() => [...appointments, ...normalizedReal, ...supabaseAppts], [appointments, normalizedReal, supabaseAppts])
 
   const [locFilter,    setLocFilter]    = useState('All')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -1932,6 +1994,11 @@ export default function Dashboard() {
   const [darkMode,     setDarkMode]     = useState(() => localStorage.getItem('drm_dark') === 'true')
 
   const toggleDark = () => setDarkMode(d => { const n = !d; localStorage.setItem('drm_dark', String(n)); return n })
+
+  const handleSignOut = async () => {
+    await signOut()
+    window.location.href = '/login'
+  }
 
   const setStatus = (id, status) => setAppointments(p => p.map(a => a.id === id ? { ...a, status } : a))
 
@@ -1989,6 +2056,7 @@ export default function Dashboard() {
           <div style={{ display:'flex', gap:'0.3rem', alignItems:'center' }}>
             <button onClick={() => setShowDelay(true)} style={{ background:'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.55rem', borderRadius:6, fontSize:'0.5rem', fontWeight:700, cursor:'pointer' }}>📢 Delay</button>
             <button onClick={toggleDark} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={{ background:'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.45rem', borderRadius:6, fontSize:'0.875rem', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>{darkMode ? '☀️' : '🌙'}</button>
+            <button onClick={handleSignOut} style={{ background:'rgba(255,255,255,0.15)', color:C.white, border:'1px solid rgba(255,255,255,0.25)', padding:'0.3rem 0.55rem', borderRadius:6, fontSize:'0.5rem', fontWeight:700, cursor:'pointer' }}>Sign Out</button>
             <div style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:'0.7rem' }}>M</div>
           </div>
         </div>
@@ -2074,6 +2142,18 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* ── Live bookings from Supabase ── */}
+          <div style={{ marginTop:'1.25rem', background: darkMode ? '#1a2744' : C.white, border:`1px solid ${C.border}`, borderRadius:12, overflow:'hidden' }}>
+            <div style={{ padding:'0.625rem 0.875rem', borderBottom:`1px solid ${C.border}`, background: darkMode ? '#0d2444' : C.bg, display:'flex', alignItems:'center', gap:'0.5rem' }}>
+              <span style={{ fontWeight:800, fontSize:'0.625rem', color:C.teal }}>🔴 Live Bookings</span>
+              <span style={{ fontSize:'0.5rem', color:C.muted }}>from Supabase — authenticated patients only</span>
+              {!supabaseLoading && supabaseAppts.length > 0 && (
+                <span style={{ marginLeft:'auto', background:C.tealLight, color:C.teal, borderRadius:100, padding:'0.1rem 0.5rem', fontSize:'0.4375rem', fontWeight:800, border:`1px solid ${C.tealRing}` }}>{supabaseAppts.length}</span>
+              )}
+            </div>
+            <LiveBookingsTable bookings={supabaseAppts} loading={supabaseLoading} />
           </div>
 
           {/* ── Real bookings from booking flow ── */}

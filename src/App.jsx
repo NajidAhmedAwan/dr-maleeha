@@ -4,6 +4,8 @@ import Home from './pages/Home'
 import Booking from './pages/Booking'
 import Dashboard from './pages/Dashboard'
 import Brands from './pages/Brands'
+import Login from './pages/Login'
+import ProtectedRoute from './components/ProtectedRoute'
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -44,7 +46,15 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/booking" element={<Booking />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/brands" element={<Brands />} />
         </Routes>
       </BrowserRouter>

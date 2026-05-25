@@ -38,9 +38,26 @@ test.describe('Booking flow @smoke', () => {
 });
 
 test.describe('Dashboard @smoke', () => {
-  test('dashboard loads', async ({ page }) => {
+  test('dashboard redirects to /login when unauthenticated', async ({ page }) => {
     await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/login/);
     await expect(page.locator('body')).toBeVisible();
+  });
+});
+
+test.describe('Auth — Batch 7b', () => {
+  test('Auth gate — /dashboard redirects to /login when unauthenticated', async ({ page }) => {
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByTestId('login-submit')).toBeVisible();
+  });
+
+  test('Login page renders correctly on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/login');
+    await expect(page.getByTestId('login-email')).toBeVisible();
+    await expect(page.getByTestId('login-submit')).toBeVisible();
+    await expect(page.getByTestId('login-password')).not.toBeVisible();
   });
 });
 
