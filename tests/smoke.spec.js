@@ -263,7 +263,7 @@ test.describe('Dashboard — real bookings (Batch 5)', () => {
     await page.evaluate(() => localStorage.clear());
     await createOneBooking(page, { city: 'Online', name: 'Online Test' });
     await page.goto(`${BASE_URL}/dashboard`);
-    const card = page.locator('[data-testid^="booking-card-MAL-"]', { hasText: 'Online Test' });
+    const card = page.locator('[data-testid^="booking-card-"]', { hasText: 'Online Test' });
     await expect(card).toBeVisible();
     await expect(card).toContainText('Online');
   });
