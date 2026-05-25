@@ -267,7 +267,7 @@ test.describe('Dashboard — real bookings (Batch 5)', () => {
 test.describe('Booking — returning patient lookup (Batch 6)', () => {
   async function navigateToContactStep(page) {
     await page.goto(`${BASE_URL}/booking`);
-    await page.getByRole('button', { name: /karachi/i }).click();
+    await page.getByRole('button', { name: /karachi/i }).first().click();
     await page.getByRole('button', { name: /botox|consultation/i }).first().click();
     const future = new Date();
     future.setDate(future.getDate() + 5);

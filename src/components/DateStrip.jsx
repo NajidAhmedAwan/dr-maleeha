@@ -99,10 +99,10 @@ export default function DateStrip({ city, selectedDate, onSelectDate, onOpenPick
                 transition: 'all 120ms',
               }}
             >
-              <div style={{ fontSize: '11px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{dayLabel}</div>
+              <div aria-hidden="true" style={{ fontSize: '11px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{dayLabel}</div>
               <div style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1 }}>{dateNum}</div>
               {showMonth && (
-                <div style={{ fontSize: '10px', opacity: 0.7 }}>{monthShort}</div>
+                <div aria-hidden="true" style={{ fontSize: '10px', opacity: 0.7 }}>{monthShort}</div>
               )}
             </button>
           );
