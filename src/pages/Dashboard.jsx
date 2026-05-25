@@ -1946,19 +1946,19 @@ export default function Dashboard() {
     cancelEdit()
   }
 
-  // Filter appointments (includes real bookings via allBookings)
-  const locFiltered = locFilter === 'All' ? allBookings : allBookings.filter(a =>
+  // Appointment list uses mock only; real bookings appear in RecentBookingsList
+  const locFiltered = locFilter === 'All' ? appointments : appointments.filter(a =>
     locFilter === 'Online' ? a.location === 'Online' : a.location === locFilter
   )
   const statusFiltered = locFiltered.filter(a => statusFilter === 'all' || a.status === statusFilter || (statusFilter === 'pending' && a.status === 'waitlisted'))
     .sort((a, b) => { if (a.date !== b.date) return a.date > b.date ? 1 : -1; return tToMin(a.time) - tToMin(b.time) })
 
-  const todayAppts = allBookings.filter(a => a.date === todayStr)
+  const todayAppts = appointments.filter(a => a.date === todayStr)
 
-  // Counts per location for tab badges (includes real bookings)
-  const locCounts = { All:allBookings.length }
+  // Counts per location for tab badges (mock appointments only)
+  const locCounts = { All:appointments.length }
   for (const loc of ['Karachi','Islamabad','Online']) {
-    locCounts[loc] = allBookings.filter(a => loc === 'Online' ? a.location === 'Online' : a.location === loc).length
+    locCounts[loc] = appointments.filter(a => loc === 'Online' ? a.location === 'Online' : a.location === loc).length
   }
 
   // Counts per status for status tab badges

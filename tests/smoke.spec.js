@@ -201,7 +201,9 @@ test.describe('Dashboard — real bookings (Batch 5)', () => {
   async function createOneBooking(page, { city = 'Karachi', name = 'Test Patient', phone = '03001234567' } = {}) {
     await page.goto(`${BASE_URL}/booking`);
     await page.getByRole('button', { name: new RegExp(city, 'i') }).click();
-    await page.getByRole('button', { name: /botox|consultation/i }).first().click();
+    // Online city shows concern buttons (not procedures); other cities show procedure buttons
+    const procRegex = city === 'Online' ? /general concern|acne/i : /botox|consultation/i;
+    await page.getByRole('button', { name: procRegex }).first().click();
     const future = new Date();
     future.setDate(future.getDate() + 5);
     await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
