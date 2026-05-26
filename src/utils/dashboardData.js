@@ -52,6 +52,7 @@ export function dateKey(date) {
 }
 
 export async function fetchSupabaseBookings() {
+  if (!supabase) return []
   try {
     const { data, error } = await supabase
       .from('bookings')
