@@ -836,14 +836,59 @@ export default function Booking() {
         }
       }
 
-      // 4. Insert booking
+      // 4a. Server-side intake validation
+      if (form.intakeDob) {
+        const dob = new Date(form.intakeDob + 'T00:00:00')
+        const now = new Date()
+        if (dob >= now) throw new Error('Date of birth must be in the past.')
+        if ((now - dob) / (365.25 * 24 * 3600 * 1000) < 13) throw new Error('Patient must be at least 13 years old.')
+      }
+      if (form.intakeOnMedication === 'yes' && !form.intakeMedList.trim()) {
+        throw new Error('Medication list is required when on medication.')
+      }
+      if (isOnline && form.intakeCountry === 'Other' && !form.intakeCountryOther.trim()) {
+        throw new Error('Please specify your country.')
+      }
+
+      // 4b. Upload media files to booking-media bucket (private)
+      const ALLOWED_UPLOAD_MIME = new Set([
+        'image/jpeg', 'image/png', 'image/webp',
+        'video/mp4', 'video/quicktime', 'video/webm',
+      ])
+      const mediaUrls = []
+      for (const m of form.intakeMedia) {
+        if (m.blob.size > 10 * 1024 * 1024) throw new Error(`File "${m.name}" exceeds 10 MB limit.`)
+        const mime = m.blob.type || ''
+        if (!ALLOWED_UPLOAD_MIME.has(mime)) throw new Error(`File "${m.name}" has unsupported type (${mime || 'unknown'}).`)
+        const safeName = m.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+        const path = `${dbPatientId}/${Date.now()}_${safeName}`
+        const { data: uploadData, error: uploadErr } = await supabase.storage
+          .from('booking-media')
+          .upload(path, m.blob, { contentType: mime, upsert: false })
+        if (uploadErr) throw uploadErr
+        mediaUrls.push(uploadData.path)
+      }
+
+      // 4c. Insert booking with all intake fields
       const procedureSlug = form.procedure.toLowerCase().replace(/[\s&]+/g, '-').replace(/[^a-z0-9-]/g, '')
       const { error: bookingErr } = await supabase.from('bookings').insert({
-        patient_id:       dbPatientId,
-        city:             form.city.toLowerCase(),
-        procedure:        procedureSlug,
-        booking_datetime: form.timeIso,
-        notes:            form.concern || null,
+        patient_id:          dbPatientId,
+        city:                form.city.toLowerCase(),
+        procedure:           procedureSlug,
+        booking_datetime:    form.timeIso,
+        notes:               form.concern || null,
+        date_of_birth:       form.intakeDob || null,
+        country:             isOnline ? (form.intakeCountry || null) : null,
+        country_other:       isOnline && form.intakeCountry === 'Other' ? (form.intakeCountryOther.trim() || null) : null,
+        timezone:            isOnline ? (form.intakeTimezone || null) : null,
+        appointment_type:    form.intakeApptType || null,
+        skin_concern:        form.intakeSkinConcern.trim() || null,
+        previous_treatments: form.intakePrevTreatments.trim() || null,
+        medical_history:     form.intakeMedHistory.trim() || null,
+        on_medication:       form.intakeOnMedication === 'yes' ? true : form.intakeOnMedication === 'no' ? false : null,
+        medication_list:     form.intakeOnMedication === 'yes' ? (form.intakeMedList.trim() || null) : null,
+        additional_notes:    form.intakeNotes.trim() || null,
+        media_urls:          mediaUrls.length > 0 ? JSON.stringify(mediaUrls) : null,
       })
       if (bookingErr) throw bookingErr
 
