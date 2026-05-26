@@ -454,6 +454,47 @@ function ChevronLeft({ size = 16 }) {
   )
 }
 
+// ── Intake form constants ─────────────────────────────────────────────────────
+const INTAKE_COUNTRIES = [
+  'Pakistan',
+  'Middle East (UAE/Saudi/Qatar)',
+  'United Kingdom',
+  'United States',
+  'Canada',
+  'Australia & New Zealand',
+  'Europe',
+  'Other',
+]
+
+const INTAKE_TIMEZONES = [
+  { value: 'Asia/Karachi',        label: 'Pakistan (PKT +5:00)' },
+  { value: 'Asia/Dubai',          label: 'UAE / Dubai (GST +4:00)' },
+  { value: 'Asia/Riyadh',         label: 'Saudi Arabia (AST +3:00)' },
+  { value: 'Asia/Qatar',          label: 'Qatar (AST +3:00)' },
+  { value: 'Europe/London',       label: 'UK (GMT/BST)' },
+  { value: 'America/New_York',    label: 'US Eastern (EST/EDT)' },
+  { value: 'America/Chicago',     label: 'US Central (CST/CDT)' },
+  { value: 'America/Los_Angeles', label: 'US Pacific (PST/PDT)' },
+  { value: 'America/Toronto',     label: 'Canada Eastern (EST/EDT)' },
+  { value: 'America/Vancouver',   label: 'Canada Pacific (PST/PDT)' },
+  { value: 'Australia/Sydney',    label: 'Australia East (AEST/AEDT)' },
+  { value: 'Australia/Perth',     label: 'Australia West (AWST)' },
+  { value: 'Pacific/Auckland',    label: 'New Zealand (NZST/NZDT)' },
+  { value: 'Europe/Paris',        label: 'Europe Central (CET/CEST)' },
+]
+
+const INTAKE_LABEL_ST = {
+  fontSize: '0.5625rem', fontWeight: 700, color: N.teal,
+  textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.375rem',
+  display: 'block',
+}
+
+const MAX_DOB_STR = (() => {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - 13)
+  return d.toISOString().split('T')[0]
+})()
+
 // ── Main Booking component ────────────────────────────────────────────────────
 export default function Booking() {
   const navigate  = useNavigate()
@@ -474,6 +515,17 @@ export default function Booking() {
     videoRec: null,
     videoFile: null,
     paymentFile: null, paymentFileName: '',
+    intakeDob: '',
+    intakeApptType: '',
+    intakeSkinConcern: '',
+    intakePrevTreatments: '',
+    intakeMedHistory: '',
+    intakeOnMedication: '',
+    intakeMedList: '',
+    intakeNotes: '',
+    intakeCountry: '',
+    intakeCountryOther: '',
+    intakeTimezone: '',
   })
 
   const [showConfetti,     setShowConfetti]     = useState(false)
@@ -512,6 +564,11 @@ export default function Booking() {
     setLastCity(getLastBookingCity())
   }, [])
 
+  useEffect(() => {
+    const detected = Intl.DateTimeFormat().resolvedOptions().timeZone
+    if (detected) set('intakeTimezone', detected)
+  }, [])
+
   const set    = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const clearE = k      => setErrors(e => { const n = { ...e }; delete n[k]; return n })
 
@@ -536,18 +593,37 @@ export default function Booking() {
     form.name.trim().length > 1 && form.email.includes('@') &&
     form.phone.replace(/\D/g,'').length >= country.digits
 
-  const STEP_ORDER = ['procedure', 'datetime', 'contact']
+  const STEP_ORDER = ['procedure', 'intake', 'datetime', 'contact']
   const stepIdx    = STEP_ORDER.indexOf(step)
+
+  const intakeValid = (() => {
+    if (!form.intakeDob) return false
+    const dob = new Date(form.intakeDob + 'T00:00:00')
+    const now = new Date()
+    if (dob >= now) return false
+    if ((now - dob) / (365.25 * 24 * 3600 * 1000) < 13) return false
+    if (!form.intakeApptType) return false
+    if (!form.intakeSkinConcern.trim()) return false
+    if (!form.intakePrevTreatments.trim()) return false
+    if (!form.intakeMedHistory.trim()) return false
+    if (!form.intakeOnMedication) return false
+    if (form.intakeOnMedication === 'yes' && !form.intakeMedList.trim()) return false
+    if (isOnline && !form.intakeCountry) return false
+    if (isOnline && form.intakeCountry === 'Other' && !form.intakeCountryOther.trim()) return false
+    return true
+  })()
 
   const stepCanContinue =
     step === 'procedure' ? !!form.procedure :
+    step === 'intake'    ? intakeValid :
     step === 'datetime'  ? !!(form.date && form.time && (!isSlotFull || form.isWaitlisted)) :
     step === 'contact'   ? (canConfirm && !isSubmitting) :
     false
 
   // ── Transitions ─────────────────────────────────────────────────────────
   const goBack = () => {
-    if (step === 'datetime') setStep('procedure')
+    if (step === 'intake') setStep('procedure')
+    else if (step === 'datetime') setStep('intake')
     else if (step === 'contact') setStep('datetime')
   }
 
@@ -558,7 +634,7 @@ export default function Booking() {
 
   const handleSelectProcedure = (name) => {
     set('procedure', name)
-    setStep('datetime')
+    setStep('intake')
   }
 
   const handleSelectTime = (slot) => {
@@ -572,7 +648,8 @@ export default function Booking() {
   }
 
   const handleFooterBtn = () => {
-    if (step === 'procedure') setStep('datetime')
+    if (step === 'procedure') setStep('intake')
+    else if (step === 'intake') setStep('datetime')
     else if (step === 'datetime') setStep('contact')
     else if (step === 'contact') handleConfirm()
   }
@@ -954,7 +1031,7 @@ export default function Booking() {
 
   const datetimeContent = (
     <div style={{ padding:'1rem' }}>
-      <SectionLabel step={3} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
+      <SectionLabel step={4} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <DateStrip
           city={form.city}
@@ -992,9 +1069,159 @@ export default function Booking() {
     </div>
   )
 
+  const dobError = form.intakeDob ? (() => {
+    const dob = new Date(form.intakeDob + 'T00:00:00')
+    const now = new Date()
+    if (dob >= now) return 'Date of birth must be in the past'
+    if ((now - dob) / (365.25 * 24 * 3600 * 1000) < 13) return 'Must be at least 13 years old'
+    return null
+  })() : null
+
+  const taStyle = { width:'100%', boxSizing:'border-box', background:N.card, border:`1px solid ${N.border}`, borderRadius:8, color:N.text, fontSize:'0.8125rem', padding:'0.5rem 0.625rem', resize:'vertical', minHeight:80, lineHeight:1.5, outline:'none' }
+  const inStyle = { width:'100%', boxSizing:'border-box', background:N.card, border:`1px solid ${N.border}`, borderRadius:8, color:N.text, fontSize:'0.8125rem', padding:'0.5rem 0.625rem', outline:'none' }
+  const selStyle = { ...inStyle, appearance:'none', cursor:'pointer' }
+
+  const intakeContent = (
+    <div style={{ padding:'1rem' }}>
+      <SectionLabel step={3} label="Medical Intake" done={intakeValid} />
+
+      {/* DOB */}
+      <div style={{ marginBottom:'0.875rem' }}>
+        <label style={INTAKE_LABEL_ST}>Date of Birth <span style={{ color:N.red }}>*</span></label>
+        <input type="date" value={form.intakeDob} max={MAX_DOB_STR}
+          onChange={e => set('intakeDob', e.target.value)}
+          style={{ ...inStyle, border:`1px solid ${dobError ? N.red : N.border}`, colorScheme:'dark' }} />
+        {dobError && <div style={{ color:N.red, fontSize:'0.5625rem', marginTop:3 }}>{dobError}</div>}
+      </div>
+
+      {/* Appointment type */}
+      <div style={{ marginBottom:'0.875rem' }}>
+        <label style={INTAKE_LABEL_ST}>Appointment Type <span style={{ color:N.red }}>*</span></label>
+        <div style={{ display:'flex', gap:'0.5rem' }}>
+          {[['initial','Initial Consultation'],['followup','Follow-up']].map(([val, lbl]) => {
+            const sel = form.intakeApptType === val
+            return (
+              <button key={val} onClick={() => set('intakeApptType', val)}
+                style={{ flex:1, padding:'0.5rem 0.75rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:8, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)', color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s' }}>
+                {lbl}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Skin concern */}
+      <div style={{ marginBottom:'0.875rem' }}>
+        <label style={INTAKE_LABEL_ST}>Skin Concern <span style={{ color:N.red }}>*</span></label>
+        <textarea maxLength={1000} placeholder="Describe your main skin concern..." value={form.intakeSkinConcern}
+          onChange={e => set('intakeSkinConcern', e.target.value)}
+          onBlur={e => set('intakeSkinConcern', e.target.value.trim())}
+          style={taStyle} />
+        <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakeSkinConcern.length}/1000</div>
+      </div>
+
+      {/* Previous treatments */}
+      <div style={{ marginBottom:'0.875rem' }}>
+        <label style={INTAKE_LABEL_ST}>Previous Treatments <span style={{ color:N.red }}>*</span> <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>("None" if none)</span></label>
+        <textarea maxLength={1000} placeholder='e.g. "Botox 2023, chemical peel" or "None"' value={form.intakePrevTreatments}
+          onChange={e => set('intakePrevTreatments', e.target.value)}
+          onBlur={e => set('intakePrevTreatments', e.target.value.trim())}
+          style={taStyle} />
+        <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakePrevTreatments.length}/1000</div>
+      </div>
+
+      {/* Medical history */}
+      <div style={{ marginBottom:'0.875rem' }}>
+        <label style={INTAKE_LABEL_ST}>Medical History <span style={{ color:N.red }}>*</span> <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>("None" if none)</span></label>
+        <textarea maxLength={1000} placeholder='e.g. "Diabetes, hypertension" or "None"' value={form.intakeMedHistory}
+          onChange={e => set('intakeMedHistory', e.target.value)}
+          onBlur={e => set('intakeMedHistory', e.target.value.trim())}
+          style={taStyle} />
+        <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakeMedHistory.length}/1000</div>
+      </div>
+
+      {/* On medication */}
+      <div style={{ marginBottom:'0.875rem' }}>
+        <label style={INTAKE_LABEL_ST}>Currently on medication? <span style={{ color:N.red }}>*</span></label>
+        <div style={{ display:'flex', gap:'0.5rem' }}>
+          {[['yes','Yes'],['no','No']].map(([val, lbl]) => {
+            const sel = form.intakeOnMedication === val
+            return (
+              <button key={val} onClick={() => set('intakeOnMedication', val)}
+                style={{ flex:1, padding:'0.5rem 0.75rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:8, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)', color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s' }}>
+                {lbl}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Medication list — conditional */}
+      {form.intakeOnMedication === 'yes' && (
+        <div style={{ marginBottom:'0.875rem' }}>
+          <label style={INTAKE_LABEL_ST}>Medication List <span style={{ color:N.red }}>*</span></label>
+          <textarea maxLength={1000} placeholder="List all current medications and dosages..." value={form.intakeMedList}
+            onChange={e => set('intakeMedList', e.target.value)}
+            onBlur={e => set('intakeMedList', e.target.value.trim())}
+            style={taStyle} />
+          <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakeMedList.length}/1000</div>
+        </div>
+      )}
+
+      {/* Additional notes — optional */}
+      <div style={{ marginBottom:'0.875rem' }}>
+        <label style={INTAKE_LABEL_ST}>Additional Notes <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>(optional)</span></label>
+        <textarea maxLength={2000} placeholder="Any other information for the doctor..." value={form.intakeNotes}
+          onChange={e => set('intakeNotes', e.target.value)}
+          onBlur={e => set('intakeNotes', e.target.value.trim())}
+          style={{ ...taStyle, minHeight:70 }} />
+        <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakeNotes.length}/2000</div>
+      </div>
+
+      {/* Online-only: country + timezone */}
+      {isOnline && (
+        <div style={{ borderTop:`1px solid ${N.border}`, paddingTop:'0.875rem' }}>
+          <div style={{ fontSize:'0.5rem', color:N.teal, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:'0.75rem' }}>Online appointment details</div>
+
+          <div style={{ marginBottom:'0.875rem' }}>
+            <label style={INTAKE_LABEL_ST}>Country <span style={{ color:N.red }}>*</span></label>
+            <select value={form.intakeCountry} onChange={e => set('intakeCountry', e.target.value)} style={{ ...selStyle, color: form.intakeCountry ? N.text : N.muted }}>
+              <option value="">Select country…</option>
+              {INTAKE_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+
+          {form.intakeCountry === 'Other' && (
+            <div style={{ marginBottom:'0.875rem' }}>
+              <label style={INTAKE_LABEL_ST}>Specify Country <span style={{ color:N.red }}>*</span></label>
+              <input type="text" maxLength={100} placeholder="Enter your country…" value={form.intakeCountryOther}
+                onChange={e => set('intakeCountryOther', e.target.value)}
+                onBlur={e => set('intakeCountryOther', e.target.value.trim())}
+                style={inStyle} />
+            </div>
+          )}
+
+          <div>
+            <label style={INTAKE_LABEL_ST}>Timezone</label>
+            <select value={form.intakeTimezone} onChange={e => set('intakeTimezone', e.target.value)} style={selStyle}>
+              <option value="">Select timezone…</option>
+              {INTAKE_TIMEZONES.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
+              {form.intakeTimezone && !INTAKE_TIMEZONES.find(t => t.value === form.intakeTimezone) && (
+                <option value={form.intakeTimezone}>{form.intakeTimezone} (auto-detected)</option>
+              )}
+            </select>
+            {form.intakeTimezone && (
+              <div style={{ fontSize:'0.5rem', color:N.muted, marginTop:3 }}>Auto-detected: {form.intakeTimezone}</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
   const contactContent = (
     <div style={{ padding:'1rem' }}>
-      <SectionLabel step={4} label="Your details" done={canConfirm} />
+      <SectionLabel step={5} label="Your details" done={canConfirm} />
       <ReturningPatientToggle onPrefill={handleSetContactDetails} />
       <ContactForm
         value={contactDetails}
@@ -1041,11 +1268,11 @@ export default function Booking() {
   )
 
   // ── Right panel header (desktop) ─────────────────────────────────────────
-  const stepLabels = { procedure: 'Procedure', datetime: 'Date & Time', contact: 'Your Details' }
+  const stepLabels = { procedure: 'Procedure', intake: 'Medical Intake', datetime: 'Date & Time', contact: 'Your Details' }
 
   const rightHeader = (
     <div style={{ borderBottom:`1px solid ${N.border}`, padding:'0.875rem 1rem', display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
-      {(step === 'datetime' || step === 'contact') && (
+      {(step === 'intake' || step === 'datetime' || step === 'contact') && (
         <button onClick={goBack}
           style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${N.border}`, borderRadius:8, width:28, height:28, cursor:'pointer', color:N.textDim, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
           <ChevronLeft size={16} />
@@ -1063,7 +1290,7 @@ export default function Booking() {
           }}>
             {i < stepIdx ? '✓' : i+1}
           </div>,
-          i < 2 && <div key={`l-${s}`} style={{ width:20, height:1, background: i < stepIdx ? N.tealBord : N.border }} />,
+          i < 3 && <div key={`l-${s}`} style={{ width:16, height:1, background: i < stepIdx ? N.tealBord : N.border }} />,
         ])}
         <span style={{ fontSize:'0.5625rem', fontWeight:700, color:N.teal, textTransform:'uppercase', letterSpacing:'0.1em', marginLeft:'0.25rem' }}>
           {stepLabels[step] || ''}
@@ -1157,6 +1384,7 @@ export default function Booking() {
             <div style={{ flex:1, overflowY:'auto' }}>
               <div key={step} style={{ animation:'app-section-in 0.2s ease' }}>
                 {step === 'procedure' && procedureContent}
+                {step === 'intake'    && intakeContent}
                 {step === 'datetime'  && datetimeContent}
                 {step === 'contact'   && contactContent}
               </div>
@@ -1183,17 +1411,19 @@ export default function Booking() {
             {renderCityCards(140)}
           </div>
 
-          {/* Back link for datetime/contact steps */}
-          {(step === 'datetime' || step === 'contact') && (
+          {/* Back link for intake/datetime/contact steps */}
+          {(step === 'intake' || step === 'datetime' || step === 'contact') && (
             <button onClick={goBack}
               style={{ display:'flex', alignItems:'center', gap:'0.25rem', background:'none', border:'none', color:N.teal, fontSize:'0.75rem', fontWeight:600, cursor:'pointer', marginBottom:'1rem', padding:0 }}>
               <ChevronLeft size={14} />
-              {step === 'datetime' ? 'Back to Procedure' : 'Back to Date & Time'}
+              {step === 'intake' ? 'Back to Procedure' : step === 'datetime' ? 'Back to Medical Intake' : 'Back to Date & Time'}
             </button>
           )}
 
           {/* Step content */}
           <div key={`m-${step}`} style={{ animation:'app-section-in 0.25s ease' }}>
+            {step === 'intake' && intakeContent}
+
             {step === 'procedure' && (
               <div>
                 <SectionLabel step={2} label={isOnline ? "What's your concern?" : 'What procedure?'} done={!!form.procedure} />
@@ -1240,7 +1470,7 @@ export default function Booking() {
 
             {step === 'datetime' && (
               <div>
-                <SectionLabel step={3} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
+                <SectionLabel step={4} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <DateStrip
                     city={form.city}
