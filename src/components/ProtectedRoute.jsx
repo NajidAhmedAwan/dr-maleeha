@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseConfigured } from '../lib/supabase'
 import { getSession } from '../lib/auth'
 
 function Spinner() {
@@ -40,6 +40,8 @@ export default function ProtectedRoute({ children }) {
   const [session, setSession] = useState(undefined)
 
   useEffect(() => {
+    if (!supabaseConfigured) return
+
     let mounted = true
 
     getSession().then(s => {
@@ -56,6 +58,7 @@ export default function ProtectedRoute({ children }) {
     }
   }, [])
 
+  if (!supabaseConfigured) return <Navigate to="/login" replace />
   if (session === undefined) return <Spinner />
   if (!session) return <Navigate to="/login" replace />
   return children
