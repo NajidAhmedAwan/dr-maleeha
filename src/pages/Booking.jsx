@@ -699,6 +699,13 @@ export default function Booking() {
       setTimeout(() => setShowConfetti(false), 4000)
     } catch (err) {
       console.error('[booking] submission error:', err)
+      console.error('[booking] error details:', {
+        message: err?.message,
+        code:    err?.code,
+        details: err?.details,
+        hint:    err?.hint,
+        status:  err?.status,
+      })
       const msg = err?.message?.toLowerCase().includes('fetch') || err?.message?.toLowerCase().includes('network')
         ? "Couldn't reach our servers. Please try again or call the clinic directly."
         : 'Something went wrong. Please call (021) 35170881 or DM @inyourfacebymaleeha.'
