@@ -454,6 +454,92 @@ function ChevronLeft({ size = 16 }) {
   )
 }
 
+// ── Intake media constants ────────────────────────────────────────────────────
+const MEDIA_ALLOWED_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov'])
+const MEDIA_MAX_FILES = 3
+const MEDIA_MAX_BYTES = 10 * 1024 * 1024
+function fmtBytes(b) { return b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1)} MB` }
+
+// ── IntakeMediaRecorder (video + audio, 60s countdown, auto-stop) ─────────────
+function IntakeMediaRecorder({ onSave, disabled }) {
+  const [recording, setRecording] = useState(false)
+  const [remaining, setRemaining] = useState(60)
+  const mrRef      = useRef(null)
+  const intervalRef = useRef(null)
+  const chunksRef  = useRef([])
+  const previewRef = useRef(null)
+  const streamRef  = useRef(null)
+
+  const stopAll = () => {
+    clearInterval(intervalRef.current)
+    if (mrRef.current && mrRef.current.state !== 'inactive') mrRef.current.stop()
+    setRecording(false)
+    setRemaining(60)
+  }
+
+  const startRec = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      streamRef.current = stream
+      chunksRef.current = []
+      if (previewRef.current) { previewRef.current.srcObject = stream; previewRef.current.play().catch(() => {}) }
+      const mr = new MediaRecorder(stream)
+      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'video/webm' })
+        onSave({ blob, url: URL.createObjectURL(blob), name: `clip-${Date.now()}.webm`, size: blob.size, fileType: 'video' })
+        stream.getTracks().forEach(t => t.stop())
+        if (previewRef.current) previewRef.current.srcObject = null
+      }
+      mr.start(); mrRef.current = mr; setRecording(true); setRemaining(60)
+      let secs = 60
+      intervalRef.current = setInterval(() => {
+        secs--; setRemaining(secs)
+        if (secs <= 0) {
+          clearInterval(intervalRef.current)
+          if (mrRef.current?.state !== 'inactive') mrRef.current.stop()
+          stream.getTracks().forEach(t => t.stop())
+          setRecording(false); setRemaining(60)
+        }
+      }, 1000)
+    } catch { alert('Camera/microphone access denied.') }
+  }
+
+  useEffect(() => () => { clearInterval(intervalRef.current); streamRef.current?.getTracks().forEach(t => t.stop()) }, [])
+
+  const pct = Math.round(((60 - remaining) / 60) * 100)
+  const fmt = s => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {recording && (
+        <div style={{ position: 'relative' }}>
+          <video ref={previewRef} muted style={{ width: '100%', maxHeight: 140, borderRadius: 8, background: '#000', objectFit: 'cover', display: 'block' }} />
+          <div style={{ position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.75)', borderRadius: 20, padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', animation: 'bk-rec-pulse 1s infinite' }} />
+            <span style={{ color: '#fff', fontSize: '0.5625rem', fontWeight: 700 }}>{fmt(remaining)}</span>
+            <div style={{ width: 48, height: 3, background: 'rgba(255,255,255,0.2)', borderRadius: 2 }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: remaining <= 10 ? '#ef4444' : N.teal, borderRadius: 2, transition: 'width 1s linear, background 0.3s' }} />
+            </div>
+          </div>
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {recording ? (
+          <button onClick={stopAll} style={{ padding: '0.375rem 0.75rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 7, fontSize: '0.625rem', fontWeight: 700, cursor: 'pointer' }}>
+            ⏹ Stop recording
+          </button>
+        ) : (
+          <button onClick={startRec} disabled={disabled}
+            style={{ padding: '0.375rem 0.875rem', background: disabled ? 'rgba(255,255,255,0.04)' : N.tealLight, color: disabled ? N.muted : N.teal, border: `1px solid ${disabled ? N.border : N.tealBord}`, borderRadius: 7, fontSize: '0.625rem', fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
+            🎥 Record in-browser (60s max)
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Intake form constants ─────────────────────────────────────────────────────
 const INTAKE_COUNTRIES = [
   'Pakistan',
@@ -526,6 +612,7 @@ export default function Booking() {
     intakeCountry: '',
     intakeCountryOther: '',
     intakeTimezone: '',
+    intakeMedia: [],
   })
 
   const [showConfetti,     setShowConfetti]     = useState(false)
@@ -544,6 +631,7 @@ export default function Booking() {
   const [lastCity,        setLastCity]        = useState(null)
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [pickerOpen,      setPickerOpen]      = useState(false)
+  const [mediaErrors,     setMediaErrors]     = useState([])
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768)
@@ -1178,6 +1266,98 @@ export default function Booking() {
         <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakeNotes.length}/2000</div>
       </div>
 
+      {/* ── Media capture — ALL bookings ─────────────────────────────────── */}
+      <div style={{ marginBottom:'0.875rem' }}>
+        <div style={{ fontSize:'0.5625rem', fontWeight:800, color:N.teal, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.5rem' }}>
+          Show us your concern <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>(optional)</span>
+        </div>
+
+        {/* Upload option */}
+        <div style={{ border:`1.5px dashed ${form.intakeMedia.length > 0 ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:'rgba(255,255,255,0.02)', marginBottom:'0.625rem' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'0.625rem', marginBottom: mediaErrors.length > 0 || form.intakeMedia.length > 0 ? '0.5rem' : 0 }}>
+            <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background: form.intakeMedia.length >= MEDIA_MAX_FILES ? 'rgba(255,255,255,0.04)' : N.tealLight, color: form.intakeMedia.length >= MEDIA_MAX_FILES ? N.muted : N.teal, border:`1px solid ${form.intakeMedia.length >= MEDIA_MAX_FILES ? N.border : N.tealBord}`, borderRadius:7, cursor: form.intakeMedia.length >= MEDIA_MAX_FILES ? 'not-allowed' : 'pointer', fontSize:'0.625rem', fontWeight:700, opacity: form.intakeMedia.length >= MEDIA_MAX_FILES ? 0.5 : 1 }}>
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.webp,.mp4,.mov"
+                multiple
+                data-testid="booking-media-upload"
+                disabled={form.intakeMedia.length >= MEDIA_MAX_FILES}
+                onChange={e => {
+                  setMediaErrors([])
+                  const errs = []
+                  const valid = []
+                  for (const f of Array.from(e.target.files)) {
+                    const ext = f.name.split('.').pop().toLowerCase()
+                    if (!MEDIA_ALLOWED_EXTS.has(ext)) {
+                      errs.push(`"${f.name}": unsupported type. Allowed: JPG, PNG, WebP, MP4, MOV.`)
+                      continue
+                    }
+                    if (f.size > MEDIA_MAX_BYTES) {
+                      errs.push(`"${f.name}": too large (${fmtBytes(f.size)}). Max 10 MB per file.`)
+                      continue
+                    }
+                    valid.push({ blob:f, url:URL.createObjectURL(f), name:f.name, size:f.size, fileType: f.type.startsWith('video') ? 'video' : 'image' })
+                  }
+                  const slots = MEDIA_MAX_FILES - form.intakeMedia.length
+                  if (valid.length > slots) errs.push(`Max ${MEDIA_MAX_FILES} files. ${valid.length - slots} file(s) not added.`)
+                  if (valid.length > 0) setForm(prev => ({ ...prev, intakeMedia: [...prev.intakeMedia, ...valid.slice(0, slots)] }))
+                  if (errs.length) setMediaErrors(errs)
+                  e.target.value = ''
+                }}
+                style={{ display:'none' }}
+              />
+              📂 Upload photos/video
+            </label>
+            <span style={{ fontSize:'0.5rem', color:N.muted }}>{form.intakeMedia.length}/{MEDIA_MAX_FILES} files · max 10 MB each · JPG, PNG, WebP, MP4, MOV</span>
+          </div>
+
+          {/* Validation errors */}
+          {mediaErrors.length > 0 && (
+            <div style={{ marginBottom:'0.5rem' }}>
+              {mediaErrors.map((err, i) => (
+                <div key={i} style={{ color:N.red, fontSize:'0.5625rem', padding:'0.2rem 0', display:'flex', alignItems:'flex-start', gap:'0.25rem' }}>
+                  <span>⚠</span><span>{err}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Previews */}
+          {form.intakeMedia.length > 0 && (
+            <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
+              {form.intakeMedia.map((m, idx) => (
+                <div key={idx} style={{ position:'relative', width:80, height:80, flexShrink:0 }}>
+                  {m.fileType === 'video' ? (
+                    <video src={m.url} style={{ width:80, height:80, objectFit:'cover', borderRadius:7, border:`1px solid ${N.border}` }} />
+                  ) : (
+                    <img src={m.url} alt={m.name} style={{ width:80, height:80, objectFit:'cover', borderRadius:7, border:`1px solid ${N.border}` }} />
+                  )}
+                  <div style={{ position:'absolute', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.65)', borderRadius:'0 0 7px 7px', padding:'0.1rem 0.25rem', fontSize:'0.4rem', color:'#fff', textAlign:'center', letterSpacing:'0.02em' }}>
+                    {fmtBytes(m.size)}
+                  </div>
+                  <button
+                    onClick={() => setForm(prev => ({ ...prev, intakeMedia: prev.intakeMedia.filter((_, i) => i !== idx) }))}
+                    style={{ position:'absolute', top:-5, right:-5, width:18, height:18, borderRadius:'50%', background:'#ef4444', border:'2px solid #0d1b2a', color:'#fff', fontSize:'0.45rem', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Record in-browser option */}
+        <IntakeMediaRecorder
+          disabled={form.intakeMedia.length >= MEDIA_MAX_FILES}
+          onSave={m => {
+            setMediaErrors([])
+            if (form.intakeMedia.length >= MEDIA_MAX_FILES) {
+              setMediaErrors([`Max ${MEDIA_MAX_FILES} files reached.`])
+              return
+            }
+            setForm(prev => ({ ...prev, intakeMedia: [...prev.intakeMedia, m] }))
+          }}
+        />
+      </div>
+
       {/* Online-only: country + timezone */}
       {isOnline && (
         <div style={{ borderTop:`1px solid ${N.border}`, paddingTop:'0.875rem' }}>
@@ -1234,36 +1414,6 @@ export default function Booking() {
           {submitError}
         </div>
       )}
-      {/* Photo upload — optional for all cities, required path for media-capture tests */}
-      <div style={{ marginTop:'1rem', border:`1.5px dashed ${form.photos.length > 0 ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:'rgba(255,255,255,0.02)' }}>
-        <div style={{ fontSize:'0.625rem', fontWeight:700, color:N.muted, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.5rem' }}>📷 Upload photos <span style={{ fontWeight:400, textTransform:'none' }}>(optional)</span></div>
-        <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background:N.tealLight, color:N.teal, border:`1px solid ${N.tealBord}`, borderRadius:7, cursor:'pointer', fontSize:'0.625rem', fontWeight:700, width:'fit-content' }}>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            data-testid="booking-media-upload"
-            onChange={e => {
-              const files = Array.from(e.target.files).slice(0,5)
-              const newPhotos = files.map(f => ({ blob:f, name:f.name, url:URL.createObjectURL(f) }))
-              setForm(prev => ({ ...prev, photos: [...prev.photos, ...newPhotos].slice(0,5) }))
-            }}
-            style={{ display:'none' }}
-          />
-          📂 Upload Photos
-        </label>
-        {form.photos.length > 0 && (
-          <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem', marginTop:'0.625rem' }}>
-            {form.photos.map((ph, idx) => (
-              <div key={idx} style={{ position:'relative', width:56, height:56 }}>
-                <img src={ph.url} alt={ph.name} style={{ width:56, height:56, objectFit:'cover', borderRadius:7, border:`1px solid ${N.border}` }} />
-                <button onClick={() => setForm(prev => ({ ...prev, photos: prev.photos.filter((_,i) => i !== idx) }))}
-                  style={{ position:'absolute', top:-5, right:-5, width:16, height:16, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:'0.5rem', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>✕</button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   )
 
