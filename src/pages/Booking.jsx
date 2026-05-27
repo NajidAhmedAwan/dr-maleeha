@@ -655,7 +655,6 @@ export default function Booking() {
     const now = new Date()
     if (dob >= now) return false
     if ((now - dob) / (365.25 * 24 * 3600 * 1000) < 13) return false
-    if (!form.intakeApptType) return false
     if (!form.intakeSkinConcern.trim()) return false
     if (!form.intakePrevTreatments.trim()) return false
     if (!form.intakeMedHistory.trim()) return false
@@ -1310,22 +1309,6 @@ export default function Booking() {
           onChange={e => set('intakeDob', e.target.value)}
           style={{ ...inStyle, border:`1px solid ${dobError ? N.red : N.border}`, colorScheme:'dark' }} />
         {dobError && <div style={{ color:N.red, fontSize:'0.5625rem', marginTop:3 }}>{dobError}</div>}
-      </div>
-
-      {/* Appointment type */}
-      <div style={{ marginBottom:'0.875rem' }}>
-        <label style={INTAKE_LABEL_ST}>Appointment Type <span style={{ color:N.red }}>*</span></label>
-        <div style={{ display:'flex', gap:'0.5rem' }}>
-          {[['initial','Initial Consultation'],['followup','Follow-up']].map(([val, lbl]) => {
-            const sel = form.intakeApptType === val
-            return (
-              <button key={val} onClick={() => set('intakeApptType', val)}
-                style={{ flex:1, padding:'0.5rem 0.75rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:8, background: sel ? N.tealLight : N.pillBg, color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s' }}>
-                {lbl}
-              </button>
-            )
-          })}
-        </div>
       </div>
 
       {/* Skin concern */}
