@@ -1054,7 +1054,7 @@ export default function Booking() {
               opacity: sel ? 1 : 0.6,
               overflow:'hidden',
             }}>
-            <div style={{ position:'absolute', inset:0, backgroundImage:`url(${loc.image})`, backgroundSize:'cover', backgroundPosition:'center', transition:'transform 0.3s' }} />
+            <img src={loc.image} alt={loc.name} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center', display:'block' }} />
             <div style={{ position:'absolute', inset:0, background:loc.gradient, pointerEvents:'none' }} />
             {sel && <div style={{ position:'absolute', inset:0, background:`${N.teal}18`, pointerEvents:'none' }} />}
             <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'0.75rem', textAlign:'left' }}>
@@ -1092,23 +1092,23 @@ export default function Booking() {
               position: 'relative', padding: 0, textAlign: 'left',
               cursor: 'pointer', width: '100%',
               border: `2px solid ${sel ? '#0d9488' : 'transparent'}`,
-              borderRadius: 16, minHeight: 120, overflow: 'hidden',
+              borderRadius: 16, height: 130, overflow: 'hidden',
               boxShadow: sel
                 ? '0 0 0 3px rgba(13,148,136,0.25), 0 8px 32px rgba(0,0,0,0.6)'
                 : '0 2px 10px rgba(0,0,0,0.35)',
               transition: 'all 0.18s',
             }}>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${loc.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-            <div style={{ position: 'absolute', inset: 0, background: loc.gradient }} />
-            {sel && <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,148,136,0.12)' }} />}
-            <div style={{ position: 'relative', padding: '1rem', minHeight: 120, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-              <div style={{ fontWeight: 700, fontSize: 24, color: '#fff', lineHeight: 1.1, marginBottom: '0.25rem', textShadow: '0 2px 12px rgba(0,0,0,0.9)' }}>
+            <img src={loc.image} alt={loc.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, background: loc.gradient, pointerEvents: 'none' }} />
+            {sel && <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,148,136,0.12)', pointerEvents: 'none' }} />}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.75rem 1rem' }}>
+              <div style={{ fontWeight: 700, fontSize: 22, color: '#fff', lineHeight: 1.1, marginBottom: '0.2rem', textShadow: '0 2px 12px rgba(0,0,0,0.9)' }}>
                 {loc.name}
               </div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: '0.125rem', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', marginBottom: '0.1rem', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>
                 {loc.subtitle}
               </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
                 {thirdLine}
               </div>
             </div>
