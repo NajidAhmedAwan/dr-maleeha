@@ -21,16 +21,22 @@ import TimeSlotStrip from '../components/TimeSlotStrip'
 
 // ── Color tokens — theme-sensitive values use CSS vars for light/dark switching
 const N = {
-  bg:        'var(--bk-bg, #0d1b2a)',
-  card:      'var(--bk-card, #111f30)',
-  cardHov:   'var(--bk-card-hov, #162840)',
-  border:    'var(--bk-border, rgba(255,255,255,0.08))',
-  borderHov: 'var(--bk-border-hov, rgba(255,255,255,0.18))',
-  borderSel: '#0a6e66',
-  text:      'var(--bk-text, #e2e8f0)',
-  textDim:   'var(--bk-text-dim, rgba(255,255,255,0.6))',
-  muted:     'var(--bk-muted, rgba(255,255,255,0.55))',
-  teal:      '#0a6e66',
+  bg:         'var(--bk-bg, #0d1b2a)',
+  card:       'var(--bk-card, #111f30)',
+  cardHov:    'var(--bk-card-hov, #162840)',
+  border:     'var(--bk-border, rgba(255,255,255,0.08))',
+  borderHov:  'var(--bk-border-hov, rgba(255,255,255,0.18))',
+  borderSel:  '#0a6e66',
+  text:       'var(--bk-text, #e2e8f0)',
+  textDim:    'var(--bk-text-dim, rgba(255,255,255,0.6))',
+  muted:      'var(--bk-muted, rgba(255,255,255,0.55))',
+  dimSurface: 'var(--bk-dim-surface, rgba(255,255,255,0.07))',
+  dimState:   'var(--bk-dim-state, rgba(255,255,255,0.18))',
+  fullBg:     'var(--bk-full-bg, rgba(255,255,255,0.04))',
+  fullColor:  'var(--bk-full-color, rgba(255,255,255,0.25))',
+  fullLabel:  'var(--bk-full-label, rgba(255,255,255,0.35))',
+  pillBg:     'var(--bk-pill-bg, rgba(255,255,255,0.03))',
+  teal:       '#0a6e66',
   tealLight: 'rgba(13,148,136,0.14)',
   tealBord:  'rgba(13,148,136,0.4)',
   tealGlow:  'rgba(13,148,136,0.25)',
@@ -234,9 +240,9 @@ function InlineCalendar({ value, onChange, city }) {
     <div style={{ background:N.card, border:`1px solid ${N.border}`, borderRadius:14, overflow:'visible' }}>
       {/* Month nav */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0.875rem 1rem', borderBottom:`1px solid ${N.border}` }}>
-        <button onClick={prevM} style={{ background:'rgba(255,255,255,0.07)', border:`1px solid ${N.border}`, borderRadius:8, width:34, height:34, cursor:'pointer', color:N.text, fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
+        <button onClick={prevM} style={{ background:N.dimSurface, border:`1px solid ${N.border}`, borderRadius:8, width:34, height:34, cursor:'pointer', color:N.text, fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
         <span style={{ fontWeight:700, fontSize:'0.9rem', color:N.text }}>{MONTHS[vm]} {vy}</span>
-        <button onClick={nextM} style={{ background:'rgba(255,255,255,0.07)', border:`1px solid ${N.border}`, borderRadius:8, width:34, height:34, cursor:'pointer', color:N.text, fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
+        <button onClick={nextM} style={{ background:N.dimSurface, border:`1px solid ${N.border}`, borderRadius:8, width:34, height:34, cursor:'pointer', color:N.text, fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
       </div>
 
       {/* Day labels */}
@@ -263,9 +269,9 @@ function InlineCalendar({ value, onChange, city }) {
 
           if (isSel)                    { bg = N.teal;  color = '#fff'; border = `1.5px solid ${N.teal}` }
           else if (ds === todayStr)     { bg = N.tealLight; color = N.teal; border = `1.5px solid ${N.tealBord}` }
-          else if (state === 'past')    { color = 'rgba(255,255,255,0.18)' }
-          else if (state === 'closed')  { color = 'rgba(255,255,255,0.18)' }
-          else if (state === 'full')    { bg = 'rgba(255,255,255,0.04)'; color = 'rgba(255,255,255,0.25)'; label = 'FULL' }
+          else if (state === 'past')    { color = N.dimState }
+          else if (state === 'closed')  { color = N.dimState }
+          else if (state === 'full')    { bg = N.fullBg; color = N.fullColor; label = 'FULL' }
           else if (state === 'holiday') { bg = 'rgba(245,158,11,0.1)'; color = N.amber; border = '1.5px solid rgba(245,158,11,0.2)'; label = '📅' }
 
           return (
@@ -283,7 +289,7 @@ function InlineCalendar({ value, onChange, city }) {
                   textDecoration: state==='full' ? 'line-through' : 'none',
                 }}>
                 {d}
-                {label && <span style={{ fontSize:'0.3rem', fontWeight:800, color: state==='full' ? 'rgba(255,255,255,0.35)' : N.amber, lineHeight:1, textDecoration:'none' }}>{label}</span>}
+                {label && <span style={{ fontSize:'0.3rem', fontWeight:800, color: state==='full' ? N.fullLabel : N.amber, lineHeight:1, textDecoration:'none' }}>{label}</span>}
               </button>
               {tip?.ds === ds && (
                 <div style={{ position:'absolute', bottom:'calc(100% + 5px)', left:'50%', transform:'translateX(-50%)', background:'#1e3a4f', color:'#fff', fontSize:'0.5rem', fontWeight:600, padding:'0.25rem 0.5rem', borderRadius:6, whiteSpace:'nowrap', zIndex:Z_INDEX.TOOLTIP, pointerEvents:'none', border:'1px solid rgba(255,255,255,0.1)' }}>
@@ -298,7 +304,7 @@ function InlineCalendar({ value, onChange, city }) {
 
       {/* Legend */}
       <div style={{ display:'flex', gap:'0.875rem', padding:'0.5rem 1rem 0.75rem', borderTop:`1px solid ${N.border}` }}>
-        {[['#0a6e66','Selected'],['rgba(255,255,255,0.25)','Available'],['rgba(255,255,255,0.04)','Full'],['rgba(245,158,11,0.5)','Holiday']].map(([col,label]) => (
+        {[['#0a6e66','Selected'],[N.fullColor,'Available'],[N.fullBg,'Full'],['rgba(245,158,11,0.5)','Holiday']].map(([col,label]) => (
           <div key={label} style={{ display:'flex', alignItems:'center', gap:'0.25rem' }}>
             <div style={{ width:8, height:8, borderRadius:2, background:col }} />
             <span style={{ fontSize:'0.5rem', color:N.muted }}>{label}</span>
@@ -471,7 +477,7 @@ function IntakeAudioRecorder({ onSave, disabled }) {
         </>
       ) : (
         <button onClick={startRec} disabled={disabled}
-          style={{ padding: '0.375rem 0.875rem', background: disabled ? 'rgba(255,255,255,0.04)' : N.tealLight, color: disabled ? N.muted : N.teal, border: `1px solid ${disabled ? N.border : N.tealBord}`, borderRadius: 7, fontSize: '0.625rem', fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
+          style={{ padding: '0.375rem 0.875rem', background: disabled ? N.fullBg : N.tealLight, color: disabled ? N.muted : N.teal, border: `1px solid ${disabled ? N.border : N.tealBord}`, borderRadius: 7, fontSize: '0.625rem', fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
           🎙 Record voice note (60s max)
         </button>
       )}
@@ -952,13 +958,13 @@ export default function Booking() {
             </div>
 
             {/* Booking reference */}
-            <div style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${N.border}`, borderRadius:10, padding:'0.625rem 0.875rem', marginBottom:'1rem' }}>
+            <div style={{ background:N.fullBg, border:`1px solid ${N.border}`, borderRadius:10, padding:'0.625rem 0.875rem', marginBottom:'1rem' }}>
               <div style={{ fontSize:'0.45rem', color:N.muted, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.25rem' }}>Booking Reference</div>
               <div style={{ fontSize:'1rem', fontWeight:800, color:N.text, letterSpacing:'0.06em' }}>{bookingRef}</div>
             </div>
 
             {/* Appointment summary */}
-            <div style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${N.border}`, borderRadius:10, padding:'0.75rem', marginBottom:'0.875rem', textAlign:'left' }}>
+            <div style={{ background:N.pillBg, border:`1px solid ${N.border}`, borderRadius:10, padding:'0.75rem', marginBottom:'0.875rem', textAlign:'left' }}>
               {[[isOnline?'🩺':'💉', form.procedure],['📅', form.date],['🕐', form.time]].map(([icon, val]) => (
                 <div key={icon} style={{ display:'flex', gap:'0.625rem', padding:'0.3rem 0', borderBottom:`1px solid ${N.border}` }}>
                   <span style={{ fontSize:'0.875rem', flexShrink:0 }}>{icon}</span>
@@ -968,7 +974,7 @@ export default function Booking() {
             </div>
 
             {/* Location block */}
-            <div style={{ display:'flex', alignItems:'center', gap:'0.625rem', marginBottom:'1.25rem', padding:'0.75rem', background:'rgba(255,255,255,0.03)', border:`1px solid ${N.border}`, borderRadius:10, textAlign:'left' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'0.625rem', marginBottom:'1.25rem', padding:'0.75rem', background:N.pillBg, border:`1px solid ${N.border}`, borderRadius:10, textAlign:'left' }}>
               {form.city === 'Online' ? (
                 <>
                   <Video size={18} color={N.teal} style={{ flexShrink:0 }} />
@@ -996,7 +1002,7 @@ export default function Booking() {
               <div ref={calMenuRef} style={{ flex:1, position:'relative' }}>
                 <button
                   onClick={() => setShowCalMenu(v => !v)}
-                  style={{ width:'100%', padding:'0.75rem', background:'rgba(255,255,255,0.06)', border:`1px solid ${showCalMenu ? N.teal : N.border}`, borderRadius:10, color:N.text, fontSize:'0.75rem', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'0.375rem' }}>
+                  style={{ width:'100%', padding:'0.75rem', background:N.dimSurface, border:`1px solid ${showCalMenu ? N.teal : N.border}`, borderRadius:10, color:N.text, fontSize:'0.75rem', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'0.375rem' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                   </svg>
@@ -1150,7 +1156,7 @@ export default function Booking() {
                   title={`${item.desc} — ${item.price}`}
                   style={{
                     padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
-                    borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
+                    borderRadius:100, background: sel ? N.tealLight : N.pillBg,
                     color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400,
                     fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s',
                     boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
@@ -1216,7 +1222,7 @@ export default function Booking() {
                     title={`${item.note} — ${item.price}`}
                     style={{
                       padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
-                      borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
+                      borderRadius:100, background: sel ? N.tealLight : N.pillBg,
                       color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400,
                       fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s',
                       boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
@@ -1314,7 +1320,7 @@ export default function Booking() {
             const sel = form.intakeApptType === val
             return (
               <button key={val} onClick={() => set('intakeApptType', val)}
-                style={{ flex:1, padding:'0.5rem 0.75rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:8, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)', color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s' }}>
+                style={{ flex:1, padding:'0.5rem 0.75rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:8, background: sel ? N.tealLight : N.pillBg, color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s' }}>
                 {lbl}
               </button>
             )
@@ -1361,7 +1367,7 @@ export default function Booking() {
             return (
               <button key={val}
                 onClick={() => setForm(f => ({ ...f, intakeOnMedication: val, ...(val === 'no' ? { intakeMedList: '' } : {}) }))}
-                style={{ flex:1, padding:'0.5rem 0.75rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:8, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)', color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s' }}>
+                style={{ flex:1, padding:'0.5rem 0.75rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:8, background: sel ? N.tealLight : N.pillBg, color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s' }}>
                 {lbl}
               </button>
             )
@@ -1411,9 +1417,9 @@ export default function Booking() {
         </div>
 
         {/* Upload option */}
-        <div style={{ border:`1.5px dashed ${form.intakeMedia.length > 0 ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:'rgba(255,255,255,0.02)', marginBottom:'0.625rem' }}>
+        <div style={{ border:`1.5px dashed ${form.intakeMedia.length > 0 ? N.tealBord : N.border}`, borderRadius:10, padding:'0.875rem', background:N.pillBg, marginBottom:'0.625rem' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'0.625rem', marginBottom: mediaErrors.length > 0 || form.intakeMedia.length > 0 ? '0.5rem' : 0 }}>
-            <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background: form.intakeMedia.length >= MEDIA_MAX_FILES ? 'rgba(255,255,255,0.04)' : N.tealLight, color: form.intakeMedia.length >= MEDIA_MAX_FILES ? N.muted : N.teal, border:`1px solid ${form.intakeMedia.length >= MEDIA_MAX_FILES ? N.border : N.tealBord}`, borderRadius:7, cursor: form.intakeMedia.length >= MEDIA_MAX_FILES ? 'not-allowed' : 'pointer', fontSize:'0.625rem', fontWeight:700, opacity: form.intakeMedia.length >= MEDIA_MAX_FILES ? 0.5 : 1 }}>
+            <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background: form.intakeMedia.length >= MEDIA_MAX_FILES ? N.fullBg : N.tealLight, color: form.intakeMedia.length >= MEDIA_MAX_FILES ? N.muted : N.teal, border:`1px solid ${form.intakeMedia.length >= MEDIA_MAX_FILES ? N.border : N.tealBord}`, borderRadius:7, cursor: form.intakeMedia.length >= MEDIA_MAX_FILES ? 'not-allowed' : 'pointer', fontSize:'0.625rem', fontWeight:700, opacity: form.intakeMedia.length >= MEDIA_MAX_FILES ? 0.5 : 1 }}>
               <input
                 type="file"
                 accept=".jpg,.jpeg,.png,.webp"
@@ -1478,7 +1484,7 @@ export default function Booking() {
                   </div>
                   <button
                     onClick={() => setForm(prev => ({ ...prev, intakeMedia: prev.intakeMedia.filter((_, i) => i !== idx) }))}
-                    style={{ position:'absolute', top:-5, right:-5, width:18, height:18, borderRadius:'50%', background:'#ef4444', border:'2px solid #0d1b2a', color:'#fff', fontSize:'0.45rem', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>✕</button>
+                    style={{ position:'absolute', top:-5, right:-5, width:18, height:18, borderRadius:'50%', background:'#ef4444', border:`2px solid ${N.bg}`, color:'#fff', fontSize:'0.45rem', fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>✕</button>
                 </div>
               ))}
             </div>
@@ -1587,7 +1593,7 @@ export default function Booking() {
       <div style={{ padding:'0.75rem 1rem', display:'flex', alignItems:'center', gap:'0.625rem' }}>
         {(step === 'intake' || step === 'datetime' || step === 'contact') && (
           <button onClick={goBack}
-            style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${N.border}`, borderRadius:8, width:28, height:28, cursor:'pointer', color:N.textDim, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            style={{ background:N.dimSurface, border:`1px solid ${N.border}`, borderRadius:8, width:28, height:28, cursor:'pointer', color:N.textDim, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
             <ChevronLeft size={16} />
           </button>
         )}
@@ -1656,7 +1662,7 @@ export default function Booking() {
       <button
         data-testid="booking-footer-btn"
         onClick={handleFooterBtn} disabled={!stepCanContinue}
-        style={{ width:'100%', padding:'0.75rem', border:'none', borderRadius:10, background: stepCanContinue ? '#0d9488' : 'rgba(255,255,255,0.06)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.9rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', transition:'all 0.2s', boxShadow: stepCanContinue ? '0 4px 20px rgba(13,148,136,0.4)' : 'none' }}>
+        style={{ width:'100%', padding:'0.75rem', border:'none', borderRadius:10, background: stepCanContinue ? '#0d9488' : N.dimSurface, color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.9rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', transition:'all 0.2s', boxShadow: stepCanContinue ? '0 4px 20px rgba(13,148,136,0.4)' : 'none' }}>
         {step === 'contact' ? 'Confirm Booking' : 'Continue →'}
       </button>
     </div>
@@ -1678,6 +1684,12 @@ export default function Booking() {
             --bk-muted: rgba(255,255,255,0.55);
             --bk-border: rgba(255,255,255,0.08);
             --bk-border-hov: rgba(255,255,255,0.18);
+            --bk-dim-surface: rgba(255,255,255,0.07);
+            --bk-dim-state: rgba(255,255,255,0.18);
+            --bk-full-bg: rgba(255,255,255,0.04);
+            --bk-full-color: rgba(255,255,255,0.25);
+            --bk-full-label: rgba(255,255,255,0.35);
+            --bk-pill-bg: rgba(255,255,255,0.03);
           }
           @media (prefers-color-scheme: light) {
             [data-bk-page] {
@@ -1689,6 +1701,12 @@ export default function Booking() {
               --bk-muted: #64748b;
               --bk-border: rgba(0,0,0,0.10);
               --bk-border-hov: rgba(0,0,0,0.20);
+              --bk-dim-surface: rgba(0,0,0,0.06);
+              --bk-dim-state: rgba(0,0,0,0.30);
+              --bk-full-bg: rgba(0,0,0,0.06);
+              --bk-full-color: rgba(0,0,0,0.35);
+              --bk-full-label: rgba(0,0,0,0.30);
+              --bk-pill-bg: rgba(0,0,0,0.04);
             }
           }
         `}</style>
@@ -1697,7 +1715,7 @@ export default function Booking() {
       {/* ── Page header ── */}
       <div style={{ background:'var(--bk-bg, #0d1b2a)', borderBottom:`1px solid ${N.border}`, padding:'0.75rem 1.25rem', display:'flex', alignItems:'center', gap:'0.875rem', flexShrink:0, zIndex:Z_INDEX.STICKY_HEADER }}>
         <button onClick={() => navigate('/')}
-          style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${N.border}`, borderRadius:10, width:36, height:36, cursor:'pointer', color:N.textDim, fontSize:'1.125rem', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>←</button>
+          style={{ background:N.dimSurface, border:`1px solid ${N.border}`, borderRadius:10, width:36, height:36, cursor:'pointer', color:N.textDim, fontSize:'1.125rem', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>←</button>
         <div style={{ flex:1, textAlign:'center' }}>
           <div style={{ fontWeight:600, fontSize:'1.25rem', color:'#0d9488' }}>Book with Dr. Maleeha Jawaid</div>
           <div style={{ fontSize:'0.875rem', color:N.muted, marginTop:2 }}>
@@ -1832,7 +1850,7 @@ export default function Booking() {
                               title={`${item.desc} — ${item.price}`}
                               style={{
                                 padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
-                                borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
+                                borderRadius:100, background: sel ? N.tealLight : N.pillBg,
                                 color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400,
                                 fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s',
                                 boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
@@ -1898,7 +1916,7 @@ export default function Booking() {
                                 title={`${item.note} — ${item.price}`}
                                 style={{
                                   padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
-                                  borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
+                                  borderRadius:100, background: sel ? N.tealLight : N.pillBg,
                                   color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400,
                                   fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s',
                                   boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
@@ -1994,7 +2012,7 @@ export default function Booking() {
           <button
             data-testid="booking-footer-btn"
             onClick={handleFooterBtn} disabled={!stepCanContinue}
-            style={{ width:'100%', padding:'0.75rem', border:'none', borderRadius:10, background: stepCanContinue ? '#0d9488' : 'rgba(255,255,255,0.07)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', whiteSpace:'nowrap' }}>
+            style={{ width:'100%', padding:'0.75rem', border:'none', borderRadius:10, background: stepCanContinue ? '#0d9488' : N.dimSurface, color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', whiteSpace:'nowrap' }}>
             {step === 'contact' ? 'Confirm Booking' : 'Continue →'}
           </button>
         </div>
