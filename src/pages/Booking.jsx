@@ -546,7 +546,8 @@ export default function Booking() {
     intakeDob: '',
     intakeApptType: '',
     intakeSkinConcern: '',
-    intakePrevTreatments: '',
+    intakePrevTreatments: [],
+    intakePrevTreatmentsOther: '',
     intakeMedHistory: '',
     intakeOnMedication: '',
     intakeMedList: '',
@@ -656,7 +657,8 @@ export default function Booking() {
     if (dob >= now) return false
     if ((now - dob) / (365.25 * 24 * 3600 * 1000) < 13) return false
     if (!form.intakeSkinConcern.trim()) return false
-    if (!form.intakePrevTreatments.trim()) return false
+    if (form.intakePrevTreatments.length === 0) return false
+    if (form.intakePrevTreatments.includes('Other') && !form.intakePrevTreatmentsOther.trim()) return false
     if (!form.intakeMedHistory.trim()) return false
     if (!form.intakeOnMedication) return false
     if (form.intakeOnMedication === 'yes' && !form.intakeMedList.trim()) return false
@@ -848,7 +850,7 @@ export default function Booking() {
         timezone:            isOnline ? (form.intakeTimezone || null) : null,
         appointment_type:    form.intakeApptType || null,
         skin_concern:        form.intakeSkinConcern.trim() || null,
-        previous_treatments: form.intakePrevTreatments.trim() || null,
+        previous_treatments: form.intakePrevTreatments.length > 0 ? form.intakePrevTreatments.map(t => t === 'Other' && form.intakePrevTreatmentsOther.trim() ? 'Other: ' + form.intakePrevTreatmentsOther.trim() : t).join(', ') : null,
         medical_history:     form.intakeMedHistory.trim() || null,
         on_medication:       form.intakeOnMedication === 'yes' ? true : form.intakeOnMedication === 'no' ? false : null,
         medication_list:     form.intakeOnMedication === 'yes' ? (form.intakeMedList.trim() || null) : null,
@@ -1286,6 +1288,35 @@ export default function Booking() {
     </div>
   )
 
+  // TODO 9c: replace PREVIOUS_TREATMENTS_PLACEHOLDER with src/data/treatments.js
+  const PREVIOUS_TREATMENTS_PLACEHOLDER = [
+    'None',
+    'Botox / Dysport',
+    'Dermal fillers',
+    'Chemical peel',
+    'Microneedling',
+    'Laser treatment',
+    'Hydrafacial',
+    'PRP',
+    'Other',
+  ]
+
+  // TODO 9c: replace SKIN_CONCERNS_PLACEHOLDER with src/data/skinConcerns.js
+  const SKIN_CONCERNS_PLACEHOLDER = [
+    'Acne',
+    'Acne scars',
+    'Pigmentation / Dark spots',
+    'Fine lines / Wrinkles',
+    'Loss of volume',
+    'Sagging / Skin laxity',
+    'Dullness',
+    'Dryness',
+    'Oiliness',
+    'Sensitive skin',
+    'Hair loss',
+    'Other',
+  ]
+
   const dobError = form.intakeDob ? (() => {
     const dob = new Date(form.intakeDob + 'T00:00:00')
     const now = new Date()
@@ -1323,12 +1354,32 @@ export default function Booking() {
 
       {/* Previous treatments */}
       <div style={{ marginBottom:'0.875rem' }}>
-        <label style={INTAKE_LABEL_ST}>Previous Treatments <span style={{ color:N.red }}>*</span> <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>("None" if none)</span></label>
-        <textarea maxLength={1000} placeholder='e.g. "Botox 2023, chemical peel" or "None"' value={form.intakePrevTreatments}
-          onChange={e => set('intakePrevTreatments', e.target.value)}
-          onBlur={e => set('intakePrevTreatments', e.target.value.trim())}
-          style={taStyle} />
-        <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakePrevTreatments.length}/1000</div>
+        <label style={INTAKE_LABEL_ST}>Previous Treatments <span style={{ color:N.red }}>*</span> <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>(select all that apply)</span></label>
+        <div data-testid="prev-treatments-dropdown" style={{ display:'flex', flexWrap:'wrap', gap:'0.375rem', padding:'0.5rem', border:`1px solid ${N.border}`, borderRadius:8, background:N.card, marginBottom:'0.375rem' }}>
+          {PREVIOUS_TREATMENTS_PLACEHOLDER.map(opt => {
+            const sel = form.intakePrevTreatments.includes(opt)
+            return (
+              <button key={opt} onClick={() => {
+                if (opt === 'None') {
+                  set('intakePrevTreatments', sel ? [] : ['None'])
+                } else {
+                  const next = sel
+                    ? form.intakePrevTreatments.filter(t => t !== opt)
+                    : [...form.intakePrevTreatments.filter(t => t !== 'None'), opt]
+                  set('intakePrevTreatments', next)
+                }
+              }} style={{ padding:'0.3rem 0.625rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:20, background: sel ? N.tealLight : 'transparent', color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.6875rem', cursor:'pointer', transition:'all 0.12s', whiteSpace:'nowrap' }}>
+                {sel && <span style={{ marginRight:3 }}>✓</span>}{opt}
+              </button>
+            )
+          })}
+        </div>
+        {form.intakePrevTreatments.includes('Other') && (
+          <input type="text" maxLength={200} placeholder="Describe other treatments…" value={form.intakePrevTreatmentsOther}
+            onChange={e => set('intakePrevTreatmentsOther', e.target.value)}
+            onBlur={e => set('intakePrevTreatmentsOther', e.target.value.trim())}
+            style={{ ...inStyle, marginTop:'0.375rem' }} />
+        )}
       </div>
 
       {/* Medical history */}
