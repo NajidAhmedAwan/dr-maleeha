@@ -546,6 +546,7 @@ export default function Booking() {
     intakeDob: '',
     intakeApptType: '',
     intakeSkinConcern: '',
+    intakeSkinConcernOther: '',
     intakePrevTreatments: [],
     intakePrevTreatmentsOther: '',
     intakeMedHistory: '',
@@ -656,7 +657,8 @@ export default function Booking() {
     const now = new Date()
     if (dob >= now) return false
     if ((now - dob) / (365.25 * 24 * 3600 * 1000) < 13) return false
-    if (!form.intakeSkinConcern.trim()) return false
+    if (!form.intakeSkinConcern) return false
+    if (form.intakeSkinConcern === 'Other' && !form.intakeSkinConcernOther.trim()) return false
     if (form.intakePrevTreatments.length === 0) return false
     if (form.intakePrevTreatments.includes('Other') && !form.intakePrevTreatmentsOther.trim()) return false
     if (!form.intakeMedHistory.trim()) return false
@@ -849,7 +851,7 @@ export default function Booking() {
         country_other:       isOnline && form.intakeCountry === 'Other' ? (form.intakeCountryOther.trim() || null) : null,
         timezone:            isOnline ? (form.intakeTimezone || null) : null,
         appointment_type:    form.intakeApptType || null,
-        skin_concern:        form.intakeSkinConcern.trim() || null,
+        skin_concern:        form.intakeSkinConcern === 'Other' && form.intakeSkinConcernOther.trim() ? 'Other: ' + form.intakeSkinConcernOther.trim() : (form.intakeSkinConcern || null),
         previous_treatments: form.intakePrevTreatments.length > 0 ? form.intakePrevTreatments.map(t => t === 'Other' && form.intakePrevTreatmentsOther.trim() ? 'Other: ' + form.intakePrevTreatmentsOther.trim() : t).join(', ') : null,
         medical_history:     form.intakeMedHistory.trim() || null,
         on_medication:       form.intakeOnMedication === 'yes' ? true : form.intakeOnMedication === 'no' ? false : null,
@@ -1345,11 +1347,17 @@ export default function Booking() {
       {/* Skin concern */}
       <div style={{ marginBottom:'0.875rem' }}>
         <label style={INTAKE_LABEL_ST}>Skin Concern <span style={{ color:N.red }}>*</span></label>
-        <textarea maxLength={1000} placeholder="Describe your main skin concern..." value={form.intakeSkinConcern}
-          onChange={e => set('intakeSkinConcern', e.target.value)}
-          onBlur={e => set('intakeSkinConcern', e.target.value.trim())}
-          style={taStyle} />
-        <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakeSkinConcern.length}/1000</div>
+        <select data-testid="skin-concern-dropdown" value={form.intakeSkinConcern} onChange={e => set('intakeSkinConcern', e.target.value)}
+          style={{ ...selStyle, color: form.intakeSkinConcern ? N.text : N.muted }}>
+          <option value="">Select your primary concern</option>
+          {SKIN_CONCERNS_PLACEHOLDER.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        {form.intakeSkinConcern === 'Other' && (
+          <input type="text" maxLength={200} placeholder="Describe your skin concern…" value={form.intakeSkinConcernOther}
+            onChange={e => set('intakeSkinConcernOther', e.target.value)}
+            onBlur={e => set('intakeSkinConcernOther', e.target.value.trim())}
+            style={{ ...inStyle, marginTop:'0.375rem' }} />
+        )}
       </div>
 
       {/* Previous treatments */}
