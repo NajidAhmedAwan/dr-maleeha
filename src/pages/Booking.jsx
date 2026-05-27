@@ -10,7 +10,6 @@ import { Z_INDEX } from '../constants/zIndex'
 import { getSlotsForDate, isCityOpenOn } from '../utils/slots'
 import { calculateDeposit } from '../utils/deposit'
 import ContactForm from '../components/ContactForm'
-import ReturningPatientToggle from '../components/ReturningPatientToggle'
 import { saveConfirmed } from '../utils/bookingStorage'
 import { dateKey } from '../utils/dashboardData'
 import { getLastBookingCity } from '../utils/lastBookingHint'
@@ -383,68 +382,6 @@ function VoiceRecorder({ onSave, onClear, saved }) {
   )
 }
 
-// ── VideoRecorder component ───────────────────────────────────────────────────
-function VideoRecorder({ onSave, onClear, saved }) {
-  const [recording, setRecording] = useState(false)
-  const [elapsed, setElapsed] = useState(0)
-  const mrRef = useRef(null)
-  const intervalRef = useRef(null)
-  const chunksRef = useRef([])
-  const previewRef = useRef(null)
-  const streamRef = useRef(null)
-
-  const startRec = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      streamRef.current = stream
-      chunksRef.current = []
-      if (previewRef.current) {
-        previewRef.current.srcObject = stream
-        previewRef.current.play()
-      }
-      const mr = new MediaRecorder(stream)
-      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
-      mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type:'video/webm' })
-        const url = URL.createObjectURL(blob)
-        onSave({ blob, url, name:`video-${Date.now()}.webm` })
-        stream.getTracks().forEach(t => t.stop())
-        if (previewRef.current) previewRef.current.srcObject = null
-      }
-      mr.start(); mrRef.current = mr; setRecording(true); setElapsed(0)
-      intervalRef.current = setInterval(() => setElapsed(e => e+1), 1000)
-    } catch { alert('Camera/microphone access denied.') }
-  }
-  const stopRec = () => { mrRef.current?.stop(); clearInterval(intervalRef.current); setRecording(false) }
-  const fmt = s => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
-
-  if (saved) {
-    return (
-      <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.5rem', background:N.tealLight, border:`1px solid ${N.tealBord}`, borderRadius:8 }}>
-        <video src={saved.url} controls style={{ flex:1, maxHeight:120, borderRadius:6 }} />
-        <button onClick={onClear} style={{ background:'none', border:'none', color:N.muted, cursor:'pointer', fontSize:'0.875rem', alignSelf:'flex-start' }}>✕</button>
-      </div>
-    )
-  }
-  return (
-    <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
-      {recording && (
-        <video ref={previewRef} muted style={{ width:'100%', maxHeight:160, borderRadius:8, background:'#000', objectFit:'cover' }} />
-      )}
-      <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
-        {recording ? (
-          <>
-            <span style={{ animation:'bk-rec-pulse 1s infinite', color:'#ef4444', fontSize:'0.625rem', fontWeight:700 }}>● REC {fmt(elapsed)}</span>
-            <button onClick={stopRec} style={{ padding:'0.375rem 0.75rem', background:'#ef4444', color:'#fff', border:'none', borderRadius:7, fontSize:'0.625rem', fontWeight:700, cursor:'pointer' }}>Stop</button>
-          </>
-        ) : (
-          <button onClick={startRec} style={{ padding:'0.375rem 0.875rem', background:N.tealLight, color:N.teal, border:`1px solid ${N.tealBord}`, borderRadius:7, fontSize:'0.625rem', fontWeight:700, cursor:'pointer' }}>🎥 Record</button>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ── ChevronLeft icon ──────────────────────────────────────────────────────────
 function ChevronLeft({ size = 16 }) {
   return (
@@ -455,19 +392,18 @@ function ChevronLeft({ size = 16 }) {
 }
 
 // ── Intake media constants ────────────────────────────────────────────────────
-const MEDIA_ALLOWED_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov'])
+const MEDIA_ALLOWED_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp'])
 const MEDIA_MAX_FILES = 3
 const MEDIA_MAX_BYTES = 10 * 1024 * 1024
 function fmtBytes(b) { return b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1)} MB` }
 
-// ── IntakeMediaRecorder (video + audio, 60s countdown, auto-stop) ─────────────
-function IntakeMediaRecorder({ onSave, disabled }) {
+// ── IntakeAudioRecorder (audio-only, 60s countdown, auto-stop) ───────────────
+function IntakeAudioRecorder({ onSave, disabled }) {
   const [recording, setRecording] = useState(false)
   const [remaining, setRemaining] = useState(60)
   const mrRef      = useRef(null)
   const intervalRef = useRef(null)
   const chunksRef  = useRef([])
-  const previewRef = useRef(null)
   const streamRef  = useRef(null)
 
   const stopAll = () => {
@@ -479,17 +415,15 @@ function IntakeMediaRecorder({ onSave, disabled }) {
 
   const startRec = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       streamRef.current = stream
       chunksRef.current = []
-      if (previewRef.current) { previewRef.current.srcObject = stream; previewRef.current.play().catch(() => {}) }
       const mr = new MediaRecorder(stream)
       mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
       mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' })
-        onSave({ blob, url: URL.createObjectURL(blob), name: `clip-${Date.now()}.webm`, size: blob.size, fileType: 'video' })
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        onSave({ blob, url: URL.createObjectURL(blob), name: `voice-${Date.now()}.webm`, size: blob.size, fileType: 'audio' })
         stream.getTracks().forEach(t => t.stop())
-        if (previewRef.current) previewRef.current.srcObject = null
       }
       mr.start(); mrRef.current = mr; setRecording(true); setRemaining(60)
       let secs = 60
@@ -502,7 +436,7 @@ function IntakeMediaRecorder({ onSave, disabled }) {
           setRecording(false); setRemaining(60)
         }
       }, 1000)
-    } catch { alert('Camera/microphone access denied.') }
+    } catch { alert('Microphone access denied.') }
   }
 
   useEffect(() => () => { clearInterval(intervalRef.current); streamRef.current?.getTracks().forEach(t => t.stop()) }, [])
@@ -511,31 +445,26 @@ function IntakeMediaRecorder({ onSave, disabled }) {
   const fmt = s => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      {recording && (
-        <div style={{ position: 'relative' }}>
-          <video ref={previewRef} muted style={{ width: '100%', maxHeight: 140, borderRadius: 8, background: '#000', objectFit: 'cover', display: 'block' }} />
-          <div style={{ position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.75)', borderRadius: 20, padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      {recording ? (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 10px', background: N.tealLight, border: `1px solid ${N.tealBord}`, borderRadius: 20 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', animation: 'bk-rec-pulse 1s infinite' }} />
-            <span style={{ color: '#fff', fontSize: '0.5625rem', fontWeight: 700 }}>{fmt(remaining)}</span>
-            <div style={{ width: 48, height: 3, background: 'rgba(255,255,255,0.2)', borderRadius: 2 }}>
+            <span style={{ color: N.teal, fontSize: '0.5625rem', fontWeight: 700 }}>{fmt(remaining)}</span>
+            <div style={{ width: 48, height: 3, background: N.border, borderRadius: 2 }}>
               <div style={{ width: `${pct}%`, height: '100%', background: remaining <= 10 ? '#ef4444' : N.teal, borderRadius: 2, transition: 'width 1s linear, background 0.3s' }} />
             </div>
           </div>
-        </div>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        {recording ? (
           <button onClick={stopAll} style={{ padding: '0.375rem 0.75rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 7, fontSize: '0.625rem', fontWeight: 700, cursor: 'pointer' }}>
-            ⏹ Stop recording
+            ⏹ Stop
           </button>
-        ) : (
-          <button onClick={startRec} disabled={disabled}
-            style={{ padding: '0.375rem 0.875rem', background: disabled ? 'rgba(255,255,255,0.04)' : N.tealLight, color: disabled ? N.muted : N.teal, border: `1px solid ${disabled ? N.border : N.tealBord}`, borderRadius: 7, fontSize: '0.625rem', fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
-            🎥 Record in-browser (60s max)
-          </button>
-        )}
-      </div>
+        </>
+      ) : (
+        <button onClick={startRec} disabled={disabled}
+          style={{ padding: '0.375rem 0.875rem', background: disabled ? 'rgba(255,255,255,0.04)' : N.tealLight, color: disabled ? N.muted : N.teal, border: `1px solid ${disabled ? N.border : N.tealBord}`, borderRadius: 7, fontSize: '0.625rem', fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
+          🎙 Record voice note (60s max)
+        </button>
+      )}
     </div>
   )
 }
@@ -598,8 +527,6 @@ export default function Booking() {
     photos: [],
     voiceRec: null,
     voiceFile: null,
-    videoRec: null,
-    videoFile: null,
     paymentFile: null, paymentFileName: '',
     intakeDob: '',
     intakeApptType: '',
@@ -632,6 +559,7 @@ export default function Booking() {
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [pickerOpen,      setPickerOpen]      = useState(false)
   const [mediaErrors,     setMediaErrors]     = useState([])
+  const [showNotesField,  setShowNotesField]  = useState(false)
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768)
@@ -853,7 +781,7 @@ export default function Booking() {
       // 4b. Upload media files to booking-media bucket (private)
       const ALLOWED_UPLOAD_MIME = new Set([
         'image/jpeg', 'image/png', 'image/webp',
-        'video/mp4', 'video/quicktime', 'video/webm',
+        'audio/webm',
       ])
       const mediaUrls = []
       for (const m of form.intakeMedia) {
@@ -970,7 +898,7 @@ export default function Booking() {
           <meta name="description" content="Book your dermatology appointment with Dr. Maleeha. Karachi, Islamabad, or online consultation. Simple booking, confirmed slot, deposit pricing." />
         </Helmet>
         {showConfetti && <Confetti />}
-        <main id="main-content" style={{ minHeight:'100vh', background:N.bg, display:'flex', alignItems:'center', justifyContent:'center', padding:'1.5rem', fontFamily:'system-ui,-apple-system,sans-serif' }}>
+        <main id="main-content" data-bk-page style={{ minHeight:'100vh', background:'var(--bk-bg, #0d1b2a)', display:'flex', alignItems:'center', justifyContent:'center', padding:'1.5rem', fontFamily:'system-ui,-apple-system,sans-serif' }}>
           <div data-testid="booking-confirmation" style={{ background:N.card, border:`1px solid ${N.border}`, borderRadius:20, padding:'2.5rem 2rem', maxWidth:440, width:'100%', textAlign:'center', boxShadow:'0 24px 60px rgba(0,0,0,0.5)', animation:'app-section-in 0.4s ease' }}>
             <div style={{ width:72, height:72, background:'rgba(13,148,136,0.15)', border:`2px solid ${N.teal}`, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 1.25rem', fontSize:'2rem', animation:'app-check-pop 0.5s ease' }}>✓</div>
             <h2 style={{ fontSize:'1.375rem', fontWeight:800, color:N.text, marginBottom:'0.5rem', letterSpacing:'-0.02em' }}>
@@ -1280,7 +1208,8 @@ export default function Booking() {
           {[['yes','Yes'],['no','No']].map(([val, lbl]) => {
             const sel = form.intakeOnMedication === val
             return (
-              <button key={val} onClick={() => set('intakeOnMedication', val)}
+              <button key={val}
+                onClick={() => setForm(f => ({ ...f, intakeOnMedication: val, ...(val === 'no' ? { intakeMedList: '' } : {}) }))}
                 style={{ flex:1, padding:'0.5rem 0.75rem', border:`1.5px solid ${sel ? N.teal : N.border}`, borderRadius:8, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)', color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400, fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s' }}>
                 {lbl}
               </button>
@@ -1301,20 +1230,33 @@ export default function Booking() {
         </div>
       )}
 
-      {/* Additional notes — optional */}
+      {/* Additional notes — optional, show on demand */}
       <div style={{ marginBottom:'0.875rem' }}>
-        <label style={INTAKE_LABEL_ST}>Additional Notes <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>(optional)</span></label>
-        <textarea maxLength={2000} placeholder="Any other information for the doctor..." value={form.intakeNotes}
-          onChange={e => set('intakeNotes', e.target.value)}
-          onBlur={e => set('intakeNotes', e.target.value.trim())}
-          style={{ ...taStyle, minHeight:70 }} />
-        <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakeNotes.length}/2000</div>
+        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.375rem' }}>
+          <label style={INTAKE_LABEL_ST}>Additional Notes <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>(optional)</span></label>
+          {!showNotesField && (
+            <button onClick={() => setShowNotesField(true)}
+              style={{ background:'none', border:'none', color:N.teal, fontSize:'0.5625rem', fontWeight:600, cursor:'pointer', padding:0, whiteSpace:'nowrap' }}>
+              + Add a note
+            </button>
+          )}
+        </div>
+        {showNotesField && (
+          <>
+            <textarea maxLength={2000} placeholder="Any other information for the doctor..." value={form.intakeNotes}
+              onChange={e => set('intakeNotes', e.target.value)}
+              onBlur={e => set('intakeNotes', e.target.value.trim())}
+              autoFocus
+              style={{ ...taStyle, minHeight:70 }} />
+            <div style={{ fontSize:'0.45rem', color:N.muted, textAlign:'right', marginTop:2 }}>{form.intakeNotes.length}/2000</div>
+          </>
+        )}
       </div>
 
       {/* ── Media capture — ALL bookings ─────────────────────────────────── */}
       <div style={{ marginBottom:'0.875rem' }}>
         <div style={{ fontSize:'0.5625rem', fontWeight:800, color:N.teal, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.5rem' }}>
-          Show us your concern <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>(optional)</span>
+          Show us your concern <span style={{ fontWeight:400, textTransform:'none', color:N.muted }}>(optional) — Upload photos or record a voice note</span>
         </div>
 
         {/* Upload option */}
@@ -1323,7 +1265,7 @@ export default function Booking() {
             <label style={{ display:'flex', alignItems:'center', gap:'0.375rem', padding:'0.375rem 0.75rem', background: form.intakeMedia.length >= MEDIA_MAX_FILES ? 'rgba(255,255,255,0.04)' : N.tealLight, color: form.intakeMedia.length >= MEDIA_MAX_FILES ? N.muted : N.teal, border:`1px solid ${form.intakeMedia.length >= MEDIA_MAX_FILES ? N.border : N.tealBord}`, borderRadius:7, cursor: form.intakeMedia.length >= MEDIA_MAX_FILES ? 'not-allowed' : 'pointer', fontSize:'0.625rem', fontWeight:700, opacity: form.intakeMedia.length >= MEDIA_MAX_FILES ? 0.5 : 1 }}>
               <input
                 type="file"
-                accept=".jpg,.jpeg,.png,.webp,.mp4,.mov"
+                accept=".jpg,.jpeg,.png,.webp"
                 multiple
                 data-testid="booking-media-upload"
                 disabled={form.intakeMedia.length >= MEDIA_MAX_FILES}
@@ -1334,14 +1276,14 @@ export default function Booking() {
                   for (const f of Array.from(e.target.files)) {
                     const ext = f.name.split('.').pop().toLowerCase()
                     if (!MEDIA_ALLOWED_EXTS.has(ext)) {
-                      errs.push(`"${f.name}": unsupported type. Allowed: JPG, PNG, WebP, MP4, MOV.`)
+                      errs.push(`"${f.name}": unsupported type. Allowed: JPG, PNG, WebP.`)
                       continue
                     }
                     if (f.size > MEDIA_MAX_BYTES) {
                       errs.push(`"${f.name}": too large (${fmtBytes(f.size)}). Max 10 MB per file.`)
                       continue
                     }
-                    valid.push({ blob:f, url:URL.createObjectURL(f), name:f.name, size:f.size, fileType: f.type.startsWith('video') ? 'video' : 'image' })
+                    valid.push({ blob:f, url:URL.createObjectURL(f), name:f.name, size:f.size, fileType: 'image' })
                   }
                   const slots = MEDIA_MAX_FILES - form.intakeMedia.length
                   if (valid.length > slots) errs.push(`Max ${MEDIA_MAX_FILES} files. ${valid.length - slots} file(s) not added.`)
@@ -1351,9 +1293,9 @@ export default function Booking() {
                 }}
                 style={{ display:'none' }}
               />
-              📂 Upload photos/video
+              📷 Upload photos
             </label>
-            <span style={{ fontSize:'0.5rem', color:N.muted }}>{form.intakeMedia.length}/{MEDIA_MAX_FILES} files · max 10 MB each · JPG, PNG, WebP, MP4, MOV</span>
+            <span style={{ fontSize:'0.5rem', color:N.muted }}>{form.intakeMedia.length}/{MEDIA_MAX_FILES} files · max 10 MB each · JPG, PNG, WebP</span>
           </div>
 
           {/* Validation errors */}
@@ -1371,9 +1313,12 @@ export default function Booking() {
           {form.intakeMedia.length > 0 && (
             <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
               {form.intakeMedia.map((m, idx) => (
-                <div key={idx} style={{ position:'relative', width:80, height:80, flexShrink:0 }}>
-                  {m.fileType === 'video' ? (
-                    <video src={m.url} style={{ width:80, height:80, objectFit:'cover', borderRadius:7, border:`1px solid ${N.border}` }} />
+                <div key={idx} style={{ position:'relative', width:80, height: m.fileType === 'audio' ? 56 : 80, flexShrink:0 }}>
+                  {m.fileType === 'audio' ? (
+                    <div style={{ width:80, height:56, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:N.tealLight, borderRadius:7, border:`1px solid ${N.tealBord}` }}>
+                      <span style={{ fontSize:'1.25rem' }}>🎙</span>
+                      <span style={{ fontSize:'0.4rem', color:N.teal, marginTop:2 }}>Voice note</span>
+                    </div>
                   ) : (
                     <img src={m.url} alt={m.name} style={{ width:80, height:80, objectFit:'cover', borderRadius:7, border:`1px solid ${N.border}` }} />
                   )}
@@ -1389,8 +1334,8 @@ export default function Booking() {
           )}
         </div>
 
-        {/* Record in-browser option */}
-        <IntakeMediaRecorder
+        {/* Record audio option */}
+        <IntakeAudioRecorder
           disabled={form.intakeMedia.length >= MEDIA_MAX_FILES}
           onSave={m => {
             setMediaErrors([])
@@ -1447,7 +1392,6 @@ export default function Booking() {
   const contactContent = (
     <div style={{ padding:'1rem' }}>
       <SectionLabel step={5} label="Your details" done={canConfirm} />
-      <ReturningPatientToggle onPrefill={handleSetContactDetails} />
       <ContactForm
         value={contactDetails}
         onChange={handleSetContactDetails}
@@ -1462,34 +1406,71 @@ export default function Booking() {
     </div>
   )
 
-  // ── Right panel header (desktop) ─────────────────────────────────────────
-  const stepLabels = { procedure: 'Procedure', intake: 'Medical Intake', datetime: 'Date & Time', contact: 'Your Details' }
+  // ── Visual stepper (6 steps) ────────────────────────────────────────────
+  const VISUAL_STEPS = [
+    { label: 'City' },
+    { label: 'Appt Type' },
+    { label: 'Procedure' },
+    { label: 'Date & Time' },
+    { label: 'Details' },
+    { label: 'Review' },
+  ]
+  const stepCompletions = [
+    !!form.city,
+    !!form.intakeApptType,
+    !!form.procedure,
+    !!(form.date && form.time),
+    intakeValid,
+    false,
+  ]
+  const activeVisualStep =
+    !form.city ? 0 :
+    step === 'procedure' ? 2 :
+    step === 'intake' ? 4 :
+    step === 'datetime' ? 3 :
+    step === 'contact' ? 5 : 0
 
+  // ── Right panel header (desktop) ─────────────────────────────────────────
   const rightHeader = (
-    <div style={{ borderBottom:`1px solid ${N.border}`, padding:'0.875rem 1rem', display:'flex', alignItems:'center', gap:'0.5rem', flexShrink:0 }}>
-      {(step === 'intake' || step === 'datetime' || step === 'contact') && (
-        <button onClick={goBack}
-          style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${N.border}`, borderRadius:8, width:28, height:28, cursor:'pointer', color:N.textDim, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-          <ChevronLeft size={16} />
-        </button>
-      )}
-      <div style={{ display:'flex', alignItems:'center', gap:'0.375rem', flex:1 }}>
-        {STEP_ORDER.map((s, i) => [
-          <div key={`c-${s}`} style={{
-            width:24, height:24, borderRadius:'50%',
-            background: s === step ? N.teal : i < stepIdx ? 'rgba(13,148,136,0.3)' : 'rgba(255,255,255,0.07)',
-            border: `1.5px solid ${s === step ? N.teal : i < stepIdx ? N.tealBord : N.border}`,
-            color: s === step ? '#fff' : i < stepIdx ? N.teal : N.muted,
-            display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:'0.5625rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
-          }}>
-            {i < stepIdx ? '✓' : i+1}
-          </div>,
-          i < 3 && <div key={`l-${s}`} style={{ width:16, height:1, background: i < stepIdx ? N.tealBord : N.border }} />,
-        ])}
-        <span style={{ fontSize:'0.5625rem', fontWeight:700, color:N.teal, textTransform:'uppercase', letterSpacing:'0.1em', marginLeft:'0.25rem' }}>
-          {stepLabels[step] || ''}
-        </span>
+    <div style={{ borderBottom:`1px solid ${N.border}`, flexShrink:0 }}>
+      <div style={{ padding:'0.75rem 1rem', display:'flex', alignItems:'center', gap:'0.625rem' }}>
+        {(step === 'intake' || step === 'datetime' || step === 'contact') && (
+          <button onClick={goBack}
+            style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${N.border}`, borderRadius:8, width:28, height:28, cursor:'pointer', color:N.textDim, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            <ChevronLeft size={16} />
+          </button>
+        )}
+        <div data-testid="booking-stepper" style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', width:'100%' }}>
+            {VISUAL_STEPS.map((vs, i) => [
+              <div key={`c-${vs.label}`} data-testid="stepper-step" style={{
+                width:22, height:22, borderRadius:'50%',
+                background: stepCompletions[i] || i === activeVisualStep ? N.teal : 'rgba(255,255,255,0.07)',
+                border: `1.5px solid ${stepCompletions[i] || i === activeVisualStep ? N.teal : N.border}`,
+                color: stepCompletions[i] || i === activeVisualStep ? '#fff' : N.muted,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:'0.45rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
+              }}>
+                {stepCompletions[i] ? '✓' : i + 1}
+              </div>,
+              i < VISUAL_STEPS.length - 1 && (
+                <div key={`l-${vs.label}`} style={{ flex:1, height:1, background: stepCompletions[i] ? N.teal : N.border }} />
+              ),
+            ])}
+          </div>
+          <div style={{ display:'flex', marginTop:4 }}>
+            {VISUAL_STEPS.map((vs, i) => (
+              <div key={`lbl-${vs.label}`} style={{
+                flex:1, fontSize:'0.38rem', textAlign:'center',
+                color: i === activeVisualStep ? N.teal : stepCompletions[i] ? N.teal : N.muted,
+                fontWeight: i === activeVisualStep ? 700 : 400,
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+              }}>
+                {vs.label}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -1530,14 +1511,30 @@ export default function Booking() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <main id="main-content" style={{ minHeight:'100vh', background:N.bg, fontFamily:'system-ui,-apple-system,sans-serif', color:N.text, display:'block' }}>
+    <main id="main-content" data-bk-page style={{ minHeight:'100vh', background:'var(--bk-bg, #0d1b2a)', fontFamily:'system-ui,-apple-system,sans-serif', color:N.text, display:'block' }}>
       <Helmet>
         <title>Book Appointment | Dr. Maleeha Jawaid</title>
         <meta name="description" content="Book your dermatology appointment with Dr. Maleeha. Karachi, Islamabad, or online consultation. Simple booking, confirmed slot, deposit pricing." />
+        <style>{`
+          [data-bk-page] {
+            --bk-bg: #0d1b2a;
+            --bk-card: #111f30;
+            --bk-text: #e2e8f0;
+            --bk-border: rgba(255,255,255,0.08);
+          }
+          @media (prefers-color-scheme: light) {
+            [data-bk-page] {
+              --bk-bg: #ffffff;
+              --bk-card: #f8f8f8;
+              --bk-text: #1a1a1a;
+              --bk-border: rgba(0,0,0,0.08);
+            }
+          }
+        `}</style>
       </Helmet>
 
       {/* ── Top bar ── */}
-      <div style={{ background:N.bg, borderBottom:`1px solid ${N.border}`, padding:'0.75rem 1.25rem', display:'flex', alignItems:'center', gap:'0.875rem', position:'sticky', top:0, zIndex:Z_INDEX.STICKY_HEADER }}>
+      <div style={{ background:'var(--bk-bg, #0d1b2a)', borderBottom:`1px solid ${N.border}`, padding:'0.75rem 1.25rem', display:'flex', alignItems:'center', gap:'0.875rem', position:'sticky', top:0, zIndex:Z_INDEX.STICKY_HEADER }}>
         <button onClick={() => navigate('/')}
           style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${N.border}`, borderRadius:10, width:36, height:36, cursor:'pointer', color:N.textDim, fontSize:'1.125rem', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>←</button>
         <div style={{ flex:1 }}>
@@ -1546,14 +1543,12 @@ export default function Booking() {
             {[form.city, form.procedure, form.date].filter(Boolean).join(' › ') || 'In Your Face Aesthetics'}
           </div>
         </div>
-        <div style={{ display:'flex', background:'rgba(255,255,255,0.05)', borderRadius:100, padding:3, flexShrink:0 }}>
-          {[['new','New patient'],['returning','Returning']].map(([t,label]) => (
-            <button key={t} onClick={() => setBookingType(t)}
-              style={{ padding:'0.3rem 0.75rem', borderRadius:100, border:'none', background: bookingType===t ? N.teal : 'transparent', color: bookingType===t ? '#fff' : N.muted, fontSize:'0.5rem', fontWeight:700, cursor:'pointer', transition:'all 0.18s', whiteSpace:'nowrap' }}>
-              {label}
-            </button>
-          ))}
-        </div>
+        <button
+          data-testid="patient-status-pill"
+          onClick={() => setBookingType(t => t === 'new' ? 'returning' : 'new')}
+          style={{ padding:'0.3rem 0.875rem', borderRadius:100, border:'none', background: bookingType === 'returning' ? N.teal : 'rgba(255,255,255,0.1)', color: bookingType === 'returning' ? '#fff' : N.muted, fontSize:'0.5rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, transition:'all 0.18s' }}>
+          {bookingType === 'returning' ? 'Returning Patient' : 'New Patient'}
+        </button>
       </div>
 
       {/* ── DESKTOP: two-column split ── */}
@@ -1561,7 +1556,7 @@ export default function Booking() {
         <div style={{ display:'flex', height:'calc(100vh - 61px)', overflow:'hidden' }}>
 
           {/* LEFT 40%: city cards, always visible */}
-          <div style={{ width:'40%', flexShrink:0, overflowY:'auto', padding:'1.5rem', borderRight:`1px solid ${N.border}`, background:N.bg }}>
+          <div style={{ width:'40%', flexShrink:0, overflowY:'auto', padding:'1.5rem', borderRight:`1px solid ${N.border}`, background:'var(--bk-bg, #0d1b2a)' }}>
             <SectionLabel step={1} label="Where are you booking?" done={!!form.city} />
             {!bannerDismissed && lastCity && !form.city && (
               <ReturningCityBanner
@@ -1574,7 +1569,7 @@ export default function Booking() {
           </div>
 
           {/* RIGHT 60%: step panel */}
-          <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', background:N.card }}>
+          <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', background:'var(--bk-card, #111f30)' }}>
             {rightHeader}
             <div style={{ flex:1, overflowY:'auto' }}>
               <div key={step} style={{ animation:'app-section-in 0.2s ease' }}>

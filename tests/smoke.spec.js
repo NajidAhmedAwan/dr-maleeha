@@ -979,3 +979,61 @@ test.describe('Booking — end-to-end happy paths (Batch 6)', () => {
     await expect(mapsLink.first()).toContainText(/Faisal Market|F-7/i);
   });
 });
+
+// ── BATCH 9A — UX REFRESH ─────────────────────────────────────────────────────
+
+test.describe('Batch 9a — Booking UX refresh', () => {
+  test('stepper is present and has 6 steps', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await expect(page.locator('[data-testid="booking-stepper"]')).toBeVisible();
+    const steps = page.locator('[data-testid="stepper-step"]');
+    await expect(steps).toHaveCount(6);
+  });
+
+  test('patient status pill appears exactly once', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    const pill = page.locator('[data-testid="patient-status-pill"]');
+    await expect(pill).toHaveCount(1);
+    await expect(pill).toBeVisible();
+  });
+
+  test('no video button exists in media section', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.locator('[data-testid="booking-city-karachi"]').first().click();
+    await page.locator('[data-testid^="booking-procedure-"]').first().click();
+    const videoButtons = page.locator('button:has-text(/video/i)');
+    expect(await videoButtons.count()).toBe(0);
+  });
+
+  test('medication textarea NOT visible by default', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.locator('[data-testid="booking-city-karachi"]').first().click();
+    await page.locator('[data-testid^="booking-procedure-"]').first().click();
+    // Intake step should auto-load after procedure selection
+    await page.waitForSelector('text=/Currently on medication/i');
+    // Medication list textarea should not be visible before Yes is clicked
+    const medListTextarea = page.locator('textarea[placeholder*="medication" i], textarea[placeholder*="medications" i]');
+    expect(await medListTextarea.count()).toBe(0);
+  });
+
+  test('medication textarea appears on Yes, disappears on No', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.locator('[data-testid="booking-city-karachi"]').first().click();
+    await page.locator('[data-testid^="booking-procedure-"]').first().click();
+    await page.waitForSelector('text=/Currently on medication/i');
+    // Click Yes
+    await page.getByRole('button', { name: /^Yes$/ }).first().click();
+    const medTextarea = page.locator('textarea[placeholder*="medication" i]').first();
+    await expect(medTextarea).toBeVisible();
+    // Click No
+    await page.getByRole('button', { name: /^No$/ }).first().click();
+    expect(await page.locator('textarea[placeholder*="medication" i]').count()).toBe(0);
+  });
+
+  test('city cards are present — Karachi, Islamabad, Online', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await expect(page.locator('[data-testid="booking-city-karachi"]')).toBeVisible();
+    await expect(page.locator('[data-testid="booking-city-islamabad"]')).toBeVisible();
+    await expect(page.locator('[data-testid="booking-city-online"]')).toBeVisible();
+  });
+});
