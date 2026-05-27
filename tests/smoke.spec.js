@@ -983,11 +983,11 @@ test.describe('Booking — end-to-end happy paths (Batch 6)', () => {
 // ── BATCH 9A — UX REFRESH ─────────────────────────────────────────────────────
 
 test.describe('Batch 9a — Booking UX refresh', () => {
-  test('stepper is present and has 6 steps', async ({ page }) => {
+  test('stepper is present and has 5 steps', async ({ page }) => {
     await page.goto(`${BASE_URL}/booking`);
     await expect(page.locator('[data-testid="booking-stepper"]')).toBeVisible();
     const steps = page.locator('[data-testid="stepper-step"]');
-    await expect(steps).toHaveCount(6);
+    await expect(steps).toHaveCount(5);
   });
 
   test('patient status pill does not exist (removed in 9b)', async ({ page }) => {
@@ -1151,10 +1151,10 @@ test.describe('Batch 9b.3 — stepper completion states', () => {
     await page.evaluate(() => localStorage.clear());
     await page.reload();
 
-    // 1. Stepper is visible with 6 circles
+    // 1. Stepper is visible with 5 circles
     await page.waitForSelector('[data-testid="booking-stepper"]');
     const steps = page.locator('[data-testid="stepper-step"]');
-    await expect(steps).toHaveCount(6);
+    await expect(steps).toHaveCount(5);
 
     // 2. Step 1 (City, index 0) is active before any selection
     await page.waitForSelector('[data-testid="stepper-step"][data-state="active"]');
@@ -1167,12 +1167,42 @@ test.describe('Batch 9b.3 — stepper completion states', () => {
     await page.waitForSelector('[data-testid="stepper-step"][data-state="completed"]');
     await expect(steps.nth(0)).toHaveAttribute('data-state', 'completed');
 
-    // 5. Procedure step (index 2) is now active (activeVisualStep = 2 after city pick)
-    await expect(steps.nth(2)).toHaveAttribute('data-state', 'active');
+    // 5. Procedure step (index 1) is now active (activeVisualStep = 1 after city pick)
+    await expect(steps.nth(1)).toHaveAttribute('data-state', 'active');
 
-    // 6. Steps 1, 3, 4, 5 are pending (not completed, not active)
-    await expect(steps.nth(1)).toHaveAttribute('data-state', 'pending');
+    // 6. Steps 2, 3, 4 are pending (not completed, not active)
+    await expect(steps.nth(2)).toHaveAttribute('data-state', 'pending');
     await expect(steps.nth(3)).toHaveAttribute('data-state', 'pending');
+  });
+
+  test('9b.3.1: stepper index syncs through full booking flow without skipped steps', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+
+    // 1. Stepper has 5 steps
+    await page.waitForSelector('[data-testid="booking-stepper"]');
+    const steps = page.locator('[data-testid="stepper-step"]');
+    await expect(steps).toHaveCount(5);
+
+    // 2. Step 0 (City) active before selection
+    await expect(steps.nth(0)).toHaveAttribute('data-state', 'active');
+
+    // 3. Select city — City completes, Procedure becomes active
+    await page.locator('[data-testid="booking-city-karachi"]').first().click();
+    await page.waitForSelector('[data-testid="stepper-step"][data-state="completed"]');
+    await expect(steps.nth(0)).toHaveAttribute('data-state', 'completed');
+    await expect(steps.nth(1)).toHaveAttribute('data-state', 'active');
+    await expect(steps.nth(2)).toHaveAttribute('data-state', 'pending');
+
+    // 4. Select category + procedure — Procedure completes, Intake becomes active
+    await page.waitForSelector('[data-testid="booking-category-injectables"]');
+    await page.locator('[data-testid="booking-category-injectables"]').first().click();
+    await page.waitForSelector('[data-testid="booking-procedure-botox"]');
+    await page.locator('[data-testid="booking-procedure-botox"]').first().click();
+    await page.waitForSelector('text=/Medical Intake/i');
+    await expect(steps.nth(1)).toHaveAttribute('data-state', 'completed');
+    await expect(steps.nth(2)).toHaveAttribute('data-state', 'active');
   });
 });
 

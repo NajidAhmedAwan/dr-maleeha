@@ -1566,26 +1566,24 @@ export default function Booking() {
   // ── Visual stepper (6 steps) ────────────────────────────────────────────
   const VISUAL_STEPS = [
     { label: 'City' },
-    { label: 'Appt Type' },
     { label: 'Procedure' },
+    { label: 'Intake' },
     { label: 'Date & Time' },
-    { label: 'Details' },
     { label: 'Review' },
   ]
   const stepCompletions = [
     !!form.city,
-    !!form.intakeApptType,
     !!form.procedure,
-    !!(form.date && form.time),
     intakeValid,
+    !!(form.date && form.time),
     false,
   ]
   const activeVisualStep =
     !form.city ? 0 :
-    step === 'procedure' ? 2 :
-    step === 'intake' ? 4 :
+    step === 'procedure' ? 1 :
+    step === 'intake' ? 2 :
     step === 'datetime' ? 3 :
-    step === 'contact' ? 5 : 0
+    step === 'contact' ? 4 : 0
 
   // ── Right panel header (desktop) ─────────────────────────────────────────
   const rightHeader = (
