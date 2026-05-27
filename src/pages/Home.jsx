@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import ChatbotWidget from '../components/ChatbotWidget'
+import PatientTypeModal from '../components/PatientTypeModal'
 import { Z_INDEX } from '../constants/zIndex'
 
 const C = {
@@ -465,7 +466,6 @@ const SLIDES = [
 ]
 
 export default function Home() {
-  const navigate = useNavigate()
   const [igUrls,    setIgUrls]    = useState(igCards.map(() => ''))
   const [openFaq,   setOpenFaq]   = useState(null)
   const [products,  setProducts]  = useState(DEFAULT_PRODUCTS)
@@ -474,6 +474,13 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState('hero')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedProc,    setSelectedProc]    = useState(null)
+  const [showPatientModal, setShowPatientModal] = useState(false)
+  const bookTriggerRef = useRef(null)
+
+  const handleBookClick = (e) => {
+    bookTriggerRef.current = e?.currentTarget ?? null
+    setShowPatientModal(true)
+  }
 
   const setUrl = (i, v) => setIgUrls(p => p.map((u, idx) => idx === i ? v : u))
 
@@ -539,8 +546,8 @@ export default function Home() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
-            <button onClick={() => navigate('/booking', { state: { type: 'followup' } })} style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.4375rem 0.875rem', borderRadius: 8, fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>Follow-up</button>
-            <button onClick={() => navigate('/booking')} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.4375rem 1rem', borderRadius: 8, fontSize: '0.8125rem', fontWeight: 700, cursor: 'pointer' }}>Book Now</button>
+            <button onClick={handleBookClick} style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.4375rem 0.875rem', borderRadius: 8, fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>Follow-up</button>
+            <button onClick={handleBookClick} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.4375rem 1rem', borderRadius: 8, fontSize: '0.8125rem', fontWeight: 700, cursor: 'pointer' }}>Book Now</button>
           </div>
         </div>
       </nav>
@@ -583,10 +590,10 @@ export default function Home() {
           </p>
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}>
-            <button onClick={() => navigate('/booking')} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.9375rem 2rem', borderRadius: 11, fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 20px rgba(13,148,136,0.45)' }}>
+            <button data-testid="hero-book-cta" onClick={handleBookClick} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.9375rem 2rem', borderRadius: 11, fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 20px rgba(13,148,136,0.45)' }}>
               Book Appointment →
             </button>
-            <button onClick={() => navigate('/booking', { state: { type: 'followup' } })} style={{ background: 'rgba(255,255,255,0.1)', color: C.white, border: '1px solid rgba(255,255,255,0.22)', padding: '0.9375rem 1.75rem', borderRadius: 11, fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer' }}>
+            <button onClick={handleBookClick} style={{ background: 'rgba(255,255,255,0.1)', color: C.white, border: '1px solid rgba(255,255,255,0.22)', padding: '0.9375rem 1.75rem', borderRadius: 11, fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer' }}>
               Book Follow-up
             </button>
           </div>
@@ -655,14 +662,14 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '1.125rem' }}>
             {procedures.map(p => (
               <ProcedureCard key={p.name} proc={p}
-                onBook={() => navigate('/booking', { state: { procedure: p.name } })}
+                onBook={handleBookClick}
                 onOpen={() => setSelectedProc(p)}
               />
             ))}
           </div>
           <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.75rem', color: '#475569' }}>
             Before/after placeholders shown — real patient results available on request · Already visited?{' '}
-            <button onClick={() => navigate('/booking', { state: { type: 'followup' } })} style={{ background: 'none', border: 'none', color: C.teal, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>Book a follow-up →</button>
+            <button onClick={handleBookClick} style={{ background: 'none', border: 'none', color: C.teal, fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}>Book a follow-up →</button>
           </p>
         </div>
       </section>
@@ -748,7 +755,14 @@ export default function Home() {
       </section>
 
       {selectedProduct && <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
-      {selectedProc    && <ProcedureModal proc={selectedProc} onClose={() => setSelectedProc(null)} onBook={() => { setSelectedProc(null); navigate('/booking', { state: { procedure: selectedProc.name } }) }} />}
+      {selectedProc    && <ProcedureModal proc={selectedProc} onClose={() => setSelectedProc(null)} onBook={() => { setSelectedProc(null); handleBookClick() }} />}
+
+      {showPatientModal && (
+        <PatientTypeModal
+          onClose={() => setShowPatientModal(false)}
+          triggerRef={bookTriggerRef}
+        />
+      )}
 
       <ChatbotWidget />
 
@@ -797,10 +811,10 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <p style={{ fontSize: '0.9375rem', fontWeight: 700, color: C.white, marginBottom: '0.5rem', lineHeight: 1.4 }}>Let's sort your skin out.</p>
               <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)', marginBottom: '1.25rem', lineHeight: 1.6 }}>Book in under 3 minutes. I'll see you in clinic — or on screen.</p>
-              <button onClick={() => navigate('/booking')} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.9375rem 1.5rem', borderRadius: 11, fontWeight: 700, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 6px 24px rgba(13,148,136,0.4)', textAlign: 'center' }}>
+              <button onClick={handleBookClick} style={{ background: C.teal, color: C.white, border: 'none', padding: '0.9375rem 1.5rem', borderRadius: 11, fontWeight: 700, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 6px 24px rgba(13,148,136,0.4)', textAlign: 'center' }}>
                 Book Appointment →
               </button>
-              <button onClick={() => navigate('/booking', { state: { type: 'followup' } })} style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.75rem 1.5rem', borderRadius: 11, fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', marginTop: '0.625rem' }}>
+              <button onClick={handleBookClick} style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.75rem 1.5rem', borderRadius: 11, fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', marginTop: '0.625rem' }}>
                 Book Follow-up →
               </button>
             </div>

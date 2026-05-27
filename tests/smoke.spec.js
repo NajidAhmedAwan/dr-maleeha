@@ -1142,3 +1142,81 @@ test.describe('Batch 9b — split panel layout', () => {
     });
   });
 });
+
+// ── BATCH 9B.2 — NEW VS RETURNING MODAL + PATIENT CONTEXT ────────────────────
+
+test.describe('Batch 9b.2 — patient type modal', () => {
+  test('9b.2: book CTA opens modal, returning patient flow prefills contact step', async ({ page }) => {
+    // 1. Navigate to homepage
+    await page.goto(`${BASE_URL}/`);
+
+    // 2. Click the main hero Book CTA
+    await page.waitForSelector('[data-testid="hero-book-cta"]');
+    await page.locator('[data-testid="hero-book-cta"]').click();
+
+    // 3. Assert modal is visible
+    await page.waitForSelector('[data-testid="patient-type-modal"]');
+    await expect(page.locator('[data-testid="patient-type-modal"]')).toBeVisible();
+
+    // 4. Assert both options visible
+    await expect(page.locator('[data-testid="patient-type-new"]')).toBeVisible();
+    await expect(page.locator('[data-testid="patient-type-returning"]')).toBeVisible();
+
+    // 5. Click Returning Patient
+    await page.locator('[data-testid="patient-type-returning"]').click();
+
+    // 6. Assert MAL input field visible
+    await page.waitForSelector('[data-testid="mal-input"]');
+    await expect(page.locator('[data-testid="mal-input"]')).toBeVisible();
+
+    // 7. Fill MAL-0001 and submit
+    await page.locator('[data-testid="mal-input"]').fill('MAL-0001');
+    await page.locator('[data-testid="mal-submit"]').click();
+
+    // 8. Assert routed to /booking
+    await page.waitForURL(`${BASE_URL}/booking`);
+
+    // 9a. Select city
+    await page.waitForSelector('[data-testid="booking-city-karachi"]');
+    await page.locator('[data-testid="booking-city-karachi"]').first().click();
+
+    // 9b. Select Injectables category
+    await page.waitForSelector('[data-testid="booking-category-injectables"]');
+    await page.locator('[data-testid="booking-category-injectables"]').first().click();
+
+    // 9c. Select Botox procedure
+    await page.waitForSelector('[data-testid="booking-procedure-botox"]');
+    await page.locator('[data-testid="booking-procedure-botox"]').first().click();
+
+    // 9d. Complete intake step (Medical Intake)
+    await page.waitForSelector('text=Medical Intake');
+    // DOB
+    await page.locator('input[type="date"]').first().fill('1990-01-01');
+    // Appointment type
+    await page.getByRole('button', { name: 'Initial Consultation' }).click();
+    // Skin concern
+    await page.locator('textarea[placeholder*="main skin concern"]').fill('Fine lines and wrinkles');
+    // Previous treatments
+    await page.locator('textarea[placeholder*="Botox 2023"]').fill('None');
+    // Medical history
+    await page.locator('textarea[placeholder*="Diabetes"]').fill('None');
+    // On medication
+    await page.getByRole('button', { name: 'No' }).click();
+    // Continue to datetime step
+    await page.locator('[data-testid="booking-footer-btn"]').click();
+
+    // 9e. Select date
+    await page.waitForSelector('[data-testid^="date-pill-"]');
+    await page.locator('[data-testid^="date-pill-"]').nth(2).click();
+
+    // 9f. Select time slot → auto-advances to contact step
+    await page.waitForSelector('[data-testid="time-slot"]:not([disabled])');
+    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+
+    // 10–12. Assert contact step prefilled with Sara Khan's data
+    await page.waitForSelector('[data-testid="contact-form"]');
+    await expect(page.locator('[data-testid="input-name"]')).toHaveValue('Sara Khan');
+    await expect(page.locator('[data-testid="input-phone"]')).toHaveValue('+923001234567');
+    await expect(page.locator('[data-testid="input-email"]')).toHaveValue('sara@example.com');
+  });
+});
