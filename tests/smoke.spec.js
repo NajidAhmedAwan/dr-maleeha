@@ -1143,6 +1143,39 @@ test.describe('Batch 9b — split panel layout', () => {
   });
 });
 
+// ── BATCH 9B.3 — STEPPER COMPLETION STATES ───────────────────────────────────
+
+test.describe('Batch 9b.3 — stepper completion states', () => {
+  test('9b.3: stepper shows completion states through booking flow', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+
+    // 1. Stepper is visible with 6 circles
+    await page.waitForSelector('[data-testid="booking-stepper"]');
+    const steps = page.locator('[data-testid="stepper-step"]');
+    await expect(steps).toHaveCount(6);
+
+    // 2. Step 1 (City, index 0) is active before any selection
+    await page.waitForSelector('[data-testid="stepper-step"][data-state="active"]');
+    await expect(steps.nth(0)).toHaveAttribute('data-state', 'active');
+
+    // 3. Select a city
+    await page.locator('[data-testid="booking-city-karachi"]').first().click();
+
+    // 4. Step 1 (City) should now be completed — data-state="completed"
+    await page.waitForSelector('[data-testid="stepper-step"][data-state="completed"]');
+    await expect(steps.nth(0)).toHaveAttribute('data-state', 'completed');
+
+    // 5. Procedure step (index 2) is now active (activeVisualStep = 2 after city pick)
+    await expect(steps.nth(2)).toHaveAttribute('data-state', 'active');
+
+    // 6. Steps 1, 3, 4, 5 are pending (not completed, not active)
+    await expect(steps.nth(1)).toHaveAttribute('data-state', 'pending');
+    await expect(steps.nth(3)).toHaveAttribute('data-state', 'pending');
+  });
+});
+
 // ── BATCH 9B.2 — NEW VS RETURNING MODAL + PATIENT CONTEXT ────────────────────
 
 test.describe('Batch 9b.2 — patient type modal', () => {
