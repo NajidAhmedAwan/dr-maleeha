@@ -1201,7 +1201,7 @@ test.describe('Batch 9b.2 — patient type modal', () => {
     // Medical history
     await page.locator('textarea[placeholder*="Diabetes"]').fill('None');
     // On medication
-    await page.getByRole('button', { name: 'No' }).click();
+    await page.getByRole('button', { name: 'No', exact: true }).click();
     // Continue to datetime step
     await page.locator('[data-testid="booking-footer-btn"]').click();
 
