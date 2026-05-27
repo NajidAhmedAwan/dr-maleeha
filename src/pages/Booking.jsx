@@ -514,8 +514,6 @@ const MAX_DOB_STR = (() => {
 export default function Booking() {
   const navigate  = useNavigate()
   const routerLoc = useLocation()
-  const [bookingType, setBookingType] = useState(routerLoc.state?.type || 'new')
-
   // State machine: 'procedure' | 'datetime' | 'contact' | 'confirmation'
   const [step, setStep] = useState('procedure')
 
@@ -1045,6 +1043,59 @@ export default function Booking() {
     </div>
   )
 
+  // ── Left panel city cards (vertical stack) ───────────────────────────────
+  const renderLeftPanelCards = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {LOCATIONS.map(loc => {
+        const sel = form.city === loc.name
+        const thirdLine = loc.name === 'Online' ? 'WhatsApp · Zoom · Video' : loc.address
+        return (
+          <button
+            key={loc.name}
+            data-testid={`booking-city-${loc.name.toLowerCase()}`}
+            onClick={() => handleSelectCity(loc.name)}
+            style={{
+              position: 'relative', padding: 0, textAlign: 'left',
+              cursor: 'pointer', width: '100%',
+              border: `2px solid ${sel ? '#0d9488' : 'transparent'}`,
+              borderRadius: 16, minHeight: 120, overflow: 'hidden',
+              boxShadow: sel
+                ? '0 0 0 3px rgba(13,148,136,0.25), 0 8px 32px rgba(0,0,0,0.6)'
+                : '0 2px 10px rgba(0,0,0,0.35)',
+              transition: 'all 0.18s',
+            }}>
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${loc.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+            <div style={{ position: 'absolute', inset: 0, background: loc.gradient }} />
+            {sel && <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,148,136,0.12)' }} />}
+            <div style={{ position: 'relative', padding: '1rem', minHeight: 120, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+              <div style={{ fontWeight: 700, fontSize: 24, color: '#fff', lineHeight: 1.1, marginBottom: '0.25rem', textShadow: '0 2px 12px rgba(0,0,0,0.9)' }}>
+                {loc.name}
+              </div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: '0.125rem', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>
+                {loc.subtitle}
+              </div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                {thirdLine}
+              </div>
+            </div>
+            {sel && (
+              <div
+                data-testid={`booking-city-${loc.name.toLowerCase()}-check`}
+                style={{
+                  position: 'absolute', top: 10, right: 10,
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: '#0d9488',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(13,148,136,0.5)',
+                  fontSize: 14, color: '#fff', fontWeight: 700,
+                }}>✓</div>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   // ── Step content ─────────────────────────────────────────────────────────
   const procedureContent = (
     <div style={{ padding:'1rem' }}>
@@ -1478,40 +1529,37 @@ export default function Booking() {
   // ── Right panel footer (desktop) ─────────────────────────────────────────
   const rightFooter = (
     <div style={{ borderTop:`1px solid ${N.border}`, padding:'0.75rem 1rem', background:N.card, flexShrink:0 }}>
-      {deposit && (
-        <div style={{ marginBottom:'0.5rem', display:'flex', alignItems:'center', flexWrap:'wrap', gap:'0.5rem' }}>
-          {deposit.isSameDay && (
-            <span style={{ background:'#2a1810', color:'#ff9966', border:'1px solid #ff9966', borderRadius:20, padding:'4px 10px', fontSize:12, display:'inline-flex', alignItems:'center', whiteSpace:'nowrap' }}>
-              Same-day booking — full payment required
-            </span>
-          )}
-          <span style={{ fontSize:'0.6875rem', color:N.teal, fontWeight:700 }}>
-            Deposit due now: PKR {deposit.amount.toLocaleString()} ({deposit.percent}%)
+      {deposit?.isSameDay && (
+        <div style={{ marginBottom:'0.375rem' }}>
+          <span style={{ background:'#2a1810', color:'#ff9966', border:'1px solid #ff9966', borderRadius:20, padding:'4px 10px', fontSize:12, display:'inline-flex', alignItems:'center', whiteSpace:'nowrap' }}>
+            Same-day booking — full payment required
           </span>
         </div>
       )}
-      <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
-        <div style={{ flex:1, display:'flex', flexWrap:'wrap', alignItems:'center', gap:'0.25rem 0.375rem', minWidth:0 }}>
-          {form.city && <span style={{ fontSize:'0.6875rem', color:N.textDim, fontWeight:600 }}>{form.city}</span>}
-          {form.procedure && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim, fontWeight:600 }}>{form.procedure}</span></>}
-          {form.date && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim }}>{form.date}</span></>}
-          {form.time && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.textDim }}>{form.time}</span></>}
-          {selItem?.price && <><span style={{ fontSize:'0.6875rem', color:N.muted }}>·</span><span style={{ fontSize:'0.6875rem', color:N.teal, fontWeight:700 }}>{selItem.price}</span></>}
-          {!form.city && !form.procedure && <span style={{ fontSize:'0.6875rem', color:N.muted, fontStyle:'italic' }}>Select city to begin</span>}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.5rem' }}>
+        <div style={{ fontSize:'0.6875rem', color:N.muted }}>
+          {form.city && form.procedure
+            ? `${form.city} · ${form.procedure}`
+            : form.city || ''}
         </div>
-        {step !== 'contact' && (
-          <button onClick={handleFooterBtn} disabled={!stepCanContinue}
-            style={{ flexShrink:0, padding:'0.75rem 1.25rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.06)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', transition:'all 0.2s', boxShadow: stepCanContinue ? '0 4px 20px rgba(13,148,136,0.4)' : 'none', whiteSpace:'nowrap' }}>
-            Continue →
-          </button>
+        {deposit && (
+          <div style={{ fontSize:'0.6875rem', color:N.muted }}>
+            {deposit.isSameDay ? 'Full payment: ' : 'Deposit: '}PKR {deposit.amount.toLocaleString()} ({deposit.percent}%)
+          </div>
         )}
       </div>
+      <button
+        data-testid="booking-footer-btn"
+        onClick={handleFooterBtn} disabled={!stepCanContinue}
+        style={{ width:'100%', padding:'0.75rem', border:'none', borderRadius:10, background: stepCanContinue ? '#0d9488' : 'rgba(255,255,255,0.06)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.9rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', transition:'all 0.2s', boxShadow: stepCanContinue ? '0 4px 20px rgba(13,148,136,0.4)' : 'none' }}>
+        {step === 'contact' ? 'Confirm Booking' : 'Continue →'}
+      </button>
     </div>
   )
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <main id="main-content" data-bk-page style={{ minHeight:'100vh', background:'var(--bk-bg, #0d1b2a)', fontFamily:'system-ui,-apple-system,sans-serif', color:N.text, display:'block' }}>
+    <main id="main-content" data-bk-page style={{ height:'100vh', display:'flex', flexDirection:'column', background:'var(--bk-bg, #0d1b2a)', fontFamily:'system-ui,-apple-system,sans-serif', color:N.text, overflow:'hidden' }}>
       <Helmet>
         <title>Book Appointment | Dr. Maleeha Jawaid</title>
         <meta name="description" content="Book your dermatology appointment with Dr. Maleeha. Karachi, Islamabad, or online consultation. Simple booking, confirmed slot, deposit pricing." />
@@ -1533,31 +1581,27 @@ export default function Booking() {
         `}</style>
       </Helmet>
 
-      {/* ── Top bar ── */}
-      <div style={{ background:'var(--bk-bg, #0d1b2a)', borderBottom:`1px solid ${N.border}`, padding:'0.75rem 1.25rem', display:'flex', alignItems:'center', gap:'0.875rem', position:'sticky', top:0, zIndex:Z_INDEX.STICKY_HEADER }}>
+      {/* ── Page header ── */}
+      <div style={{ background:'var(--bk-bg, #0d1b2a)', borderBottom:`1px solid ${N.border}`, padding:'0.75rem 1.25rem', display:'flex', alignItems:'center', gap:'0.875rem', flexShrink:0, zIndex:Z_INDEX.STICKY_HEADER }}>
         <button onClick={() => navigate('/')}
           style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${N.border}`, borderRadius:10, width:36, height:36, cursor:'pointer', color:N.textDim, fontSize:'1.125rem', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>←</button>
-        <div style={{ flex:1 }}>
-          <div style={{ fontWeight:700, fontSize:'0.875rem', color:N.text }}>Book with Dr. Maleeha Jawaid</div>
-          <div style={{ fontSize:'0.5rem', color:N.muted, marginTop:1, textTransform:'uppercase', letterSpacing:'0.06em' }}>
-            {[form.city, form.procedure, form.date].filter(Boolean).join(' › ') || 'In Your Face Aesthetics'}
+        <div style={{ flex:1, textAlign:'center' }}>
+          <div style={{ fontWeight:600, fontSize:'1.25rem', color:'#0d9488' }}>Book with Dr. Maleeha Jawaid</div>
+          <div style={{ fontSize:'0.875rem', color:N.muted, marginTop:2 }}>
+            {form.city && form.procedure
+              ? `${form.city} · ${form.procedure}`
+              : form.city || 'Select a city to begin'}
           </div>
         </div>
-        <button
-          data-testid="patient-status-pill"
-          onClick={() => setBookingType(t => t === 'new' ? 'returning' : 'new')}
-          style={{ padding:'0.3rem 0.875rem', borderRadius:100, border:'none', background: bookingType === 'returning' ? N.teal : 'rgba(255,255,255,0.1)', color: bookingType === 'returning' ? '#fff' : N.muted, fontSize:'0.5rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, transition:'all 0.18s' }}>
-          {bookingType === 'returning' ? 'Returning Patient' : 'New Patient'}
-        </button>
+        <div style={{ width:36, flexShrink:0 }} />
       </div>
 
       {/* ── DESKTOP: two-column split ── */}
       {!isMobile && (
-        <div style={{ display:'flex', height:'calc(100vh - 61px)', overflow:'hidden' }}>
+        <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
 
-          {/* LEFT 40%: city cards, always visible */}
-          <div style={{ width:'40%', flexShrink:0, overflowY:'auto', padding:'1.5rem', borderRight:`1px solid ${N.border}`, background:'var(--bk-bg, #0d1b2a)' }}>
-            <SectionLabel step={1} label="Where are you booking?" done={!!form.city} />
+          {/* LEFT 35%: city cards, sticky */}
+          <div data-testid="booking-left-panel" style={{ width:'35%', flexShrink:0, overflowY:'auto', padding:'1.5rem', borderRight:`1px solid ${N.border}`, background:'var(--bk-bg, #0d1b2a)' }}>
             {!bannerDismissed && lastCity && !form.city && (
               <ReturningCityBanner
                 city={lastCity}
@@ -1565,11 +1609,11 @@ export default function Booking() {
                 onDismiss={() => setBannerDismissed(true)}
               />
             )}
-            {renderCityCards(160)}
+            {renderLeftPanelCards()}
           </div>
 
-          {/* RIGHT 60%: step panel */}
-          <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', background:'var(--bk-card, #111f30)' }}>
+          {/* RIGHT 65%: step panel */}
+          <div data-testid="booking-right-panel" style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', background:'var(--bk-card, #111f30)' }}>
             {rightHeader}
             <div style={{ flex:1, overflowY:'auto' }}>
               <div key={step} style={{ animation:'app-section-in 0.2s ease' }}>
@@ -1586,44 +1630,10 @@ export default function Booking() {
 
       {/* ── MOBILE: single column ── */}
       {isMobile && (
-        <div style={{ padding:'1.25rem 1rem 7rem' }}>
+        <div style={{ flex:1, overflowY:'auto' }}>
 
-          {/* Mobile stepper — full width */}
-          <div data-testid="booking-stepper" style={{ marginBottom:'1.25rem', padding:'0.625rem 0', borderBottom:`1px solid ${N.border}` }}>
-            <div style={{ display:'flex', alignItems:'center', width:'100%' }}>
-              {VISUAL_STEPS.map((vs, i) => [
-                <div key={`mc-${vs.label}`} data-testid="stepper-step" style={{
-                  width:20, height:20, borderRadius:'50%',
-                  background: stepCompletions[i] || i === activeVisualStep ? N.teal : 'rgba(255,255,255,0.07)',
-                  border: `1.5px solid ${stepCompletions[i] || i === activeVisualStep ? N.teal : N.border}`,
-                  color: stepCompletions[i] || i === activeVisualStep ? '#fff' : N.muted,
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  fontSize:'0.4rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
-                }}>
-                  {stepCompletions[i] ? '✓' : i + 1}
-                </div>,
-                i < VISUAL_STEPS.length - 1 && (
-                  <div key={`ml-${vs.label}`} style={{ flex:1, height:1, background: stepCompletions[i] ? N.teal : N.border }} />
-                ),
-              ])}
-            </div>
-            <div style={{ display:'flex', marginTop:3 }}>
-              {VISUAL_STEPS.map((vs, i) => (
-                <div key={`mlbl-${vs.label}`} style={{
-                  flex:1, fontSize:'0.33rem', textAlign:'center',
-                  color: i === activeVisualStep ? N.teal : stepCompletions[i] ? N.teal : N.muted,
-                  fontWeight: i === activeVisualStep ? 700 : 400,
-                  overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                }}>
-                  {vs.label}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* City cards always visible */}
-          <div style={{ marginBottom:'1.5rem' }}>
-            <SectionLabel step={1} label="Where are you booking?" done={!!form.city} />
+          {/* Left panel: city cards */}
+          <div data-testid="booking-left-panel" style={{ padding:'1rem 1rem 0' }}>
             {!bannerDismissed && lastCity && !form.city && (
               <ReturningCityBanner
                 city={lastCity}
@@ -1631,107 +1641,146 @@ export default function Booking() {
                 onDismiss={() => setBannerDismissed(true)}
               />
             )}
-            {renderCityCards(140)}
+            <div style={{ marginBottom:'1.25rem' }}>
+              {renderLeftPanelCards()}
+            </div>
           </div>
 
-          {/* Back link for intake/datetime/contact steps */}
-          {(step === 'intake' || step === 'datetime' || step === 'contact') && (
-            <button onClick={goBack}
-              style={{ display:'flex', alignItems:'center', gap:'0.25rem', background:'none', border:'none', color:N.teal, fontSize:'0.75rem', fontWeight:600, cursor:'pointer', marginBottom:'1rem', padding:0 }}>
-              <ChevronLeft size={14} />
-              {step === 'intake' ? 'Back to Procedure' : step === 'datetime' ? 'Back to Medical Intake' : 'Back to Date & Time'}
-            </button>
-          )}
+          {/* Right panel: stepper + step content */}
+          <div data-testid="booking-right-panel" style={{ padding:'0 1rem 7rem' }}>
 
-          {/* Step content */}
-          <div key={`m-${step}`} style={{ animation:'app-section-in 0.25s ease' }}>
-            {step === 'intake' && intakeContent}
-
-            {step === 'procedure' && (
-              <div>
-                <SectionLabel step={2} label={isOnline ? "What's your concern?" : 'What procedure?'} done={!!form.procedure} />
-                {!form.city ? (
-                  <div style={{ padding:'2rem', textAlign:'center', color:N.muted, fontSize:'0.75rem' }}>
-                    Select a city above to see available procedures.
-                  </div>
-                ) : (
-                  <>
-                    <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
-                      {items.map(item => {
-                        const sel = form.procedure === item.name
-                        return (
-                          <button key={item.name}
-                            data-testid={`booking-procedure-${item.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
-                            onClick={() => handleSelectProcedure(item.name)}
-                            title={`${item.note || item.desc} — ${item.price}`}
-                            style={{
-                              padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
-                              borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
-                              color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400,
-                              fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s',
-                              boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
-                              display:'flex', alignItems:'center', gap:'0.375rem',
-                            }}>
-                            {isOnline && <span style={{ fontSize:'0.875rem' }}>{item.icon}</span>}
-                            <span>{item.name}</span>
-                            {sel && <span style={{ fontSize:'0.65rem', color:N.teal, opacity:0.7 }}>{item.price}</span>}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    {form.procedure && selItem && (
-                      <div style={{ marginTop:'0.75rem', padding:'0.625rem 0.875rem', background:N.tealLight, border:`1px solid ${N.tealBord}`, borderRadius:10, fontSize:'0.625rem', color:N.teal, display:'flex', gap:'1rem' }}>
-                        <span>💰 {selItem.price}</span>
-                        <span>⏱ {selItem.duration}</span>
-                        <span>📋 {selItem.note || selItem.desc}</span>
-                      </div>
-                    )}
-                  </>
-                )}
+            {/* Mobile stepper */}
+            <div data-testid="booking-stepper" style={{ marginBottom:'1.25rem', padding:'0.625rem 0', borderBottom:`1px solid ${N.border}` }}>
+              <div style={{ display:'flex', alignItems:'center', width:'100%' }}>
+                {VISUAL_STEPS.map((vs, i) => [
+                  <div key={`mc-${vs.label}`} data-testid="stepper-step" style={{
+                    width:20, height:20, borderRadius:'50%',
+                    background: stepCompletions[i] || i === activeVisualStep ? N.teal : 'rgba(255,255,255,0.07)',
+                    border: `1.5px solid ${stepCompletions[i] || i === activeVisualStep ? N.teal : N.border}`,
+                    color: stepCompletions[i] || i === activeVisualStep ? '#fff' : N.muted,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontSize:'0.4rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
+                  }}>
+                    {stepCompletions[i] ? '✓' : i + 1}
+                  </div>,
+                  i < VISUAL_STEPS.length - 1 && (
+                    <div key={`ml-${vs.label}`} style={{ flex:1, height:1, background: stepCompletions[i] ? N.teal : N.border }} />
+                  ),
+                ])}
               </div>
+              <div style={{ display:'flex', marginTop:3 }}>
+                {VISUAL_STEPS.map((vs, i) => (
+                  <div key={`mlbl-${vs.label}`} style={{
+                    flex:1, fontSize:'0.33rem', textAlign:'center',
+                    color: i === activeVisualStep ? N.teal : stepCompletions[i] ? N.teal : N.muted,
+                    fontWeight: i === activeVisualStep ? 700 : 400,
+                    overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                  }}>
+                    {vs.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Back link */}
+            {(step === 'intake' || step === 'datetime' || step === 'contact') && (
+              <button onClick={goBack}
+                style={{ display:'flex', alignItems:'center', gap:'0.25rem', background:'none', border:'none', color:N.teal, fontSize:'0.75rem', fontWeight:600, cursor:'pointer', marginBottom:'1rem', padding:0 }}>
+                <ChevronLeft size={14} />
+                {step === 'intake' ? 'Back to Procedure' : step === 'datetime' ? 'Back to Medical Intake' : 'Back to Date & Time'}
+              </button>
             )}
 
-            {step === 'datetime' && (
-              <div>
-                <SectionLabel step={4} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <DateStrip
-                    city={form.city}
-                    selectedDate={form.date ? new Date(form.date + 'T12:00:00') : null}
-                    onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
-                    onOpenPicker={() => setPickerOpen(true)}
-                  />
-                  {form.date && (
-                    <div data-testid="time-slots-section">
-                      <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '10px' }}>
-                        Available times for {new Date(form.date + 'T12:00:00').toLocaleDateString('en-PK', { weekday: 'long', month: 'short', day: 'numeric' })}
-                      </div>
-                      {slots.length === 0 ? (
-                        <div style={{ color: '#9ca3af', fontSize: '13px', padding: '12px', background: '#1a2744', borderRadius: '12px' }}>
-                          Closed on this day. {form.city} sees patients on {getOpenDaysLabel(form.city)}.
-                        </div>
-                      ) : (
-                        <TimeSlotStrip
-                          slots={slots}
-                          selectedSlot={form.timeIso ? { iso: form.timeIso } : null}
-                          onSelect={handleSelectTime}
-                        />
-                      )}
+            {/* Step content */}
+            <div key={`m-${step}`} style={{ animation:'app-section-in 0.25s ease' }}>
+              {step === 'intake' && intakeContent}
+
+              {step === 'procedure' && (
+                <div>
+                  <SectionLabel step={2} label={isOnline ? "What's your concern?" : 'What procedure?'} done={!!form.procedure} />
+                  {!form.city ? (
+                    <div style={{ padding:'2rem', textAlign:'center', color:N.muted, fontSize:'0.75rem' }}>
+                      Select a city above to see available procedures.
                     </div>
+                  ) : (
+                    <>
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
+                        {items.map(item => {
+                          const sel = form.procedure === item.name
+                          return (
+                            <button key={item.name}
+                              data-testid={`booking-procedure-${item.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
+                              onClick={() => handleSelectProcedure(item.name)}
+                              title={`${item.note || item.desc} — ${item.price}`}
+                              style={{
+                                padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
+                                borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
+                                color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400,
+                                fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s',
+                                boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
+                                display:'flex', alignItems:'center', gap:'0.375rem',
+                              }}>
+                              {isOnline && <span style={{ fontSize:'0.875rem' }}>{item.icon}</span>}
+                              <span>{item.name}</span>
+                              {sel && <span style={{ fontSize:'0.65rem', color:N.teal, opacity:0.7 }}>{item.price}</span>}
+                            </button>
+                          )
+                        })}
+                      </div>
+                      {form.procedure && selItem && (
+                        <div style={{ marginTop:'0.75rem', padding:'0.625rem 0.875rem', background:N.tealLight, border:`1px solid ${N.tealBord}`, borderRadius:10, fontSize:'0.625rem', color:N.teal, display:'flex', gap:'1rem' }}>
+                          <span>💰 {selItem.price}</span>
+                          <span>⏱ {selItem.duration}</span>
+                          <span>📋 {selItem.note || selItem.desc}</span>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
-                {pickerOpen && (
-                  <DatePickerModal
-                    city={form.city}
-                    initialDate={form.date ? new Date(form.date + 'T12:00:00') : null}
-                    onClose={() => setPickerOpen(false)}
-                    onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
-                  />
-                )}
-              </div>
-            )}
+              )}
 
-            {step === 'contact' && contactContent}
+              {step === 'datetime' && (
+                <div>
+                  <SectionLabel step={4} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <DateStrip
+                      city={form.city}
+                      selectedDate={form.date ? new Date(form.date + 'T12:00:00') : null}
+                      onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
+                      onOpenPicker={() => setPickerOpen(true)}
+                    />
+                    {form.date && (
+                      <div data-testid="time-slots-section">
+                        <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '10px' }}>
+                          Available times for {new Date(form.date + 'T12:00:00').toLocaleDateString('en-PK', { weekday: 'long', month: 'short', day: 'numeric' })}
+                        </div>
+                        {slots.length === 0 ? (
+                          <div style={{ color: '#9ca3af', fontSize: '13px', padding: '12px', background: '#1a2744', borderRadius: '12px' }}>
+                            Closed on this day. {form.city} sees patients on {getOpenDaysLabel(form.city)}.
+                          </div>
+                        ) : (
+                          <TimeSlotStrip
+                            slots={slots}
+                            selectedSlot={form.timeIso ? { iso: form.timeIso } : null}
+                            onSelect={handleSelectTime}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {pickerOpen && (
+                    <DatePickerModal
+                      city={form.city}
+                      initialDate={form.date ? new Date(form.date + 'T12:00:00') : null}
+                      onClose={() => setPickerOpen(false)}
+                      onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
+                    />
+                  )}
+                </div>
+              )}
+
+              {step === 'contact' && contactContent}
+            </div>
           </div>
         </div>
       )}
@@ -1739,34 +1788,31 @@ export default function Booking() {
       {/* ── Mobile sticky footer ── */}
       {isMobile && (
         <div style={{ position:'fixed', bottom:0, left:0, right:0, background:'rgba(13,27,42,0.97)', backdropFilter:'blur(16px)', borderTop:`1px solid ${N.border}`, padding:'0.75rem 1rem', zIndex:Z_INDEX.FLOATING_BAR }}>
-          {deposit && (
-            <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:'0.375rem', marginBottom:'0.5rem' }}>
-              {deposit.isSameDay && (
-                <span style={{ background:'#2a1810', color:'#ff9966', border:'1px solid #ff9966', borderRadius:20, padding:'4px 10px', fontSize:12, display:'inline-flex', alignItems:'center', whiteSpace:'nowrap' }}>
-                  Same-day booking — full payment required
-                </span>
-              )}
-              <span style={{ fontSize:'0.6875rem', color:N.teal, fontWeight:700 }}>
-                Deposit: PKR {deposit.amount.toLocaleString()} ({deposit.percent}%)
+          {deposit?.isSameDay && (
+            <div style={{ marginBottom:'0.375rem' }}>
+              <span style={{ background:'#2a1810', color:'#ff9966', border:'1px solid #ff9966', borderRadius:20, padding:'4px 10px', fontSize:12, display:'inline-flex', alignItems:'center', whiteSpace:'nowrap' }}>
+                Same-day booking — full payment required
               </span>
             </div>
           )}
-          <div style={{ display:'flex', gap:'0.625rem', alignItems:'center' }}>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:'0.5rem', color:N.muted, marginBottom:1 }}>
-                {[form.city, form.procedure, form.date, form.time].filter(Boolean).join(' · ') || 'Select location to begin'}
-              </div>
-              <div style={{ fontSize:'0.875rem', fontWeight:700, color: selItem ? N.teal : N.muted }}>
-                {selItem?.price || 'Choose options above'}
-              </div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.5rem' }}>
+            <div style={{ fontSize:'0.6875rem', color:N.muted }}>
+              {form.city && form.procedure
+                ? `${form.city} · ${form.procedure}`
+                : form.city || 'Select a city to begin'}
             </div>
-            {step !== 'contact' && (
-              <button onClick={handleFooterBtn} disabled={!stepCanContinue}
-                style={{ flexShrink:0, padding:'0.75rem 1.375rem', border:'none', borderRadius:10, background: stepCanContinue ? N.teal : 'rgba(255,255,255,0.07)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', whiteSpace:'nowrap' }}>
-                Continue →
-              </button>
+            {deposit && (
+              <div style={{ fontSize:'0.6875rem', color:N.muted }}>
+                Deposit: PKR {deposit.amount.toLocaleString()} ({deposit.percent}%)
+              </div>
             )}
           </div>
+          <button
+            data-testid="booking-footer-btn"
+            onClick={handleFooterBtn} disabled={!stepCanContinue}
+            style={{ width:'100%', padding:'0.75rem', border:'none', borderRadius:10, background: stepCanContinue ? '#0d9488' : 'rgba(255,255,255,0.07)', color: stepCanContinue ? '#fff' : N.muted, fontWeight:700, fontSize:'0.875rem', cursor: stepCanContinue ? 'pointer' : 'not-allowed', whiteSpace:'nowrap' }}>
+            {step === 'contact' ? 'Confirm Booking' : 'Continue →'}
+          </button>
         </div>
       )}
     </main>

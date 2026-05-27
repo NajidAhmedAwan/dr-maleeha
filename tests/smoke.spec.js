@@ -990,11 +990,10 @@ test.describe('Batch 9a — Booking UX refresh', () => {
     await expect(steps).toHaveCount(6);
   });
 
-  test('patient status pill appears exactly once', async ({ page }) => {
+  test('patient status pill does not exist (removed in 9b)', async ({ page }) => {
     await page.goto(`${BASE_URL}/booking`);
     const pill = page.locator('[data-testid="patient-status-pill"]');
-    await expect(pill).toHaveCount(1);
-    await expect(pill).toBeVisible();
+    expect(await pill.count()).toBe(0);
   });
 
   test('no video button exists in media section', async ({ page }) => {
@@ -1035,5 +1034,61 @@ test.describe('Batch 9a — Booking UX refresh', () => {
     await expect(page.locator('[data-testid="booking-city-karachi"]')).toBeVisible();
     await expect(page.locator('[data-testid="booking-city-islamabad"]')).toBeVisible();
     await expect(page.locator('[data-testid="booking-city-online"]')).toBeVisible();
+  });
+});
+
+// ── BATCH 9B — SPLIT PANEL LAYOUT ────────────────────────────────────────────
+
+test.describe('Batch 9b — split panel layout', () => {
+  test('patient status pill does not exist', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    expect(await page.locator('[data-testid="patient-status-pill"]').count()).toBe(0);
+  });
+
+  test('left panel exists with 3 city cards', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await expect(page.locator('[data-testid="booking-left-panel"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-city-karachi"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-city-islamabad"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-city-online"]').first()).toBeVisible();
+  });
+
+  test('right panel exists with stepper', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await expect(page.locator('[data-testid="booking-right-panel"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-stepper"]').first()).toBeVisible();
+  });
+
+  test('selecting Karachi shows checkmark badge on card', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.locator('[data-testid="booking-city-karachi"]').first().click();
+    await expect(page.locator('[data-testid="booking-city-karachi-check"]')).toBeVisible();
+    expect(await page.locator('[data-testid="booking-city-islamabad-check"]').count()).toBe(0);
+  });
+
+  test('header shows "Book with Dr. Maleeha Jawaid"', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await expect(page.locator('text=Book with Dr. Maleeha Jawaid').first()).toBeVisible();
+  });
+
+  test('footer Continue button is present', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await expect(page.locator('[data-testid="booking-footer-btn"]').first()).toBeVisible();
+  });
+
+  test.describe('mobile 390px — left panel stacks above right panel', () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test('city cards section appears before stepper in DOM order', async ({ page }) => {
+      await page.goto(`${BASE_URL}/booking`);
+      const leftPanel = page.locator('[data-testid="booking-left-panel"]').first();
+      const stepper   = page.locator('[data-testid="booking-stepper"]').first();
+      await expect(leftPanel).toBeVisible();
+      await expect(stepper).toBeVisible();
+      const leftBox   = await leftPanel.boundingBox();
+      const stepperBox = await stepper.boundingBox();
+      // City cards should be visually above the stepper
+      expect(leftBox.y).toBeLessThan(stepperBox.y);
+    });
   });
 });
