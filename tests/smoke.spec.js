@@ -1001,7 +1001,7 @@ test.describe('Batch 9a — Booking UX refresh', () => {
     await page.goto(`${BASE_URL}/booking`);
     await page.locator('[data-testid="booking-city-karachi"]').first().click();
     await page.locator('[data-testid^="booking-procedure-"]').first().click();
-    const videoButtons = page.locator('button:has-text(/video/i)');
+    const videoButtons = page.getByRole('button', { name: /video/i });
     expect(await videoButtons.count()).toBe(0);
   });
 
