@@ -1255,12 +1255,10 @@ test.describe('Batch 9b.2 — patient type modal', () => {
     await page.waitForSelector('text=Medical Intake');
     // DOB
     await page.locator('input[type="date"]').first().fill('1990-01-01');
-    // Appointment type
-    await page.getByRole('button', { name: 'Initial Consultation' }).click();
-    // Skin concern
-    await page.locator('textarea[placeholder*="main skin concern"]').fill('Fine lines and wrinkles');
-    // Previous treatments
-    await page.locator('textarea[placeholder*="Botox 2023"]').fill('None');
+    // Skin concern dropdown
+    await page.locator('[data-testid="skin-concern-dropdown"]').selectOption('Acne');
+    // Previous treatments — pill buttons, select "None"
+    await page.locator('[data-testid="prev-treatments-dropdown"] button').filter({ hasText: 'None' }).click();
     // Medical history
     await page.locator('textarea[placeholder*="Diabetes"]').fill('None');
     // On medication
@@ -1282,4 +1280,72 @@ test.describe('Batch 9b.2 — patient type modal', () => {
     await expect(page.locator('[data-testid="input-phone"]')).toHaveValue('+923001234567');
     await expect(page.locator('[data-testid="input-email"]')).toHaveValue('sara@example.com');
   });
+});
+
+// ── BATCH 9B.4 — MEDICAL INTAKE BUG FIXES ────────────────────────────────────
+
+test('9b.4: medical intake step renders dropdowns and submits without appt toggle', async ({ page }) => {
+  // 1. Navigate to /booking
+  await page.goto(`${BASE_URL}/booking`);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+
+  // 2. Select Karachi city
+  await page.waitForSelector('[data-testid="booking-city-karachi"]');
+  await page.locator('[data-testid="booking-city-karachi"]').first().click();
+
+  // 3. Select Injectables → Botox
+  await page.waitForSelector('[data-testid="booking-category-injectables"]');
+  await page.locator('[data-testid="booking-category-injectables"]').first().click();
+  await page.waitForSelector('[data-testid="booking-procedure-botox"]');
+  await page.locator('[data-testid="booking-procedure-botox"]').first().click();
+
+  // 4. Assert Medical Intake step is visible
+  await page.waitForSelector('text=/Medical Intake/i');
+
+  // 5. Assert NO appointment type toggle in Medical Intake step
+  await expect(page.getByRole('button', { name: 'Initial Consultation' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Follow-up' })).toHaveCount(0);
+  await expect(page.locator('text=Appointment Type')).toHaveCount(0);
+
+  // 6. Fill DOB
+  await page.locator('input[type="date"]').first().fill('1990-06-15');
+
+  // 7. Assert Skin Concern dropdown visible and clickable
+  await page.waitForSelector('[data-testid="skin-concern-dropdown"]');
+  await expect(page.locator('[data-testid="skin-concern-dropdown"]')).toBeVisible();
+
+  // 8. Open Skin Concern dropdown and select "Acne"
+  await page.locator('[data-testid="skin-concern-dropdown"]').selectOption('Acne');
+  await expect(page.locator('[data-testid="skin-concern-dropdown"]')).toHaveValue('Acne');
+
+  // 9. Assert Previous Treatments dropdown visible and clickable
+  await page.waitForSelector('[data-testid="prev-treatments-dropdown"]');
+  await expect(page.locator('[data-testid="prev-treatments-dropdown"]')).toBeVisible();
+
+  // 10. Select "Botox / Dysport" and "Microneedling" from pill buttons
+  await page.locator('[data-testid="prev-treatments-dropdown"] button').filter({ hasText: 'Botox / Dysport' }).click();
+  await page.locator('[data-testid="prev-treatments-dropdown"] button').filter({ hasText: 'Microneedling' }).click();
+
+  // 11. Assert both selected (buttons have teal border / selected style)
+  const botoxPill = page.locator('[data-testid="prev-treatments-dropdown"] button').filter({ hasText: 'Botox / Dysport' });
+  const microneedlingPill = page.locator('[data-testid="prev-treatments-dropdown"] button').filter({ hasText: 'Microneedling' });
+  await expect(botoxPill).toBeVisible();
+  await expect(microneedlingPill).toBeVisible();
+  // Both should show the checkmark indicating selection
+  await expect(botoxPill).toContainText('✓');
+  await expect(microneedlingPill).toContainText('✓');
+
+  // 12. Fill Medical History
+  await page.locator('textarea[placeholder*="Diabetes"]').fill('None');
+
+  // 13. Select "No" for on medication
+  await page.getByRole('button', { name: 'No', exact: true }).click();
+
+  // 14. Click Continue to advance to datetime step
+  await page.locator('[data-testid="booking-footer-btn"]').click();
+
+  // 15. Assert advanced to datetime step (date strip visible, no validation errors blocking)
+  await page.waitForSelector('[data-testid^="date-pill-"]');
+  await expect(page.locator('[data-testid^="date-pill-"]').first()).toBeVisible();
 });
