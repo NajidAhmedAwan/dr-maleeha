@@ -108,6 +108,15 @@ const PROCEDURES = [
   { name: 'Acne Scar Treatment',note: 'Resurfacing & scar repair',  price: 'From PKR 10,000', priceValue: 10000, duration: '60 min' },
 ]
 
+// Category → sub-procedure mapping for in-clinic booking drill-down.
+// Note: should move to src/data/procedures.js in 9c.
+const PROCEDURE_CATEGORIES = [
+  { name: 'Injectables',     procedures: ['Botox', 'PLLA Threads', 'Lip Fillers', 'Skin Boosters'] },
+  { name: 'Skin Treatments', procedures: ['Chemical Peel', 'Microneedling', 'Hydrafacial', 'PRP Treatment', 'Laser Treatment'] },
+  { name: 'Acne & Scars',    procedures: ['Acne Treatment', 'Acne Scar Treatment'] },
+  { name: 'Consultation',    procedures: ['Consultation'] },
+]
+
 const ONLINE_CONCERNS = [
   { name: 'Acne & Breakouts',  desc: 'Pimples, cysts, blackheads',    icon: '🔬', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
   { name: 'Pigmentation',      desc: 'Dark spots, melasma, uneven',   icon: '🌑', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
@@ -558,6 +567,7 @@ export default function Booking() {
   const [pickerOpen,      setPickerOpen]      = useState(false)
   const [mediaErrors,     setMediaErrors]     = useState([])
   const [showNotesField,  setShowNotesField]  = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768)
@@ -636,7 +646,7 @@ export default function Booking() {
 
   // ── Transitions ─────────────────────────────────────────────────────────
   const goBack = () => {
-    if (step === 'intake') setStep('procedure')
+    if (step === 'intake') { setStep('procedure'); setSelectedCategory(null) }
     else if (step === 'datetime') setStep('intake')
     else if (step === 'contact') setStep('datetime')
   }
@@ -644,6 +654,7 @@ export default function Booking() {
   const handleSelectCity = (name) => {
     setForm(f => ({ ...f, city: name, procedure: '' }))
     setStep('procedure')
+    setSelectedCategory(null)
   }
 
   const handleSelectProcedure = (name) => {
@@ -1104,7 +1115,7 @@ export default function Booking() {
         <div style={{ padding:'2rem', textAlign:'center', color:N.muted, fontSize:'0.75rem' }}>
           Select a city on the left to see available procedures.
         </div>
-      ) : (
+      ) : isOnline ? (
         <>
           <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
             {items.map(item => {
@@ -1113,7 +1124,7 @@ export default function Booking() {
                 <button key={item.name}
                   data-testid={`booking-procedure-${item.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
                   onClick={() => handleSelectProcedure(item.name)}
-                  title={`${item.note || item.desc} — ${item.price}`}
+                  title={`${item.desc} — ${item.price}`}
                   style={{
                     padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
                     borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
@@ -1122,7 +1133,7 @@ export default function Booking() {
                     boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
                     display:'flex', alignItems:'center', gap:'0.375rem',
                   }}>
-                  {isOnline && <span style={{ fontSize:'0.875rem' }}>{item.icon}</span>}
+                  <span style={{ fontSize:'0.875rem' }}>{item.icon}</span>
                   <span>{item.name}</span>
                   {sel && <span style={{ fontSize:'0.65rem', color:N.teal, opacity:0.7 }}>{item.price}</span>}
                 </button>
@@ -1133,7 +1144,73 @@ export default function Booking() {
             <div style={{ marginTop:'0.75rem', padding:'0.625rem 0.875rem', background:N.tealLight, border:`1px solid ${N.tealBord}`, borderRadius:10, fontSize:'0.625rem', color:N.teal, display:'flex', gap:'1rem' }}>
               <span>💰 {selItem.price}</span>
               <span>⏱ {selItem.duration}</span>
-              <span>📋 {selItem.note || selItem.desc}</span>
+              <span>📋 {selItem.desc}</span>
+            </div>
+          )}
+        </>
+      ) : selectedCategory === null ? (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'0.625rem' }}>
+          {PROCEDURE_CATEGORIES.map(cat => (
+            <button
+              key={cat.name}
+              data-testid={`booking-category-${cat.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
+              onClick={() => setSelectedCategory(cat.name)}
+              style={{
+                padding:'1.25rem 1rem', border:`1.5px solid ${N.border}`,
+                borderRadius:14, background:N.card, color:N.text,
+                cursor:'pointer', textAlign:'left', transition:'all 0.18s',
+                boxShadow:'0 2px 10px rgba(0,0,0,0.35)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = N.borderHov; e.currentTarget.style.background = N.cardHov }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = N.border; e.currentTarget.style.background = N.card }}
+            >
+              <div style={{ fontWeight:700, fontSize:'0.875rem', color:N.text }}>{cat.name}</div>
+              <div style={{ fontSize:'0.5625rem', color:N.muted, marginTop:'0.25rem' }}>
+                {cat.procedures.length} treatment{cat.procedures.length !== 1 ? 's' : ''}
+              </div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <>
+          <button
+            data-testid="booking-back-to-categories"
+            onClick={() => setSelectedCategory(null)}
+            style={{ display:'flex', alignItems:'center', gap:'0.25rem', background:'none', border:'none', color:N.teal, fontSize:'0.75rem', fontWeight:600, cursor:'pointer', marginBottom:'0.875rem', padding:0 }}>
+            <ChevronLeft size={14} />
+            Back to categories
+          </button>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
+            {PROCEDURE_CATEGORIES.find(c => c.name === selectedCategory)?.procedures
+              .map(name => PROCEDURES.find(p => p.name === name))
+              .filter(Boolean)
+              .map(item => {
+                const sel = form.procedure === item.name
+                return (
+                  <button key={item.name}
+                    data-testid={`booking-procedure-${item.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
+                    onClick={() => handleSelectProcedure(item.name)}
+                    title={`${item.note} — ${item.price}`}
+                    style={{
+                      padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
+                      borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
+                      color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400,
+                      fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s',
+                      boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
+                      display:'flex', alignItems:'center', gap:'0.375rem',
+                    }}>
+                    <span>{item.name}</span>
+                    {sel && <span style={{ fontSize:'0.65rem', color:N.teal, opacity:0.7 }}>{item.price}</span>}
+                  </button>
+                )
+              })
+            }
+          </div>
+          {form.procedure && selItem && (
+            <div style={{ marginTop:'0.75rem', padding:'0.625rem 0.875rem', background:N.tealLight, border:`1px solid ${N.tealBord}`, borderRadius:10, fontSize:'0.625rem', color:N.teal, display:'flex', gap:'1rem' }}>
+              <span>💰 {selItem.price}</span>
+              <span>⏱ {selItem.duration}</span>
+              <span>📋 {selItem.note}</span>
             </div>
           )}
         </>
@@ -1702,7 +1779,7 @@ export default function Booking() {
                     <div style={{ padding:'2rem', textAlign:'center', color:N.muted, fontSize:'0.75rem' }}>
                       Select a city above to see available procedures.
                     </div>
-                  ) : (
+                  ) : isOnline ? (
                     <>
                       <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
                         {items.map(item => {
@@ -1711,7 +1788,7 @@ export default function Booking() {
                             <button key={item.name}
                               data-testid={`booking-procedure-${item.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
                               onClick={() => handleSelectProcedure(item.name)}
-                              title={`${item.note || item.desc} — ${item.price}`}
+                              title={`${item.desc} — ${item.price}`}
                               style={{
                                 padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
                                 borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
@@ -1720,7 +1797,7 @@ export default function Booking() {
                                 boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
                                 display:'flex', alignItems:'center', gap:'0.375rem',
                               }}>
-                              {isOnline && <span style={{ fontSize:'0.875rem' }}>{item.icon}</span>}
+                              <span style={{ fontSize:'0.875rem' }}>{item.icon}</span>
                               <span>{item.name}</span>
                               {sel && <span style={{ fontSize:'0.65rem', color:N.teal, opacity:0.7 }}>{item.price}</span>}
                             </button>
@@ -1731,7 +1808,73 @@ export default function Booking() {
                         <div style={{ marginTop:'0.75rem', padding:'0.625rem 0.875rem', background:N.tealLight, border:`1px solid ${N.tealBord}`, borderRadius:10, fontSize:'0.625rem', color:N.teal, display:'flex', gap:'1rem' }}>
                           <span>💰 {selItem.price}</span>
                           <span>⏱ {selItem.duration}</span>
-                          <span>📋 {selItem.note || selItem.desc}</span>
+                          <span>📋 {selItem.desc}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : selectedCategory === null ? (
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.625rem' }}>
+                      {PROCEDURE_CATEGORIES.map(cat => (
+                        <button
+                          key={cat.name}
+                          data-testid={`booking-category-${cat.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
+                          onClick={() => setSelectedCategory(cat.name)}
+                          style={{
+                            padding:'1.25rem 1rem', border:`1.5px solid ${N.border}`,
+                            borderRadius:14, background:N.card, color:N.text,
+                            cursor:'pointer', textAlign:'left', transition:'all 0.18s',
+                            boxShadow:'0 2px 10px rgba(0,0,0,0.35)',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = N.borderHov; e.currentTarget.style.background = N.cardHov }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = N.border; e.currentTarget.style.background = N.card }}
+                        >
+                          <div style={{ fontWeight:700, fontSize:'0.875rem', color:N.text }}>{cat.name}</div>
+                          <div style={{ fontSize:'0.5625rem', color:N.muted, marginTop:'0.25rem' }}>
+                            {cat.procedures.length} treatment{cat.procedures.length !== 1 ? 's' : ''}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        data-testid="booking-back-to-categories"
+                        onClick={() => setSelectedCategory(null)}
+                        style={{ display:'flex', alignItems:'center', gap:'0.25rem', background:'none', border:'none', color:N.teal, fontSize:'0.75rem', fontWeight:600, cursor:'pointer', marginBottom:'0.875rem', padding:0 }}>
+                        <ChevronLeft size={14} />
+                        Back to categories
+                      </button>
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem' }}>
+                        {PROCEDURE_CATEGORIES.find(c => c.name === selectedCategory)?.procedures
+                          .map(name => PROCEDURES.find(p => p.name === name))
+                          .filter(Boolean)
+                          .map(item => {
+                            const sel = form.procedure === item.name
+                            return (
+                              <button key={item.name}
+                                data-testid={`booking-procedure-${item.name.toLowerCase().replace(/[\s&]+/g,'-')}`}
+                                onClick={() => handleSelectProcedure(item.name)}
+                                title={`${item.note} — ${item.price}`}
+                                style={{
+                                  padding:'0.5rem 1rem', border:`1.5px solid ${sel ? N.teal : N.border}`,
+                                  borderRadius:100, background: sel ? N.tealLight : 'rgba(255,255,255,0.03)',
+                                  color: sel ? N.teal : N.textDim, fontWeight: sel ? 700 : 400,
+                                  fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s',
+                                  boxShadow: sel ? `0 0 0 3px ${N.tealGlow}` : 'none',
+                                  display:'flex', alignItems:'center', gap:'0.375rem',
+                                }}>
+                                <span>{item.name}</span>
+                                {sel && <span style={{ fontSize:'0.65rem', color:N.teal, opacity:0.7 }}>{item.price}</span>}
+                              </button>
+                            )
+                          })
+                        }
+                      </div>
+                      {form.procedure && selItem && (
+                        <div style={{ marginTop:'0.75rem', padding:'0.625rem 0.875rem', background:N.tealLight, border:`1px solid ${N.tealBord}`, borderRadius:10, fontSize:'0.625rem', color:N.teal, display:'flex', gap:'1rem' }}>
+                          <span>💰 {selItem.price}</span>
+                          <span>⏱ {selItem.duration}</span>
+                          <span>📋 {selItem.note}</span>
                         </div>
                       )}
                     </>

@@ -1037,6 +1037,56 @@ test.describe('Batch 9a — Booking UX refresh', () => {
   });
 });
 
+// ── BATCH 9B.1 — PROCEDURE CATEGORY DRILL-DOWN ───────────────────────────────
+
+test.describe('Batch 9b.1 — procedure category drill-down', () => {
+  test('9b.1: procedure step shows categories, drills to sub-procedure, back works', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+
+    // Select Islamabad (in-clinic city triggers category view)
+    await page.locator('[data-testid="booking-city-islamabad"]').first().click();
+
+    // Assert exactly 4 category cards visible
+    await page.waitForSelector('[data-testid="booking-category-injectables"]');
+    await expect(page.locator('[data-testid="booking-category-injectables"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-category-skin-treatments"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-category-acne-scars"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-category-consultation"]').first()).toBeVisible();
+
+    // Click Injectables
+    await page.locator('[data-testid="booking-category-injectables"]').first().click();
+
+    // Assert Injectables sub-procedures visible
+    await page.waitForSelector('[data-testid="booking-procedure-botox"]');
+    await expect(page.locator('[data-testid="booking-procedure-botox"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-procedure-plla-threads"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-procedure-lip-fillers"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-procedure-skin-boosters"]').first()).toBeVisible();
+
+    // Assert Back button visible
+    await expect(page.locator('[data-testid="booking-back-to-categories"]').first()).toBeVisible();
+
+    // Click Back — assert all 4 categories reappear
+    await page.locator('[data-testid="booking-back-to-categories"]').first().click();
+    await page.waitForSelector('[data-testid="booking-category-injectables"]');
+    await expect(page.locator('[data-testid="booking-category-injectables"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-category-skin-treatments"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-category-acne-scars"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="booking-category-consultation"]').first()).toBeVisible();
+
+    // Drill into Skin Treatments and select Hydrafacial
+    await page.locator('[data-testid="booking-category-skin-treatments"]').first().click();
+    await page.waitForSelector('[data-testid="booking-procedure-hydrafacial"]');
+    await page.locator('[data-testid="booking-procedure-hydrafacial"]').first().click();
+
+    // Assert advanced to next step (Medical Intake)
+    await page.waitForSelector('text=/Medical Intake/i');
+    await expect(page.locator('text=/Medical Intake/i').first()).toBeVisible();
+  });
+});
+
 // ── BATCH 9B — SPLIT PANEL LAYOUT ────────────────────────────────────────────
 
 test.describe('Batch 9b — split panel layout', () => {
