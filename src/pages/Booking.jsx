@@ -19,17 +19,17 @@ import DateStrip from '../components/DateStrip'
 import DatePickerModal from '../components/DatePickerModal'
 import TimeSlotStrip from '../components/TimeSlotStrip'
 
-// ── Color tokens (dark navy theme) ────────────────────────────────────────────
+// ── Color tokens — theme-sensitive values use CSS vars for light/dark switching
 const N = {
-  bg:        '#0d1b2a',
-  card:      '#111f30',
-  cardHov:   '#162840',
-  border:    'rgba(255,255,255,0.08)',
-  borderHov: 'rgba(255,255,255,0.18)',
+  bg:        'var(--bk-bg, #0d1b2a)',
+  card:      'var(--bk-card, #111f30)',
+  cardHov:   'var(--bk-card-hov, #162840)',
+  border:    'var(--bk-border, rgba(255,255,255,0.08))',
+  borderHov: 'var(--bk-border-hov, rgba(255,255,255,0.18))',
   borderSel: '#0a6e66',
-  text:      '#e2e8f0',
-  textDim:   'rgba(255,255,255,0.6)',
-  muted:     'rgba(255,255,255,0.55)',
+  text:      'var(--bk-text, #e2e8f0)',
+  textDim:   'var(--bk-text-dim, rgba(255,255,255,0.6))',
+  muted:     'var(--bk-muted, rgba(255,255,255,0.55))',
   teal:      '#0a6e66',
   tealLight: 'rgba(13,148,136,0.14)',
   tealBord:  'rgba(13,148,136,0.4)',
@@ -1672,15 +1672,23 @@ export default function Booking() {
           [data-bk-page] {
             --bk-bg: #0d1b2a;
             --bk-card: #111f30;
+            --bk-card-hov: #162840;
             --bk-text: #e2e8f0;
+            --bk-text-dim: rgba(255,255,255,0.6);
+            --bk-muted: rgba(255,255,255,0.55);
             --bk-border: rgba(255,255,255,0.08);
+            --bk-border-hov: rgba(255,255,255,0.18);
           }
           @media (prefers-color-scheme: light) {
             [data-bk-page] {
               --bk-bg: #ffffff;
-              --bk-card: #f8f8f8;
-              --bk-text: #1a1a1a;
-              --bk-border: rgba(0,0,0,0.08);
+              --bk-card: #f5f5f5;
+              --bk-card-hov: #ebebeb;
+              --bk-text: #0d1b2a;
+              --bk-text-dim: rgba(0,0,0,0.65);
+              --bk-muted: #64748b;
+              --bk-border: rgba(0,0,0,0.10);
+              --bk-border-hov: rgba(0,0,0,0.20);
             }
           }
         `}</style>
