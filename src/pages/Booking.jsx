@@ -1593,27 +1593,32 @@ export default function Booking() {
         )}
         <div data-testid="booking-stepper" style={{ flex:1, minWidth:0 }}>
           <div style={{ display:'flex', alignItems:'center', width:'100%' }}>
-            {VISUAL_STEPS.map((vs, i) => [
-              <div key={`c-${vs.label}`} data-testid="stepper-step" style={{
-                width:22, height:22, borderRadius:'50%',
-                background: stepCompletions[i] || i === activeVisualStep ? N.teal : 'rgba(255,255,255,0.07)',
-                border: `1.5px solid ${stepCompletions[i] || i === activeVisualStep ? N.teal : N.border}`,
-                color: stepCompletions[i] || i === activeVisualStep ? '#fff' : N.muted,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                fontSize:'0.45rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
-              }}>
-                {stepCompletions[i] ? '✓' : i + 1}
-              </div>,
-              i < VISUAL_STEPS.length - 1 && (
-                <div key={`l-${vs.label}`} style={{ flex:1, height:1, background: stepCompletions[i] ? N.teal : N.border }} />
-              ),
-            ])}
+            {VISUAL_STEPS.map((vs, i) => {
+              const state = stepCompletions[i] ? 'completed' : i === activeVisualStep ? 'active' : 'pending'
+              return [
+                <div key={`c-${vs.label}`} data-testid="stepper-step" data-state={state} style={{
+                  width:32, height:32, borderRadius:'50%',
+                  background: state === 'active' ? N.teal : 'transparent',
+                  border: state === 'pending' ? `1px solid ${N.muted}` : `2px solid ${N.teal}`,
+                  color: state === 'active' ? '#fff' : state === 'completed' ? N.teal : N.muted,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:'0.75rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
+                }}>
+                  {state === 'completed'
+                    ? <svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#0a6e66" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    : i + 1}
+                </div>,
+                i < VISUAL_STEPS.length - 1 && (
+                  <div key={`l-${vs.label}`} style={{ flex:1, height:2, background: stepCompletions[i] ? N.teal : N.border }} />
+                ),
+              ]
+            })}
           </div>
-          <div style={{ display:'flex', marginTop:4 }}>
+          <div style={{ display:'flex', marginTop:6 }}>
             {VISUAL_STEPS.map((vs, i) => (
               <div key={`lbl-${vs.label}`} style={{
-                flex:1, fontSize:'0.38rem', textAlign:'center',
-                color: i === activeVisualStep ? N.teal : stepCompletions[i] ? N.teal : N.muted,
+                flex:1, fontSize:'0.875rem', textAlign:'center',
+                color: i === activeVisualStep ? N.teal : stepCompletions[i] ? N.text : N.muted,
                 fontWeight: i === activeVisualStep ? 700 : 400,
                 overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
               }}>
@@ -1752,27 +1757,32 @@ export default function Booking() {
             {/* Mobile stepper */}
             <div data-testid="booking-stepper" style={{ marginBottom:'1.25rem', padding:'0.625rem 0', borderBottom:`1px solid ${N.border}` }}>
               <div style={{ display:'flex', alignItems:'center', width:'100%' }}>
-                {VISUAL_STEPS.map((vs, i) => [
-                  <div key={`mc-${vs.label}`} data-testid="stepper-step" style={{
-                    width:20, height:20, borderRadius:'50%',
-                    background: stepCompletions[i] || i === activeVisualStep ? N.teal : 'rgba(255,255,255,0.07)',
-                    border: `1.5px solid ${stepCompletions[i] || i === activeVisualStep ? N.teal : N.border}`,
-                    color: stepCompletions[i] || i === activeVisualStep ? '#fff' : N.muted,
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                    fontSize:'0.4rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
-                  }}>
-                    {stepCompletions[i] ? '✓' : i + 1}
-                  </div>,
-                  i < VISUAL_STEPS.length - 1 && (
-                    <div key={`ml-${vs.label}`} style={{ flex:1, height:1, background: stepCompletions[i] ? N.teal : N.border }} />
-                  ),
-                ])}
+                {VISUAL_STEPS.map((vs, i) => {
+                  const state = stepCompletions[i] ? 'completed' : i === activeVisualStep ? 'active' : 'pending'
+                  return [
+                    <div key={`mc-${vs.label}`} data-testid="stepper-step" data-state={state} style={{
+                      width:32, height:32, borderRadius:'50%',
+                      background: state === 'active' ? N.teal : 'transparent',
+                      border: state === 'pending' ? `1px solid ${N.muted}` : `2px solid ${N.teal}`,
+                      color: state === 'active' ? '#fff' : state === 'completed' ? N.teal : N.muted,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:'0.75rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
+                    }}>
+                      {state === 'completed'
+                        ? <svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#0a6e66" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        : i + 1}
+                    </div>,
+                    i < VISUAL_STEPS.length - 1 && (
+                      <div key={`ml-${vs.label}`} style={{ flex:1, height:2, background: stepCompletions[i] ? N.teal : N.border }} />
+                    ),
+                  ]
+                })}
               </div>
-              <div style={{ display:'flex', marginTop:3 }}>
+              <div style={{ display:'flex', marginTop:6 }}>
                 {VISUAL_STEPS.map((vs, i) => (
                   <div key={`mlbl-${vs.label}`} style={{
-                    flex:1, fontSize:'0.33rem', textAlign:'center',
-                    color: i === activeVisualStep ? N.teal : stepCompletions[i] ? N.teal : N.muted,
+                    flex:1, fontSize:'0.875rem', textAlign:'center',
+                    color: i === activeVisualStep ? N.teal : stepCompletions[i] ? N.text : N.muted,
                     fontWeight: i === activeVisualStep ? 700 : 400,
                     overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
                   }}>
