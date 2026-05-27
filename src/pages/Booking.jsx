@@ -1085,7 +1085,7 @@ export default function Booking() {
 
   // ── Left panel city cards (vertical stack) ───────────────────────────────
   const renderLeftPanelCards = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.625rem' }}>
       {LOCATIONS.map(loc => {
         const sel = form.city === loc.name
         const thirdLine = loc.name === 'Online' ? 'WhatsApp · Zoom · Video' : loc.address
