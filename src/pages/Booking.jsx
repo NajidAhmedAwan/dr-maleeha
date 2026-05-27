@@ -13,6 +13,7 @@ import ContactForm from '../components/ContactForm'
 import { saveConfirmed } from '../utils/bookingStorage'
 import { dateKey } from '../utils/dashboardData'
 import { getLastBookingCity } from '../utils/lastBookingHint'
+import { usePatient } from '../context/PatientContext'
 import ReturningCityBanner from '../components/ReturningCityBanner'
 import DateStrip from '../components/DateStrip'
 import DatePickerModal from '../components/DatePickerModal'
@@ -523,6 +524,7 @@ const MAX_DOB_STR = (() => {
 export default function Booking() {
   const navigate  = useNavigate()
   const routerLoc = useLocation()
+  const { prefillData, clearPatient } = usePatient()
   // State machine: 'procedure' | 'datetime' | 'contact' | 'confirmation'
   const [step, setStep] = useState('procedure')
 
@@ -592,6 +594,27 @@ export default function Booking() {
     const detected = Intl.DateTimeFormat().resolvedOptions().timeZone
     if (detected) set('intakeTimezone', detected)
   }, [])
+
+  // Apply prefill from PatientContext on mount (returning patient flow)
+  useEffect(() => {
+    if (!prefillData) return
+    setForm(f => ({
+      ...f,
+      name:  prefillData.name  ?? f.name,
+      phone: prefillData.phone ?? f.phone,
+      email: prefillData.email ?? f.email,
+    }))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear patient context when navigating away from /booking
+  useEffect(() => {
+    return () => clearPatient()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear patient context after successful booking
+  useEffect(() => {
+    if (step === 'confirmation') clearPatient()
+  }, [step]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const set    = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const clearE = k      => setErrors(e => { const n = { ...e }; delete n[k]; return n })
