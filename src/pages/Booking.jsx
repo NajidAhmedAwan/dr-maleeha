@@ -84,7 +84,7 @@ const LOCATIONS = [
     id: 'online',
     name: 'Online',
     accent: '#34d399',
-    subtitle: 'WhatsApp · Zoom · Video',
+    subtitle: 'WhatsApp · Zoom Consultation',
     address: 'Anywhere',
     days: 'Flexible scheduling',
     icon: '💻',
@@ -1587,6 +1587,39 @@ export default function Booking() {
       {/* ── MOBILE: single column ── */}
       {isMobile && (
         <div style={{ padding:'1.25rem 1rem 7rem' }}>
+
+          {/* Mobile stepper — full width */}
+          <div data-testid="booking-stepper" style={{ marginBottom:'1.25rem', padding:'0.625rem 0', borderBottom:`1px solid ${N.border}` }}>
+            <div style={{ display:'flex', alignItems:'center', width:'100%' }}>
+              {VISUAL_STEPS.map((vs, i) => [
+                <div key={`mc-${vs.label}`} data-testid="stepper-step" style={{
+                  width:20, height:20, borderRadius:'50%',
+                  background: stepCompletions[i] || i === activeVisualStep ? N.teal : 'rgba(255,255,255,0.07)',
+                  border: `1.5px solid ${stepCompletions[i] || i === activeVisualStep ? N.teal : N.border}`,
+                  color: stepCompletions[i] || i === activeVisualStep ? '#fff' : N.muted,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:'0.4rem', fontWeight:800, flexShrink:0, transition:'all 0.2s',
+                }}>
+                  {stepCompletions[i] ? '✓' : i + 1}
+                </div>,
+                i < VISUAL_STEPS.length - 1 && (
+                  <div key={`ml-${vs.label}`} style={{ flex:1, height:1, background: stepCompletions[i] ? N.teal : N.border }} />
+                ),
+              ])}
+            </div>
+            <div style={{ display:'flex', marginTop:3 }}>
+              {VISUAL_STEPS.map((vs, i) => (
+                <div key={`mlbl-${vs.label}`} style={{
+                  flex:1, fontSize:'0.33rem', textAlign:'center',
+                  color: i === activeVisualStep ? N.teal : stepCompletions[i] ? N.teal : N.muted,
+                  fontWeight: i === activeVisualStep ? 700 : 400,
+                  overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                }}>
+                  {vs.label}
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* City cards always visible */}
           <div style={{ marginBottom:'1.5rem' }}>
