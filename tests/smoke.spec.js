@@ -963,7 +963,7 @@ test.describe('Booking — mobile-first UX (Batch 7)', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await page.locator('[data-testid^="date-pill-"]').nth(3).click();
+    await page.locator('[data-testid^="date-pill-"]:not([disabled])').first().click();
     const hasHorizontalScroll = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
     );
