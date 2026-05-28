@@ -1091,7 +1091,7 @@ export default function Booking() {
     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.625rem' }}>
       {LOCATIONS.map(loc => {
         const sel = form.city === loc.name
-        const thirdLine = loc.name === 'Online' ? 'WhatsApp · Zoom · Video' : loc.address
+        const thirdLine = loc.address
         return (
           <button
             key={loc.name}

@@ -803,52 +803,6 @@ test.describe('Mobile viewport — booking flow (390px)', () => {
   });
 });
 
-// ── BOOKING — RETURNING PATIENT LOOKUP (Batch 6) ─────────────────────────────
-
-test.describe('Booking — returning patient lookup (Batch 6)', () => {
-  async function navigateToContactStep(page) {
-    await page.goto(`${BASE_URL}/booking`);
-    await page.locator('[data-testid="booking-city-karachi"]').first().click();
-    await page.waitForSelector('[data-testid="booking-category-injectables"]');
-    await page.locator('[data-testid="booking-category-injectables"]').first().click();
-    await page.waitForSelector('[data-testid="booking-procedure-botox"]');
-    await page.locator('[data-testid="booking-procedure-botox"]').first().click();
-    await fillIntakeAndContinue(page);
-    const future = new Date();
-    future.setDate(future.getDate() + 5);
-    await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
-    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
-    await page.waitForSelector('[data-testid="contact-form"]');
-  }
-
-  test.skip('Toggle reveals reference lookup panel', async ({ page }) => {
-    // TODO: ReturningPatientToggle component (src/components/ReturningPatientToggle.jsx) is no longer
-    // imported or rendered in Booking.jsx. The returning-patient-panel feature was replaced by the
-    // 9b.2 homepage MAL modal flow (hero-book-cta → patient-type-returning → mal-input).
-    // Either re-wire ReturningPatientToggle into the contact form, or remove these tests entirely.
-    // Tracked for follow-up.
-  });
-
-  test.skip('Valid mock reference (MAL-1042) pre-fills Sara Khan', async ({ page }) => {
-    // TODO: see "Toggle reveals reference lookup panel" — ReturningPatientToggle not wired in Booking.jsx.
-  });
-
-  test.skip('Invalid reference shows not-found message', async ({ page }) => {
-    // TODO: see "Toggle reveals reference lookup panel" — ReturningPatientToggle not wired in Booking.jsx.
-  });
-
-  test.skip('Loose reference format "1156" normalizes to MAL-1156 and finds Fatima', async ({ page }) => {
-    // TODO: see "Toggle reveals reference lookup panel" — ReturningPatientToggle not wired in Booking.jsx.
-  });
-
-  test.skip('After lookup, returning patient can submit booking end-to-end', async ({ page }) => {
-    // TODO: see "Toggle reveals reference lookup panel" — ReturningPatientToggle not wired in Booking.jsx.
-  });
-
-  test.skip('Real booking reference is lookable after being saved', async ({ page }) => {
-    // TODO: see "Toggle reveals reference lookup panel" — ReturningPatientToggle not wired in Booking.jsx.
-  });
-});
 
 // ── BOOKING — MOBILE-FIRST UX (Batch 7) ──────────────────────────────────────
 
@@ -1042,16 +996,44 @@ test.describe('Booking — end-to-end happy paths (Batch 6)', () => {
     await expect(addressLinks).toHaveCount(0);
   });
 
-  test.skip('Path C — Islamabad Acne Treatment with media upload', async ({ page }) => {
-    // TODO: booking-media-upload moved from contact step to intake step in 9a.2.
-    // Either move media upload back to contact, or update this test to upload during intake.
-    // Tracked for follow-up.
-    await navigateToContact(page, {
-      city: 'Islamabad',
-      procedureTestId: 'booking-procedure-acne-treatment',
-    });
-    const fileInput = page.locator('[data-testid="booking-media-upload"]');
-    await fileInput.setInputFiles('./tests/fixtures/test-photo.jpg');
+  test('Path C — Islamabad Acne Treatment with media upload', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+
+    // Navigate to Islamabad → Acne Scars → Acne Treatment
+    await page.locator('[data-testid="booking-city-islamabad"]').first().click();
+    await page.waitForSelector('[data-testid="booking-category-acne-scars"]');
+    await page.locator('[data-testid="booking-category-acne-scars"]').first().click();
+    await page.waitForSelector('[data-testid="booking-procedure-acne-treatment"]');
+    await page.locator('[data-testid="booking-procedure-acne-treatment"]').first().click();
+
+    // Fill Medical Intake step — upload photo before clicking Continue
+    await page.waitForSelector('text=/Medical Intake/i');
+    await page.locator('input[type="date"]').first().fill('1990-01-01');
+    await page.locator('[data-testid="skin-concern-dropdown"]').selectOption('Acne');
+    await page.locator('[data-testid="prev-treatments-dropdown"] button').filter({ hasText: 'None' }).click();
+    await page.locator('textarea[placeholder*="Diabetes"]').fill('None');
+    await page.getByRole('button', { name: 'No', exact: true }).click();
+    await page.locator('[data-testid="booking-media-upload"]').setInputFiles('./tests/fixtures/test-photo.jpg');
+    await page.locator('[data-testid="booking-footer-btn"]').click();
+    await page.waitForSelector('[data-testid^="date-pill-"]');
+
+    // Islamabad: pick next Mon/Wed/Fri slot
+    const candidates = [2, 4, 6].map(nextWeekday).sort((a, b) => a - b);
+    const nearest = candidates[0];
+    const key = `${nearest.getFullYear()}-${String(nearest.getMonth()+1).padStart(2,'0')}-${String(nearest.getDate()).padStart(2,'0')}`;
+    const datePill = page.locator(`[data-testid="date-pill-${key}"]`);
+    const visible = await datePill.isVisible().catch(() => false);
+    if (!visible) {
+      await page.locator('[data-testid="open-date-picker"]').click();
+      await page.locator(`[data-testid="picker-day-${key}"]`).dispatchEvent('click');
+    } else {
+      await datePill.click();
+    }
+    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+    await page.waitForSelector('[data-testid="contact-form"]');
+
     await page.locator('[data-testid="input-name"]').fill('Zara Sheikh');
     await page.locator('[data-testid="input-phone"]').fill('03456667777');
     await page.locator('[data-testid="input-email"]').fill('zara@example.com');
@@ -1080,11 +1062,18 @@ test.describe('Batch 9a — Booking UX refresh', () => {
     expect(await pill.count()).toBe(0);
   });
 
-  test.skip('no video button exists in media section', async ({ page }) => {
-    // TODO: IntakeMediaRecorder (added in 9a.2) adds a video recording button to the intake step.
-    // This test's assertion (0 video buttons) is now false after the category drill-down is added
-    // and we land on the intake step. Decide whether to remove the recorder or update the assertion.
-    // Tracked for follow-up.
+  test('no video button exists in media section', async ({ page }) => {
+    await page.goto(`${BASE_URL}/booking`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.locator('[data-testid="booking-city-karachi"]').first().click();
+    await page.waitForSelector('[data-testid="booking-category-injectables"]');
+    await page.locator('[data-testid="booking-category-injectables"]').first().click();
+    await page.waitForSelector('[data-testid="booking-procedure-botox"]');
+    await page.locator('[data-testid="booking-procedure-botox"]').first().click();
+    await page.waitForSelector('text=/Medical Intake/i');
+    const videoButtons = page.locator('button').filter({ hasText: /video/i });
+    expect(await videoButtons.count()).toBe(0);
   });
 
   test('medication textarea NOT visible by default', async ({ page }) => {
