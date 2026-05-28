@@ -1,6 +1,9 @@
 // Mock availability slots shaped to match the planned Supabase availability_slots table.
 // All slots generated from today forward ~60 days; structured for easy Supabase migration.
 
+import { isHoliday } from './holidays.js'
+import { isManuallyBlocked } from './manualBlocks.js'
+
 const CLINIC_CONFIG = {
   karachi:   { openDays: [1,2,3,4,5,6], startHour: 10, endHour: 18 },
   islamabad: { openDays: [2,4,6],       startHour: 11, endHour: 17 },
@@ -65,6 +68,7 @@ function generateSlots(days = 60) {
 export const MOCK_SLOTS = generateSlots(60)
 
 export function getSlotsForClinicAndDate(clinic, date) {
+  if (isHoliday(date) || isManuallyBlocked(date)) return []
   const ct = clinic.toLowerCase()
   return MOCK_SLOTS.filter(s => s.clinic_type === ct && s.date === date)
 }

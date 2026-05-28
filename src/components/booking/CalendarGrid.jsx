@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { isHoliday } from '../../data/holidays.js'
+import { isManuallyBlocked } from '../../data/manualBlocks.js'
 
 const MONTH_NAMES = [
   'January','February','March','April','May','June',
@@ -131,12 +133,15 @@ export default function CalendarGrid({ slots, selectedDate, onSelectDate }) {
         {cells.map((d, i) => {
           if (!d) return <div key={`e-${i}`} />
 
-          const ds         = toDateStr(viewYear, viewMonth, d)
-          const isPast     = ds < todayStr
-          const isToday    = ds === todayStr
-          const hasSlots   = availableDates.has(ds)
-          const isSelected = ds === selectedDate
-          const disabled   = isPast || !hasSlots
+          const ds           = toDateStr(viewYear, viewMonth, d)
+          const isPast       = ds < todayStr
+          const isToday      = ds === todayStr
+          const hasSlots     = availableDates.has(ds)
+          const isSelected   = ds === selectedDate
+          const holiday      = isHoliday(ds)
+          const block        = isManuallyBlocked(ds)
+          const blockedReason = holiday?.name || block?.reason || null
+          const disabled     = isPast || !hasSlots || !!blockedReason
 
           let bg     = 'transparent'
           let color  = N.text
@@ -152,6 +157,7 @@ export default function CalendarGrid({ slots, selectedDate, onSelectDate }) {
               data-testid={`date-pill-${ds}`}
               disabled={disabled}
               aria-disabled={disabled}
+              title={blockedReason || undefined}
               onClick={() => !disabled && onSelectDate(ds)}
               style={{
                 position: 'relative',
@@ -167,7 +173,12 @@ export default function CalendarGrid({ slots, selectedDate, onSelectDate }) {
               }}
             >
               {d}
-              {hasSlots && !isPast && (
+              {blockedReason && (
+                <div style={{
+                  fontSize: '0.4375rem', color: N.dimState, lineHeight: 1, flexShrink: 0,
+                }}>✕</div>
+              )}
+              {hasSlots && !isPast && !blockedReason && (
                 <div style={{
                   width: 4, height: 4, borderRadius: '50%',
                   background: isSelected ? '#fff' : N.teal,
