@@ -37,3 +37,4 @@ test-results/
 .env*
 AkrZd9Yvod8xJV12hyHJh4lHOtz2tvfh
 .vercel-bypass-token
+.pw-warmup-state.json

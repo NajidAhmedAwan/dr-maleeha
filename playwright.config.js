@@ -1,11 +1,11 @@
 import { defineConfig } from '@playwright/test';
-import fs from 'node:fs';
+import { loadBypassToken } from './tests/bypass-token.js';
+
+// Written by globalSetup; loaded as storageState so warmup cookies carry into test contexts
+const WARMUP_STATE = '.pw-warmup-state.json';
 
 const isLive = process.env.TEST_ENV === 'live';
-const bypassToken = isLive
-  ? (process.env.VERCEL_AUTOMATION_BYPASS_SECRET ||
-     (fs.existsSync('.vercel-bypass-token') ? fs.readFileSync('.vercel-bypass-token', 'utf8').trim() : null))
-  : null;
+const bypassToken = isLive ? loadBypassToken() : null;
 
 if (isLive && !bypassToken) {
   throw new Error(
@@ -21,6 +21,7 @@ export default defineConfig({
   workers: 1,
   timeout: 60_000,
   reporter: [['html'], ['list']],
+  globalSetup: isLive ? './tests/globalSetup.js' : undefined,
 
   use: {
     baseURL: isLive ? 'https://dr-maleeha.vercel.app' : 'http://localhost:5173',
@@ -29,6 +30,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     extraHTTPHeaders: bypassToken ? { 'x-vercel-protection-bypass': bypassToken } : {},
+    storageState: isLive ? WARMUP_STATE : undefined,
   },
 
   projects: [
