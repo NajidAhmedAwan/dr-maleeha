@@ -68,7 +68,7 @@ function generateSlots(days = 60) {
 export const MOCK_SLOTS = generateSlots(60)
 
 export function getSlotsForClinicAndDate(clinic, date) {
-  if (isHoliday(date) || isManuallyBlocked(date)) return []
+  if (isHoliday(date) || isManuallyBlocked(date, clinicType)) return []
   const ct = clinic.toLowerCase()
   return MOCK_SLOTS.filter(s => s.clinic_type === ct && s.date === date)
 }

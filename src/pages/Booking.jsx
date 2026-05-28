@@ -1290,6 +1290,7 @@ export default function Booking() {
           slots={clinicSlots}
           selectedDate={form.date}
           onSelectDate={handleSelectCalDate}
+          clinicType={clinicType}
         />
         {form.date && (
           <div data-testid="time-slots-section">

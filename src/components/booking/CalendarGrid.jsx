@@ -32,7 +32,7 @@ const N = {
  *   selectedDate – 'YYYY-MM-DD' or ''
  *   onSelectDate – (dateStr: string) => void
  */
-export default function CalendarGrid({ slots, selectedDate, onSelectDate }) {
+export default function CalendarGrid({ slots, selectedDate, onSelectDate, clinicType }) {
   const today = new Date()
   const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate())
 
@@ -139,7 +139,7 @@ export default function CalendarGrid({ slots, selectedDate, onSelectDate }) {
           const hasSlots     = availableDates.has(ds)
           const isSelected   = ds === selectedDate
           const holiday      = isHoliday(ds)
-          const block        = isManuallyBlocked(ds)
+          const block        = isManuallyBlocked(ds, clinicType)
           const blockedReason = holiday?.name || block?.reason || null
           const disabled     = isPast || !hasSlots || !!blockedReason
 
