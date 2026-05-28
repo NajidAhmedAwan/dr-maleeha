@@ -1493,7 +1493,8 @@ test('booking_calendar_same_day_shows_100pct_full_payment @smoke', async ({ page
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  // Skip if today is Sunday (Karachi closed) or no slots available
+  // Only skip if today is Sunday — Karachi is genuinely closed. All other days
+  // have guaranteed slots via the test-mode anchor in slots.js / holidays.js.
   if (today.getDay() === 0) {
     test.skip();
     return;
@@ -1501,19 +1502,8 @@ test('booking_calendar_same_day_shows_100pct_full_payment @smoke', async ({ page
 
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   const todayPill = page.locator(`[data-testid="date-pill-${todayStr}"]`);
-  const isDisabled = await todayPill.getAttribute('disabled').catch(() => 'yes');
-  if (isDisabled !== null) {
-    // No same-day slots available — skip cleanly
-    test.skip();
-    return;
-  }
-
+  await todayPill.waitFor({ state: 'visible' });
   await todayPill.click();
-  const slotCount = await page.locator('[data-testid="time-slot"]').count();
-  if (slotCount === 0) {
-    test.skip();
-    return;
-  }
 
   await page.locator('[data-testid="time-slot"]').first().click();
   await page.waitForSelector('[data-testid="deposit-label"]');

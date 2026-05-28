@@ -7,7 +7,6 @@ import { generatePatientId } from '../utils/patientId'
 import { normalizePhone } from '../utils/validation'
 import { MapPin, Video } from 'lucide-react'
 import { Z_INDEX } from '../constants/zIndex'
-import { isCityOpenOn } from '../utils/slots'
 import ContactForm from '../components/ContactForm'
 import { saveConfirmed } from '../utils/bookingStorage'
 import { getLastBookingCity } from '../utils/lastBookingHint'
@@ -16,6 +15,7 @@ import ReturningCityBanner from '../components/ReturningCityBanner'
 import CalendarGrid from '../components/booking/CalendarGrid'
 import TimeSlotPicker from '../components/booking/TimeSlotPicker'
 import { getSlotsForClinicAndDate, getClinicSlots } from '../data/slots'
+import { PROCEDURE_CATEGORIES } from '../data/procedures'
 import { getDayType, getDepositConfig } from '../lib/bookingRules'
 
 // ── Color tokens — theme-sensitive values use CSS vars for light/dark switching
@@ -114,14 +114,6 @@ const PROCEDURES = [
   { name: 'Acne Scar Treatment',note: 'Resurfacing & scar repair',  price: 'From PKR 10,000', priceValue: 10000, duration: '60 min' },
 ]
 
-// Category → sub-procedure mapping for in-clinic booking drill-down.
-// Note: should move to src/data/procedures.js in 9c.
-const PROCEDURE_CATEGORIES = [
-  { name: 'Injectables',     procedures: ['Botox', 'PLLA Threads', 'Lip Fillers', 'Skin Boosters'] },
-  { name: 'Skin Treatments', procedures: ['Chemical Peel', 'Microneedling', 'Hydrafacial', 'PRP Treatment', 'Laser Treatment'] },
-  { name: 'Acne & Scars',    procedures: ['Acne Treatment', 'Acne Scar Treatment'] },
-  { name: 'Consultation',    procedures: ['Consultation'] },
-]
 
 const ONLINE_CONCERNS = [
   { name: 'Acne & Breakouts',  desc: 'Pimples, cysts, blackheads',    icon: '🔬', price: 'PKR 2,500', priceValue: 2500, duration: '30 min' },
@@ -147,13 +139,6 @@ const COUNTRY_CODES = [
   { code: '+61',  flag: '🇦🇺', digits: 9,  ph: '400 000 000'  },
 ]
 
-const TIME_SLOTS   = ['9:00 AM','10:00 AM','11:00 AM','12:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM']
-const FULL_SLOTS   = new Set(['2026-06-05|11:00 AM','2026-06-05|12:00 PM','2026-06-10|2:00 PM','2026-06-12|11:00 AM'])
-const FULL_DAYS    = new Set(['2026-06-05','2026-06-12'])
-const PK_HOLIDAYS  = { '03-23':'Pakistan Day','05-01':'Labour Day','08-14':'Independence Day','09-06':'Defence Day','09-11':'Quaid Anniversary','11-09':'Iqbal Day','12-25':"Quaid's Birthday" }
-
-const todayStr = new Date().toISOString().split('T')[0]
-function pad(n) { return String(n).padStart(2,'0') }
 
 function getOpenDaysLabel(city) {
   if (city === 'Islamabad') return 'Tue, Thu & Sat'
@@ -209,111 +194,6 @@ function Confetti() {
   )
 }
 
-// ── Inline Calendar (dark themed) ─────────────────────────────────────────────
-function InlineCalendar({ value, onChange, city }) {
-  const today = new Date()
-  const [vy, setVy] = useState(today.getFullYear())
-  const [vm, setVm] = useState(today.getMonth())
-  const [tip, setTip] = useState(null)
-
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
-  const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
-
-  const prevM = () => vm === 0 ? (setVm(11), setVy(y => y-1)) : setVm(m => m-1)
-  const nextM = () => vm === 11 ? (setVm(0), setVy(y => y+1)) : setVm(m => m+1)
-
-  const firstDay    = new Date(vy, vm, 1).getDay()
-  const daysInMonth = new Date(vy, vm+1, 0).getDate()
-  const cells = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_,i) => i+1)]
-
-  const getState = ds => {
-    const mmdd = ds.slice(5)
-    if (ds < todayStr) return 'past'
-    if (city && !isCityOpenOn(city, new Date(ds + 'T12:00:00'))) return 'closed'
-    if (FULL_DAYS.has(ds))   return 'full'
-    if (PK_HOLIDAYS[mmdd])   return 'holiday'
-    return 'available'
-  }
-
-  return (
-    <div style={{ background:N.card, border:`1px solid ${N.border}`, borderRadius:14, overflow:'visible' }}>
-      {/* Month nav */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0.875rem 1rem', borderBottom:`1px solid ${N.border}` }}>
-        <button onClick={prevM} style={{ background:N.dimSurface, border:`1px solid ${N.border}`, borderRadius:8, width:34, height:34, cursor:'pointer', color:N.text, fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
-        <span style={{ fontWeight:700, fontSize:'0.9rem', color:N.text }}>{MONTHS[vm]} {vy}</span>
-        <button onClick={nextM} style={{ background:N.dimSurface, border:`1px solid ${N.border}`, borderRadius:8, width:34, height:34, cursor:'pointer', color:N.text, fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
-      </div>
-
-      {/* Day labels */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0.625rem 0.75rem 0.25rem' }}>
-        {DAYS.map(d => <div key={d} style={{ textAlign:'center', fontSize:'0.625rem', fontWeight:700, color:N.muted, padding:'0.2rem 0', textTransform:'uppercase', letterSpacing:'0.06em' }}>{d}</div>)}
-      </div>
-
-      {/* Day cells */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0 0.75rem 0.875rem', gap:3, position:'relative' }}>
-        {cells.map((d, i) => {
-          if (!d) return <div key={i} />
-          const ds    = `${vy}-${pad(vm+1)}-${pad(d)}`
-          const state = getState(ds)
-          const isSel = ds === value
-          const mmdd  = ds.slice(5)
-
-          // 'closed' is NOT HTML-disabled so clicking shows the "Closed on this day" feedback
-          const disabled = state === 'past' || state === 'full' || state === 'holiday'
-
-          let bg     = 'transparent'
-          let color  = N.text
-          let border = '1.5px solid transparent'
-          let label  = null
-
-          if (isSel)                    { bg = N.teal;  color = '#fff'; border = `1.5px solid ${N.teal}` }
-          else if (ds === todayStr)     { bg = N.tealLight; color = N.teal; border = `1.5px solid ${N.tealBord}` }
-          else if (state === 'past')    { color = N.dimState }
-          else if (state === 'closed')  { color = N.dimState }
-          else if (state === 'full')    { bg = N.fullBg; color = N.fullColor; label = 'FULL' }
-          else if (state === 'holiday') { bg = 'rgba(245,158,11,0.1)'; color = N.amber; border = '1.5px solid rgba(245,158,11,0.2)'; label = '📅' }
-
-          return (
-            <div key={i} style={{ position:'relative' }}>
-              <button
-                onClick={() => !disabled && onChange(ds)}
-                onMouseEnter={() => { if (state === 'full') setTip({ds,text:'Fully booked'}); if (state==='holiday') setTip({ds,text:PK_HOLIDAYS[mmdd]}) }}
-                onMouseLeave={() => setTip(null)}
-                disabled={disabled}
-                style={{
-                  width:'100%', aspectRatio:'1', border, borderRadius:9, cursor:disabled?'default':'pointer',
-                  background:bg, color, fontSize:'0.8125rem', fontWeight: isSel || ds===todayStr ? 700 : 400,
-                  display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-                  gap:1, transition:'all 0.12s', opacity: (state==='past' || state==='closed') ? 0.3 : 1,
-                  textDecoration: state==='full' ? 'line-through' : 'none',
-                }}>
-                {d}
-                {label && <span style={{ fontSize:'0.3rem', fontWeight:800, color: state==='full' ? N.fullLabel : N.amber, lineHeight:1, textDecoration:'none' }}>{label}</span>}
-              </button>
-              {tip?.ds === ds && (
-                <div style={{ position:'absolute', bottom:'calc(100% + 5px)', left:'50%', transform:'translateX(-50%)', background:'#1e3a4f', color:'#fff', fontSize:'0.5rem', fontWeight:600, padding:'0.25rem 0.5rem', borderRadius:6, whiteSpace:'nowrap', zIndex:Z_INDEX.TOOLTIP, pointerEvents:'none', border:'1px solid rgba(255,255,255,0.1)' }}>
-                  {tip.text}
-                  <div style={{ position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', borderLeft:'4px solid transparent', borderRight:'4px solid transparent', borderTop:'4px solid #1e3a4f' }} />
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Legend */}
-      <div style={{ display:'flex', gap:'0.875rem', padding:'0.5rem 1rem 0.75rem', borderTop:`1px solid ${N.border}` }}>
-        {[['#0a6e66','Selected'],[N.fullColor,'Available'],[N.fullBg,'Full'],['rgba(245,158,11,0.5)','Holiday']].map(([col,label]) => (
-          <div key={label} style={{ display:'flex', alignItems:'center', gap:'0.25rem' }}>
-            <div style={{ width:8, height:8, borderRadius:2, background:col }} />
-            <span style={{ fontSize:'0.5rem', color:N.muted }}>{label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ── Section heading helper ────────────────────────────────────────────────────
 function SectionLabel({ step, label, done }) {
   return (
@@ -344,55 +224,6 @@ function SummaryRow({ icon, label, value, dim, children }) {
           <div style={{ fontSize:'0.6875rem', color: dim ? N.muted : N.text, fontWeight: dim ? 400 : 600, fontStyle: dim ? 'italic' : 'normal' }}>{value}</div>
         )}
       </div>
-    </div>
-  )
-}
-
-// ── VoiceRecorder component ───────────────────────────────────────────────────
-function VoiceRecorder({ onSave, onClear, saved }) {
-  const [recording, setRecording] = useState(false)
-  const [elapsed, setElapsed] = useState(0)
-  const mrRef = useRef(null)
-  const intervalRef = useRef(null)
-  const chunksRef = useRef([])
-
-  const startRec = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      chunksRef.current = []
-      const mr = new MediaRecorder(stream)
-      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
-      mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type:'audio/webm' })
-        const url = URL.createObjectURL(blob)
-        onSave({ blob, url, name:`voice-${Date.now()}.webm` })
-        stream.getTracks().forEach(t => t.stop())
-      }
-      mr.start(); mrRef.current = mr; setRecording(true); setElapsed(0)
-      intervalRef.current = setInterval(() => setElapsed(e => e+1), 1000)
-    } catch { alert('Microphone access denied.') }
-  }
-  const stopRec = () => { mrRef.current?.stop(); clearInterval(intervalRef.current); setRecording(false) }
-  const fmt = s => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
-
-  if (saved) {
-    return (
-      <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.5rem', background:N.tealLight, border:`1px solid ${N.tealBord}`, borderRadius:8 }}>
-        <audio src={saved.url} controls style={{ flex:1, height:32 }} />
-        <button onClick={onClear} style={{ background:'none', border:'none', color:N.muted, cursor:'pointer', fontSize:'0.875rem' }}>✕</button>
-      </div>
-    )
-  }
-  return (
-    <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
-      {recording ? (
-        <>
-          <span style={{ animation:'bk-rec-pulse 1s infinite', color:'#ef4444', fontSize:'0.625rem', fontWeight:700 }}>● REC {fmt(elapsed)}</span>
-          <button onClick={stopRec} style={{ padding:'0.375rem 0.75rem', background:'#ef4444', color:'#fff', border:'none', borderRadius:7, fontSize:'0.625rem', fontWeight:700, cursor:'pointer' }}>Stop</button>
-        </>
-      ) : (
-        <button onClick={startRec} style={{ padding:'0.375rem 0.875rem', background:N.tealLight, color:N.teal, border:`1px solid ${N.tealBord}`, borderRadius:7, fontSize:'0.625rem', fontWeight:700, cursor:'pointer' }}>🎙 Record</button>
-      )}
     </div>
   )
 }

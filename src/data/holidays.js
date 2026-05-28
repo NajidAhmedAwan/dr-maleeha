@@ -29,7 +29,20 @@ export const HOLIDAYS_2026 = [
 
 const HOLIDAY_MAP = new Map(HOLIDAYS_2026.map(h => [h.date, h]))
 
-/** Returns the holiday object for the given 'YYYY-MM-DD' date, or null. */
+function pad2(n) { return String(n).padStart(2, '0') }
+function anchorDate(daysOffset) {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() + daysOffset)
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+}
+
+/** Returns the holiday object for the given 'YYYY-MM-DD' date, or null.
+ *  In test mode, today/+2/+4 are never holidays so deposit tests always have a bookable slot. */
 export function isHoliday(date) {
+  if (import.meta.env.VITE_TEST_MODE) {
+    const anchors = new Set([anchorDate(0), anchorDate(2), anchorDate(4)])
+    if (anchors.has(date)) return null
+  }
   return HOLIDAY_MAP.get(date) ?? null
 }
