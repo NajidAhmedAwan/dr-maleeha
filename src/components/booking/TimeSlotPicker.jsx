@@ -52,7 +52,7 @@ export default function TimeSlotPicker({ slots, selectedSlot, onSelect, isMobile
         return (
           <button
             key={slot.id}
-            data-testid={`time-slot-${slot.start_time}`}
+            data-testid="time-slot"
             onClick={() => onSelect(slot)}
             style={{
               padding: '0.625rem 0.75rem',

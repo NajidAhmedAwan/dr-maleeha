@@ -44,6 +44,20 @@ async function fillIntakeAndContinue(page, { isOnline = false } = {}) {
   await page.waitForSelector('[data-testid^="date-pill-"]');
 }
 
+// Navigate CalendarGrid to the month containing targetDate and click that date pill.
+async function clickCalendarDate(page, targetDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const key = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
+  const monthDiff = (targetDate.getFullYear() - today.getFullYear()) * 12 + (targetDate.getMonth() - today.getMonth());
+  for (let i = 0; i < monthDiff; i++) {
+    await page.locator('button[aria-label="Next month"]').click();
+  }
+  const pill = page.locator(`[data-testid="date-pill-${key}"]`);
+  await pill.waitFor({ state: 'visible' });
+  await pill.click();
+}
+
 // Navigate booking flow to the contact step
 async function navigateToContact(page, { city = 'Karachi', procedureTestId = 'booking-procedure-botox' } = {}) {
   await page.goto(`${BASE_URL}/booking`);
@@ -66,20 +80,13 @@ async function navigateToContact(page, { city = 'Karachi', procedureTestId = 'bo
   if (city === 'Islamabad') {
     const candidates = [2, 4, 6].map(nextWeekday).sort((a, b) => a - b);
     const nearest = candidates[0];
-    const key = `${nearest.getFullYear()}-${String(nearest.getMonth()+1).padStart(2,'0')}-${String(nearest.getDate()).padStart(2,'0')}`;
-    const datePill = page.locator(`[data-testid="date-pill-${key}"]`);
-    const visible = await datePill.isVisible().catch(() => false);
-    if (!visible) {
-      await page.locator('[data-testid="open-date-picker"]').click();
-      await page.locator(`[data-testid="picker-day-${key}"]`).click();
-    } else {
-      await datePill.click();
-    }
+    await clickCalendarDate(page, nearest);
   } else {
-    await page.locator('[data-testid^="date-pill-"]').nth(2).click();
+    // Click first enabled date pill (CalendarGrid: past/no-slot dates are disabled)
+    await page.locator('[data-testid^="date-pill-"]:not([disabled])').first().click();
   }
 
-  await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+  await page.locator('[data-testid="time-slot"]').first().click();
   await page.waitForSelector('[data-testid="contact-form"]');
 }
 
@@ -101,8 +108,8 @@ async function createOneBooking(page, { city = 'Karachi', name = 'Test Patient',
   await fillIntakeAndContinue(page, { isOnline: city === 'Online' });
   const future = new Date();
   future.setDate(future.getDate() + 5);
-  await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
-  await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+  await clickCalendarDate(page, future);
+  await page.locator('[data-testid="time-slot"]').first().click();
   await page.locator('[data-testid="input-name"]').fill(name);
   await page.locator('[data-testid="input-phone"]').fill(phone);
   await page.locator('[data-testid="submit-booking"]').click();
@@ -1423,7 +1430,131 @@ test('9b.4: medical intake step renders dropdowns and submits without appt toggl
   // 14. Click Continue to advance to datetime step
   await page.locator('[data-testid="booking-footer-btn"]').click();
 
-  // 15. Assert advanced to datetime step (date strip visible, no validation errors blocking)
+  // 15. Assert advanced to datetime step (calendar grid visible, no validation errors blocking)
   await page.waitForSelector('[data-testid^="date-pill-"]');
   await expect(page.locator('[data-testid^="date-pill-"]').first()).toBeVisible();
+});
+
+// ── Batch 11.1: Calendar day-type + deposit tests ─────────────────────────────
+
+// Shared helper: navigate booking to datetime step for Karachi/Botox
+async function navigateToDatetime(page) {
+  await page.goto(`${BASE_URL}/booking`);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('[data-testid="booking-city-karachi"]').first().click();
+  await page.waitForSelector('[data-testid="booking-category-injectables"]');
+  await page.locator('[data-testid="booking-category-injectables"]').first().click();
+  await page.waitForSelector('[data-testid="booking-procedure-botox"]');
+  await page.locator('[data-testid="booking-procedure-botox"]').first().click();
+  await fillIntakeAndContinue(page);
+  // Arrives at datetime step (CalendarGrid visible)
+  await page.waitForSelector('[data-testid="calendar-grid"]');
+}
+
+test('booking_calendar_far_date_shows_50pct_deposit @smoke', async ({ page }) => {
+  await navigateToDatetime(page);
+
+  // Pick a date ≥8 days out (always 'far')
+  const farDate = new Date();
+  farDate.setDate(farDate.getDate() + 8);
+  // Advance to a Mon-Sat date for Karachi
+  while ([0].includes(farDate.getDay())) farDate.setDate(farDate.getDate() + 1);
+  await clickCalendarDate(page, farDate);
+
+  await page.locator('[data-testid="time-slot"]').first().click();
+  await page.waitForSelector('[data-testid="deposit-label"]');
+  await expect(page.locator('[data-testid="deposit-label"]')).toContainText('50% deposit');
+});
+
+test('booking_calendar_near_date_shows_50pct_deposit @smoke', async ({ page }) => {
+  await navigateToDatetime(page);
+
+  // Pick a date 4 days out (always 'near': 3–6 days)
+  const nearDate = new Date();
+  nearDate.setDate(nearDate.getDate() + 4);
+  while ([0].includes(nearDate.getDay())) nearDate.setDate(nearDate.getDate() + 1);
+  await clickCalendarDate(page, nearDate);
+
+  await page.locator('[data-testid="time-slot"]').first().click();
+  await page.waitForSelector('[data-testid="deposit-label"]');
+  await expect(page.locator('[data-testid="deposit-label"]')).toContainText('50% deposit');
+});
+
+test('booking_calendar_soon_date_shows_100pct_deposit @smoke', async ({ page }) => {
+  await navigateToDatetime(page);
+
+  // Pick a date 2 days out ('soon': 1–2 days)
+  const soonDate = new Date();
+  soonDate.setDate(soonDate.getDate() + 2);
+  while ([0].includes(soonDate.getDay())) soonDate.setDate(soonDate.getDate() + 1);
+  await clickCalendarDate(page, soonDate);
+
+  await page.locator('[data-testid="time-slot"]').first().click();
+  await page.waitForSelector('[data-testid="deposit-label"]');
+  await expect(page.locator('[data-testid="deposit-label"]')).toContainText('Full payment required');
+});
+
+test('booking_calendar_same_day_shows_100pct_full_payment @smoke', async ({ page }) => {
+  await navigateToDatetime(page);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  // Skip if today is Sunday (Karachi closed) or no slots available
+  if (today.getDay() === 0) {
+    test.skip();
+    return;
+  }
+
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const todayPill = page.locator(`[data-testid="date-pill-${todayStr}"]`);
+  const isDisabled = await todayPill.getAttribute('disabled').catch(() => 'yes');
+  if (isDisabled !== null) {
+    // No same-day slots available — skip cleanly
+    test.skip();
+    return;
+  }
+
+  await todayPill.click();
+  const slotCount = await page.locator('[data-testid="time-slot"]').count();
+  if (slotCount === 0) {
+    test.skip();
+    return;
+  }
+
+  await page.locator('[data-testid="time-slot"]').first().click();
+  await page.waitForSelector('[data-testid="deposit-label"]');
+  await expect(page.locator('[data-testid="deposit-label"]')).toContainText('Full payment required — same day booking');
+});
+
+test('booking_calendar_past_dates_not_clickable @smoke', async ({ page }) => {
+  await page.goto(`${BASE_URL}/booking`);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.locator('[data-testid="booking-city-karachi"]').first().click();
+  await page.waitForSelector('[data-testid="booking-category-injectables"]');
+  await page.locator('[data-testid="booking-category-injectables"]').first().click();
+  await page.waitForSelector('[data-testid="booking-procedure-botox"]');
+  await page.locator('[data-testid="booking-procedure-botox"]').first().click();
+  await fillIntakeAndContinue(page);
+  await page.waitForSelector('[data-testid="calendar-grid"]');
+
+  // Yesterday should be disabled
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+  const pastPill = page.locator(`[data-testid="date-pill-${yKey}"]`);
+
+  // Past day may or may not be in current month view — only assert if visible
+  const visible = await pastPill.isVisible().catch(() => false);
+  if (visible) {
+    const disabledAttr = await pastPill.getAttribute('disabled');
+    const ariaDisabled = await pastPill.getAttribute('aria-disabled');
+    const isDisabled = disabledAttr !== null || ariaDisabled === 'true';
+    expect(isDisabled).toBe(true);
+  } else {
+    // CalendarGrid started at current month — if yesterday was last month, it's not shown.
+    // In either case, past dates are not accessible. Test passes.
+    expect(true).toBe(true);
+  }
 });

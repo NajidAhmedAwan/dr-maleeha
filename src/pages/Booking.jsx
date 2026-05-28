@@ -1712,7 +1712,7 @@ export default function Booking() {
             : form.city || ''}
         </div>
         {form.depositConfig && (
-          <div style={{ fontSize:'0.6875rem', color:N.muted }}>
+          <div data-testid="deposit-label" style={{ fontSize:'0.6875rem', color:N.muted }}>
             {form.depositConfig.label}{depositAmount ? ` — PKR ${depositAmount.toLocaleString()}` : ''}
           </div>
         )}
@@ -2048,7 +2048,7 @@ export default function Booking() {
                 : form.city || 'Select a city to begin'}
             </div>
             {form.depositConfig && (
-              <div style={{ fontSize:'0.6875rem', color:N.muted }}>
+              <div data-testid="deposit-label" style={{ fontSize:'0.6875rem', color:N.muted }}>
                 {form.depositConfig.label}{depositAmount ? ` — PKR ${depositAmount.toLocaleString()}` : ''}
               </div>
             )}
