@@ -1625,3 +1625,109 @@ test('booking_calendar_past_dates_not_clickable @smoke', async ({ page }) => {
     expect(true).toBe(true);
   }
 });
+
+// ── Batch 11.3: per-clinic manual block filtering ─────────────────────────────
+
+// Navigate to datetime step for a given city (physical or online).
+async function navigateToDatetimeCity(page, city) {
+  await page.goto(`${BASE_URL}/booking`);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  const cityId = city.toLowerCase();
+  await page.locator(`[data-testid="booking-city-${cityId}"]`).first().click();
+  if (city === 'Online') {
+    await page.waitForSelector('[data-testid="booking-procedure-acne-breakouts"]');
+    await page.locator('[data-testid="booking-procedure-acne-breakouts"]').first().click();
+    await fillIntakeAndContinue(page, { isOnline: true });
+  } else {
+    await page.waitForSelector('[data-testid="booking-category-injectables"]');
+    await page.locator('[data-testid="booking-category-injectables"]').first().click();
+    await page.waitForSelector('[data-testid="booking-procedure-botox"]');
+    await page.locator('[data-testid="booking-procedure-botox"]').first().click();
+    await fillIntakeAndContinue(page);
+  }
+  await page.waitForSelector('[data-testid="calendar-grid"]');
+}
+
+// Navigate CalendarGrid to a specific month (0-indexed JS month).
+async function navigateCalendarToMonth(page, targetYear, targetMonth) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const monthDiff = (targetYear - today.getFullYear()) * 12 + (targetMonth - today.getMonth());
+  for (let i = 0; i < monthDiff; i++) {
+    await page.locator('button[aria-label="Next month"]').click();
+  }
+}
+
+test('booking_calendar_karachi_block_does_not_affect_online @smoke', async ({ page }) => {
+  // seed: block_2026_07_20 has clinic_type 'karachi'
+  // With Karachi: blocked (disabled). With Online: same date is open.
+
+  await navigateToDatetimeCity(page, 'Karachi');
+  await navigateCalendarToMonth(page, 2026, 6); // July 2026
+  const pillK = page.locator('[data-testid="date-pill-2026-07-20"]');
+  await pillK.waitFor({ state: 'visible' });
+  const disK = await pillK.getAttribute('disabled');
+  const ariaK = await pillK.getAttribute('aria-disabled');
+  expect(disK !== null || ariaK === 'true').toBe(true);
+
+  await navigateToDatetimeCity(page, 'Online');
+  await navigateCalendarToMonth(page, 2026, 6);
+  const pillO = page.locator('[data-testid="date-pill-2026-07-20"]');
+  await pillO.waitFor({ state: 'visible' });
+  const disO = await pillO.getAttribute('disabled');
+  const ariaO = await pillO.getAttribute('aria-disabled');
+  expect(disO === null && ariaO !== 'true').toBe(true);
+});
+
+test('booking_calendar_online_block_does_not_affect_physical @smoke', async ({ page }) => {
+  // seed: block_2026_07_22 has clinic_type 'online'
+  // With Online: blocked (disabled). With Karachi: same date (Wed) is open.
+
+  await navigateToDatetimeCity(page, 'Online');
+  await navigateCalendarToMonth(page, 2026, 6);
+  const pillO = page.locator('[data-testid="date-pill-2026-07-22"]');
+  await pillO.waitFor({ state: 'visible' });
+  const disO = await pillO.getAttribute('disabled');
+  const ariaO = await pillO.getAttribute('aria-disabled');
+  expect(disO !== null || ariaO === 'true').toBe(true);
+
+  await navigateToDatetimeCity(page, 'Karachi');
+  await navigateCalendarToMonth(page, 2026, 6);
+  const pillK = page.locator('[data-testid="date-pill-2026-07-22"]');
+  await pillK.waitFor({ state: 'visible' });
+  const disK = await pillK.getAttribute('disabled');
+  const ariaK = await pillK.getAttribute('aria-disabled');
+  expect(disK === null && ariaK !== 'true').toBe(true);
+});
+
+test('booking_calendar_all_block_closes_every_clinic @smoke', async ({ page }) => {
+  // seed: block_2026_07_15 has clinic_type 'all'
+  // Should be disabled for Karachi, Islamabad, and Online.
+
+  for (const city of ['Karachi', 'Islamabad', 'Online']) {
+    await navigateToDatetimeCity(page, city);
+    await navigateCalendarToMonth(page, 2026, 6);
+    const pill = page.locator('[data-testid="date-pill-2026-07-15"]');
+    await pill.waitFor({ state: 'visible' });
+    const dis = await pill.getAttribute('disabled');
+    const aria = await pill.getAttribute('aria-disabled');
+    expect(dis !== null || aria === 'true', `Expected 2026-07-15 disabled for ${city}`).toBe(true);
+  }
+});
+
+test('booking_calendar_holiday_still_closes_every_clinic @smoke', async ({ page }) => {
+  // 2026-08-14 is Independence Day — holidays close all clinics regardless of clinic_type.
+
+  for (const city of ['Karachi', 'Islamabad', 'Online']) {
+    await navigateToDatetimeCity(page, city);
+    await navigateCalendarToMonth(page, 2026, 7); // August 2026
+    const pill = page.locator('[data-testid="date-pill-2026-08-14"]');
+    await pill.waitFor({ state: 'visible' });
+    const dis = await pill.getAttribute('disabled');
+    const aria = await pill.getAttribute('aria-disabled');
+    expect(dis !== null || aria === 'true', `Expected 2026-08-14 disabled for ${city}`).toBe(true);
+  }
+});
+
+// ── end Batch 11.3 ────────────────────────────────────────────────────────────
