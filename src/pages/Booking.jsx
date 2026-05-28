@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { findPatientById } from '../data/patients'
 import { googleCalendarUrl, outlookCalendarUrl, downloadIcs } from '../utils/calendar'
@@ -7,17 +7,16 @@ import { generatePatientId } from '../utils/patientId'
 import { normalizePhone } from '../utils/validation'
 import { MapPin, Video } from 'lucide-react'
 import { Z_INDEX } from '../constants/zIndex'
-import { getSlotsForDate, isCityOpenOn } from '../utils/slots'
-import { calculateDeposit } from '../utils/deposit'
+import { isCityOpenOn } from '../utils/slots'
 import ContactForm from '../components/ContactForm'
 import { saveConfirmed } from '../utils/bookingStorage'
-import { dateKey } from '../utils/dashboardData'
 import { getLastBookingCity } from '../utils/lastBookingHint'
 import { usePatient } from '../context/PatientContext'
 import ReturningCityBanner from '../components/ReturningCityBanner'
-import DateStrip from '../components/DateStrip'
-import DatePickerModal from '../components/DatePickerModal'
-import TimeSlotStrip from '../components/TimeSlotStrip'
+import CalendarGrid from '../components/booking/CalendarGrid'
+import TimeSlotPicker from '../components/booking/TimeSlotPicker'
+import { getSlotsForClinicAndDate, getClinicSlots } from '../data/slots'
+import { getDayType, getDepositConfig } from '../lib/bookingRules'
 
 // ── Color tokens — theme-sensitive values use CSS vars for light/dark switching
 const N = {
@@ -528,8 +527,7 @@ const MAX_DOB_STR = (() => {
 
 // ── Main Booking component ────────────────────────────────────────────────────
 export default function Booking() {
-  const navigate  = useNavigate()
-  const routerLoc = useLocation()
+  const navigate = useNavigate()
   const { prefillData, clearPatient } = usePatient()
   // State machine: 'procedure' | 'datetime' | 'contact' | 'confirmation'
   const [step, setStep] = useState('procedure')
@@ -537,6 +535,7 @@ export default function Booking() {
   const [form, setForm] = useState({
     city: '', procedure: '', date: '', time: '', timeIso: '',
     isWaitlisted: false, waitlistPos: null,
+    dayType: '', depositConfig: null, selectedSlotId: '',
     name: '', email: '', countryCode: '+92', phone: '',
     concern: '', wantsUpdates: true,
     photos: [],
@@ -574,7 +573,6 @@ export default function Booking() {
   const calMenuRef = useRef(null)
   const [lastCity,        setLastCity]        = useState(null)
   const [bannerDismissed, setBannerDismissed] = useState(false)
-  const [pickerOpen,      setPickerOpen]      = useState(false)
   const [mediaErrors,     setMediaErrors]     = useState([])
   const [showNotesField,  setShowNotesField]  = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -632,19 +630,23 @@ export default function Booking() {
   const items      = isOnline ? ONLINE_CONCERNS : PROCEDURES
   const selItem    = items.find(p => p.name === form.procedure)
   const country    = COUNTRY_CODES.find(c => c.code === form.countryCode) || COUNTRY_CODES[0]
-  const isSlotFull = !!(form.date && form.time && FULL_SLOTS.has(`${form.date}|${form.time}`))
+  const clinicType = form.city ? form.city.toLowerCase() : ''
 
-  const slots = useMemo(() => {
-    if (!form.date) return []
-    return getSlotsForDate(form.city, new Date(form.date + 'T12:00:00'))
-  }, [form.city, form.date])
+  const clinicSlots = useMemo(() => {
+    if (!clinicType) return []
+    return getClinicSlots(clinicType)
+  }, [clinicType])
 
-  const deposit = (form.city && selItem?.priceValue && form.timeIso)
-    ? calculateDeposit(form.city, selItem.priceValue, form.timeIso)
+  const dateSlots = useMemo(() => {
+    if (!clinicType || !form.date) return []
+    return getSlotsForClinicAndDate(clinicType, form.date)
+  }, [clinicType, form.date])
+
+  const depositAmount = (selItem?.priceValue && form.depositConfig)
+    ? Math.round(selItem.priceValue * form.depositConfig.percentage / 100)
     : null
 
   const canConfirm = !!form.city && !!form.procedure && !!form.date && !!form.time &&
-    (!isSlotFull || form.isWaitlisted) &&
     form.name.trim().length > 1 && form.email.includes('@') &&
     form.phone.replace(/\D/g,'').length >= country.digits
 
@@ -672,7 +674,7 @@ export default function Booking() {
   const stepCanContinue =
     step === 'procedure' ? !!form.procedure :
     step === 'intake'    ? intakeValid :
-    step === 'datetime'  ? !!(form.date && form.time && (!isSlotFull || form.isWaitlisted)) :
+    step === 'datetime'  ? !!(form.date && form.time) :
     step === 'contact'   ? (canConfirm && !isSubmitting) :
     false
 
@@ -695,12 +697,25 @@ export default function Booking() {
   }
 
   const handleSelectTime = (slot) => {
-    const full = FULL_SLOTS.has(`${form.date}|${slot.label}`)
-    if (full) {
-      setForm(f => ({ ...f, time: slot.label, timeIso: slot.iso, isWaitlisted: true, waitlistPos: Math.floor(Math.random()*4)+1 }))
-    } else {
-      setForm(f => ({ ...f, time: slot.label, timeIso: slot.iso, isWaitlisted: false, waitlistPos: null }))
-    }
+    const [hStr, mStr] = slot.start_time.split(':')
+    const h = parseInt(hStr, 10)
+    const period = h >= 12 ? 'PM' : 'AM'
+    const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h)
+    const timeDisplay = `${h12}:${mStr} ${period}`
+    const timeIso     = `${slot.date}T${slot.start_time}:00`
+    const dayType     = getDayType(slot.date)
+    const depositCfg  = getDepositConfig(dayType)
+
+    setForm(f => ({
+      ...f,
+      time:           timeDisplay,
+      timeIso,
+      isWaitlisted:   false,
+      waitlistPos:    null,
+      dayType,
+      depositConfig:  depositCfg,
+      selectedSlotId: slot.id,
+    }))
     setStep('contact')
   }
 
@@ -965,6 +980,14 @@ export default function Booking() {
               <div style={{ fontSize:'0.45rem', color:N.muted, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.25rem' }}>Booking Reference</div>
               <div style={{ fontSize:'1rem', fontWeight:800, color:N.text, letterSpacing:'0.06em' }}>{bookingRef}</div>
             </div>
+
+            {/* Deposit copy */}
+            {form.depositConfig && (
+              <div data-testid="deposit-copy" style={{ background: form.depositConfig.percentage === 100 ? 'rgba(245,158,11,0.1)' : N.tealLight, border: `1px solid ${form.depositConfig.percentage === 100 ? 'rgba(245,158,11,0.4)' : N.tealBord}`, borderRadius:10, padding:'0.625rem 0.875rem', marginBottom:'1rem', fontSize:'0.75rem', fontWeight:600, color: form.depositConfig.percentage === 100 ? '#f59e0b' : N.teal, textAlign:'center' }}>
+                💳 {form.depositConfig.label}
+                {depositAmount && <span style={{ fontWeight:400, color:N.muted, marginLeft:'0.375rem' }}>— PKR {depositAmount.toLocaleString()}</span>}
+              </div>
+            )}
 
             {/* Appointment summary */}
             <div style={{ background:N.pillBg, border:`1px solid ${N.border}`, borderRadius:10, padding:'0.75rem', marginBottom:'0.875rem', textAlign:'left' }}>
@@ -1250,43 +1273,38 @@ export default function Booking() {
     </div>
   )
 
+  const handleSelectCalDate = (dateStr) => {
+    setForm(f => ({
+      ...f,
+      date: dateStr, time: '', timeIso: '',
+      isWaitlisted: false, waitlistPos: null,
+      dayType: '', depositConfig: null, selectedSlotId: '',
+    }))
+  }
+
   const datetimeContent = (
     <div style={{ padding:'1rem' }}>
-      <SectionLabel step={4} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <DateStrip
-          city={form.city}
-          selectedDate={form.date ? new Date(form.date + 'T12:00:00') : null}
-          onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
-          onOpenPicker={() => setPickerOpen(true)}
+      <SectionLabel step={4} label="Pick a date & time" done={!!(form.date && form.time)} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <CalendarGrid
+          slots={clinicSlots}
+          selectedDate={form.date}
+          onSelectDate={handleSelectCalDate}
         />
         {form.date && (
           <div data-testid="time-slots-section">
-            <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.8125rem', color: N.muted, marginBottom: '0.625rem' }}>
               Available times for {new Date(form.date + 'T12:00:00').toLocaleDateString('en-PK', { weekday: 'long', month: 'short', day: 'numeric' })}
             </div>
-            {slots.length === 0 ? (
-              <div style={{ color: '#9ca3af', fontSize: '13px', padding: '12px', background: '#1a2744', borderRadius: '12px' }}>
-                Closed on this day. {form.city} sees patients on {getOpenDaysLabel(form.city)}.
-              </div>
-            ) : (
-              <TimeSlotStrip
-                slots={slots}
-                selectedSlot={form.timeIso ? { iso: form.timeIso } : null}
-                onSelect={handleSelectTime}
-              />
-            )}
+            <TimeSlotPicker
+              slots={dateSlots}
+              selectedSlot={form.selectedSlotId ? { id: form.selectedSlotId } : null}
+              onSelect={handleSelectTime}
+              isMobile={isMobile}
+            />
           </div>
         )}
       </div>
-      {pickerOpen && (
-        <DatePickerModal
-          city={form.city}
-          initialDate={form.date ? new Date(form.date + 'T12:00:00') : null}
-          onClose={() => setPickerOpen(false)}
-          onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
-        />
-      )}
     </div>
   )
 
@@ -1680,7 +1698,7 @@ export default function Booking() {
   // ── Right panel footer (desktop) ─────────────────────────────────────────
   const rightFooter = (
     <div style={{ borderTop:`1px solid ${N.border}`, padding:'0.75rem 1rem', background:N.card, flexShrink:0 }}>
-      {deposit?.isSameDay && (
+      {form.dayType === 'same_day' && (
         <div style={{ marginBottom:'0.375rem' }}>
           <span style={{ background:'#2a1810', color:'#ff9966', border:'1px solid #ff9966', borderRadius:20, padding:'4px 10px', fontSize:12, display:'inline-flex', alignItems:'center', whiteSpace:'nowrap' }}>
             Same-day booking — full payment required
@@ -1693,9 +1711,9 @@ export default function Booking() {
             ? `${form.city} · ${form.procedure}`
             : form.city || ''}
         </div>
-        {deposit && (
+        {form.depositConfig && (
           <div style={{ fontSize:'0.6875rem', color:N.muted }}>
-            {deposit.isSameDay ? 'Full payment: ' : 'Deposit: '}PKR {deposit.amount.toLocaleString()} ({deposit.percent}%)
+            {form.depositConfig.label}{depositAmount ? ` — PKR ${depositAmount.toLocaleString()}` : ''}
           </div>
         )}
       </div>
@@ -1983,41 +2001,27 @@ export default function Booking() {
 
               {step === 'datetime' && (
                 <div>
-                  <SectionLabel step={4} label="Pick a date & time" done={!!(form.date && form.time && (!isSlotFull || form.isWaitlisted))} />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    <DateStrip
-                      city={form.city}
-                      selectedDate={form.date ? new Date(form.date + 'T12:00:00') : null}
-                      onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
-                      onOpenPicker={() => setPickerOpen(true)}
+                  <SectionLabel step={4} label="Pick a date & time" done={!!(form.date && form.time)} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <CalendarGrid
+                      slots={clinicSlots}
+                      selectedDate={form.date}
+                      onSelectDate={handleSelectCalDate}
                     />
                     {form.date && (
                       <div data-testid="time-slots-section">
-                        <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '10px' }}>
+                        <div style={{ fontSize: '0.8125rem', color: N.muted, marginBottom: '0.625rem' }}>
                           Available times for {new Date(form.date + 'T12:00:00').toLocaleDateString('en-PK', { weekday: 'long', month: 'short', day: 'numeric' })}
                         </div>
-                        {slots.length === 0 ? (
-                          <div style={{ color: '#9ca3af', fontSize: '13px', padding: '12px', background: '#1a2744', borderRadius: '12px' }}>
-                            Closed on this day. {form.city} sees patients on {getOpenDaysLabel(form.city)}.
-                          </div>
-                        ) : (
-                          <TimeSlotStrip
-                            slots={slots}
-                            selectedSlot={form.timeIso ? { iso: form.timeIso } : null}
-                            onSelect={handleSelectTime}
-                          />
-                        )}
+                        <TimeSlotPicker
+                          slots={dateSlots}
+                          selectedSlot={form.selectedSlotId ? { id: form.selectedSlotId } : null}
+                          onSelect={handleSelectTime}
+                          isMobile={isMobile}
+                        />
                       </div>
                     )}
                   </div>
-                  {pickerOpen && (
-                    <DatePickerModal
-                      city={form.city}
-                      initialDate={form.date ? new Date(form.date + 'T12:00:00') : null}
-                      onClose={() => setPickerOpen(false)}
-                      onSelectDate={(d) => { set('date', dateKey(d)); set('time', ''); set('timeIso', ''); set('isWaitlisted', false); set('waitlistPos', null) }}
-                    />
-                  )}
                 </div>
               )}
 
@@ -2030,7 +2034,7 @@ export default function Booking() {
       {/* ── Mobile sticky footer ── */}
       {isMobile && (
         <div style={{ position:'fixed', bottom:0, left:0, right:0, background:'rgba(13,27,42,0.97)', backdropFilter:'blur(16px)', borderTop:`1px solid ${N.border}`, padding:'0.75rem 1rem', zIndex:Z_INDEX.FLOATING_BAR }}>
-          {deposit?.isSameDay && (
+          {form.dayType === 'same_day' && (
             <div style={{ marginBottom:'0.375rem' }}>
               <span style={{ background:'#2a1810', color:'#ff9966', border:'1px solid #ff9966', borderRadius:20, padding:'4px 10px', fontSize:12, display:'inline-flex', alignItems:'center', whiteSpace:'nowrap' }}>
                 Same-day booking — full payment required
@@ -2043,9 +2047,9 @@ export default function Booking() {
                 ? `${form.city} · ${form.procedure}`
                 : form.city || 'Select a city to begin'}
             </div>
-            {deposit && (
+            {form.depositConfig && (
               <div style={{ fontSize:'0.6875rem', color:N.muted }}>
-                Deposit: PKR {deposit.amount.toLocaleString()} ({deposit.percent}%)
+                {form.depositConfig.label}{depositAmount ? ` — PKR ${depositAmount.toLocaleString()}` : ''}
               </div>
             )}
           </div>
