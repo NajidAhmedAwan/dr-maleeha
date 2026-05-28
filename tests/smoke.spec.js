@@ -1520,6 +1520,80 @@ test('booking_calendar_same_day_shows_100pct_full_payment @smoke', async ({ page
   await expect(page.locator('[data-testid="deposit-label"]')).toContainText('Full payment required — same day booking');
 });
 
+// ── Batch 11.2: holiday + manual block tests ──────────────────────────────────
+
+test('booking_calendar_holiday_is_not_clickable @smoke', async ({ page }) => {
+  await navigateToDatetime(page);
+
+  // Navigate to August 2026
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const targetYear = 2026, targetMonth = 7; // 0-indexed: July=7 is August
+  const monthDiff = (targetYear - today.getFullYear()) * 12 + (targetMonth - today.getMonth());
+  for (let i = 0; i < monthDiff; i++) {
+    await page.locator('button[aria-label="Next month"]').click();
+  }
+
+  const pill = page.locator('[data-testid="date-pill-2026-08-14"]');
+  await pill.waitFor({ state: 'visible' });
+  const disabledAttr = await pill.getAttribute('disabled');
+  const ariaDisabled = await pill.getAttribute('aria-disabled');
+  expect(disabledAttr !== null || ariaDisabled === 'true').toBe(true);
+});
+
+test('booking_calendar_manual_block_is_not_clickable @smoke', async ({ page }) => {
+  await navigateToDatetime(page);
+
+  // Navigate to July 2026 (month index 6)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const targetYear = 2026, targetMonth = 6;
+  const monthDiff = (targetYear - today.getFullYear()) * 12 + (targetMonth - today.getMonth());
+  for (let i = 0; i < monthDiff; i++) {
+    await page.locator('button[aria-label="Next month"]').click();
+  }
+
+  const pill = page.locator('[data-testid="date-pill-2026-07-15"]');
+  await pill.waitFor({ state: 'visible' });
+  const disabledAttr = await pill.getAttribute('disabled');
+  const ariaDisabled = await pill.getAttribute('aria-disabled');
+  expect(disabledAttr !== null || ariaDisabled === 'true').toBe(true);
+});
+
+test('booking_calendar_holiday_shows_reason_in_title @smoke', async ({ page }) => {
+  await navigateToDatetime(page);
+
+  // Navigate to August 2026
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const targetYear = 2026, targetMonth = 7;
+  const monthDiff = (targetYear - today.getFullYear()) * 12 + (targetMonth - today.getMonth());
+  for (let i = 0; i < monthDiff; i++) {
+    await page.locator('button[aria-label="Next month"]').click();
+  }
+
+  const pill = page.locator('[data-testid="date-pill-2026-08-14"]');
+  await pill.waitFor({ state: 'visible' });
+  const titleAttr = await pill.getAttribute('title');
+  expect(titleAttr).toBe('Independence Day');
+});
+
+test('booking_calendar_clicking_normal_day_still_works @smoke', async ({ page }) => {
+  await navigateToDatetime(page);
+
+  // Find the first enabled (non-disabled, non-holiday) date pill in the current view
+  const enabledPill = page.locator('[data-testid^="date-pill-"]:not([disabled])').first();
+  await enabledPill.waitFor({ state: 'visible' });
+  await enabledPill.click();
+
+  // Slots should appear after clicking a normal available day
+  await page.waitForSelector('[data-testid="time-slot"]');
+  const slotCount = await page.locator('[data-testid="time-slot"]').count();
+  expect(slotCount).toBeGreaterThan(0);
+});
+
+// ── end Batch 11.2 ────────────────────────────────────────────────────────────
+
 test('booking_calendar_past_dates_not_clickable @smoke', async ({ page }) => {
   await page.goto(`${BASE_URL}/booking`);
   await page.evaluate(() => localStorage.clear());
