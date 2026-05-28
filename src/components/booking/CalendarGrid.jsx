@@ -85,7 +85,7 @@ export default function CalendarGrid({ slots, selectedDate, onSelectDate }) {
         >‹</button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: N.text }}>
+          <span data-testid="calendar-month-label" style={{ fontWeight: 700, fontSize: '0.9rem', color: N.text }}>
             {MONTH_NAMES[viewMonth]} {viewYear}
           </span>
           <button

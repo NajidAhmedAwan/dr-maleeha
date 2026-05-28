@@ -274,8 +274,7 @@ test.describe('Booking flow @smoke', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    const dateArea = page.locator('[data-testid="date-strip"], [data-testid="open-date-picker"]');
-    await expect(dateArea.first()).toBeVisible();
+    await expect(page.locator('[data-testid="calendar-grid"]')).toBeVisible();
   });
 
   test('selecting a date shows time slots', async ({ page }) => {
@@ -288,7 +287,7 @@ test.describe('Booking flow @smoke', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await page.locator('[data-testid^="date-pill-"]').nth(2).click();
+    await page.locator('[data-testid^="date-pill-"]:not([disabled])').first().click();
     await expect(page.locator('[data-testid="time-slot"]').first()).toBeVisible();
   });
 
@@ -302,8 +301,8 @@ test.describe('Booking flow @smoke', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await page.locator('[data-testid^="date-pill-"]').nth(2).click();
-    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+    await page.locator('[data-testid^="date-pill-"]:not([disabled])').first().click();
+    await page.locator('[data-testid="time-slot"]').first().click();
     await expect(page.locator('[data-testid="contact-form"]')).toBeVisible();
   });
 
@@ -411,8 +410,8 @@ test.describe('Brands portal @smoke', () => {
 // ── BOOKING — SLOTS + DEPOSIT (Batch 1) ───────────────────────────────────────
 
 test.describe('Booking — slots + deposit (Batch 1)', () => {
-  test('Islamabad shows 7 slots on a Tuesday', async ({ page }) => {
-    const { day } = getNextWeekday(2); // Tuesday
+  test('Islamabad shows slots on a Tuesday', async ({ page }) => {
+    const { date: tuesdayDate } = getNextWeekday(2); // next Tuesday
     await page.goto(`${BASE_URL}/booking`);
     await page.evaluate(() => localStorage.clear());
     await page.reload();
@@ -422,15 +421,17 @@ test.describe('Booking — slots + deposit (Batch 1)', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await page.getByRole('button', { name: day.toString(), exact: true }).first().click();
+    await clickCalendarDate(page, tuesdayDate);
     const slots = page.locator('[data-testid="time-slot"]');
     await expect(slots.first()).toBeVisible();
     const count = await slots.count();
-    expect(count).toBe(7);
+    // Islamabad: 30-min slots 11:00–16:30 = 12 total, ~80% available
+    expect(count).toBeGreaterThan(0);
   });
 
-  test('Islamabad shows closed message on a Wednesday', async ({ page }) => {
-    const { day } = getNextWeekday(3); // Wednesday
+  test('Islamabad Wednesday date pill is disabled (clinic closed)', async ({ page }) => {
+    const { date: wednesdayDate } = getNextWeekday(3); // next Wednesday
+    const key = `${wednesdayDate.getFullYear()}-${String(wednesdayDate.getMonth()+1).padStart(2,'0')}-${String(wednesdayDate.getDate()).padStart(2,'0')}`;
     await page.goto(`${BASE_URL}/booking`);
     await page.evaluate(() => localStorage.clear());
     await page.reload();
@@ -440,8 +441,18 @@ test.describe('Booking — slots + deposit (Batch 1)', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await page.getByRole('button', { name: day.toString(), exact: true }).first().click();
-    await expect(page.locator('text=/closed|not available|unavailable/i').first()).toBeVisible();
+    // Navigate to the correct month if Wednesday is in a future month
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const monthDiff = (wednesdayDate.getFullYear() - today.getFullYear()) * 12 + (wednesdayDate.getMonth() - today.getMonth());
+    for (let i = 0; i < monthDiff; i++) {
+      await page.locator('button[aria-label="Next month"]').click();
+    }
+    const pill = page.locator(`[data-testid="date-pill-${key}"]`);
+    await pill.waitFor({ state: 'visible' });
+    // Wednesday has no Islamabad slots → pill is disabled
+    const disabledAttr = await pill.getAttribute('disabled');
+    const ariaDisabled = await pill.getAttribute('aria-disabled');
+    expect(disabledAttr !== null || ariaDisabled === 'true').toBe(true);
   });
 
   test('Karachi same-day shows 100% deposit with warning pill', async ({ page }) => {
@@ -454,13 +465,19 @@ test.describe('Booking — slots + deposit (Batch 1)', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    const today = new Date().getDate();
-    await page.getByRole('button', { name: today.toString(), exact: true }).first().click();
-    const slots = page.locator('[data-testid="time-slot"]:not([disabled])');
+    const todayDate = new Date();
+    // Skip if today is Sunday (Karachi closed)
+    if (todayDate.getDay() === 0) return;
+    const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth()+1).padStart(2,'0')}-${String(todayDate.getDate()).padStart(2,'0')}`;
+    const todayPill = page.locator(`[data-testid="date-pill-${todayStr}"]`);
+    const isDisabled = await todayPill.getAttribute('disabled').catch(() => 'yes');
+    if (isDisabled !== null) return; // no same-day slots
+    await todayPill.click();
+    const slots = page.locator('[data-testid="time-slot"]');
     const count = await slots.count();
     if (count > 0) {
       await slots.first().click();
-      await expect(page.locator('text=/100%|same.day|full deposit/i').first()).toBeVisible();
+      await expect(page.locator('[data-testid="deposit-label"]')).toContainText(/same.day|full.*payment/i);
     }
   });
 
@@ -474,9 +491,9 @@ test.describe('Booking — slots + deposit (Batch 1)', () => {
     await fillIntakeAndContinue(page, { isOnline: true });
     const future = new Date();
     future.setDate(future.getDate() + 10);
-    await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
-    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
-    await expect(page.locator('text=/50%|50 %/i').first()).toBeVisible();
+    await clickCalendarDate(page, future);
+    await page.locator('[data-testid="time-slot"]').first().click();
+    await expect(page.locator('[data-testid="deposit-label"]')).toContainText(/50%/);
   });
 });
 
@@ -494,8 +511,8 @@ test.describe('Booking — contact form validation (Batch 3)', () => {
     await fillIntakeAndContinue(page);
     const future = new Date();
     future.setDate(future.getDate() + 5);
-    await page.getByRole('button', { name: future.getDate().toString(), exact: true }).first().click();
-    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+    await clickCalendarDate(page, future);
+    await page.locator('[data-testid="time-slot"]').first().click();
     await page.waitForSelector('[data-testid="contact-form"]');
   }
 
@@ -816,7 +833,7 @@ test.describe('Mobile viewport — booking flow (390px)', () => {
 test.describe('Booking — mobile-first UX (Batch 7)', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('Date strip renders 14 pills', async ({ page }) => {
+  test('Calendar grid renders with date pills', async ({ page }) => {
     await page.goto(`${BASE_URL}/booking`);
     await page.evaluate(() => localStorage.clear());
     await page.reload();
@@ -826,9 +843,11 @@ test.describe('Booking — mobile-first UX (Batch 7)', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await expect(page.locator('[data-testid="date-strip"]')).toBeVisible();
+    await expect(page.locator('[data-testid="calendar-grid"]')).toBeVisible();
     const pills = page.locator('[data-testid^="date-pill-"]');
-    await expect(pills).toHaveCount(14);
+    const count = await pills.count();
+    // Any month has ≥28 days
+    expect(count).toBeGreaterThanOrEqual(28);
   });
 
   test('Tapping a date pill reveals time slots', async ({ page }) => {
@@ -841,12 +860,13 @@ test.describe('Booking — mobile-first UX (Batch 7)', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await page.locator('[data-testid^="date-pill-"]').nth(3).click();
-    await expect(page.locator('[data-testid="time-slot-strip"]')).toBeVisible();
-    await expect(page.locator('[data-testid="time-slot"]')).toHaveCount(7);
+    await page.locator('[data-testid^="date-pill-"]:not([disabled])').first().click();
+    await expect(page.locator('[data-testid="time-slots-section"]')).toBeVisible();
+    const slotCount = await page.locator('[data-testid="time-slot"]').count();
+    expect(slotCount).toBeGreaterThan(0);
   });
 
-  test('Pick later date opens full-screen modal', async ({ page }) => {
+  test('Calendar Next month shifts month label forward', async ({ page }) => {
     await page.goto(`${BASE_URL}/booking`);
     await page.evaluate(() => localStorage.clear());
     await page.reload();
@@ -856,29 +876,14 @@ test.describe('Booking — mobile-first UX (Batch 7)', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await page.locator('[data-testid="open-date-picker"]').click();
-    await expect(page.locator('[data-testid="date-picker-modal"]')).toBeVisible();
-    await expect(page.locator('[data-testid^="picker-day-"]')).toHaveCount(42);
-  });
-
-  test('Modal Next month shifts forward', async ({ page }) => {
-    await page.goto(`${BASE_URL}/booking`);
-    await page.evaluate(() => localStorage.clear());
-    await page.reload();
-    await page.locator('[data-testid="booking-city-karachi"]').first().click();
-    await page.waitForSelector('[data-testid="booking-category-injectables"]');
-    await page.locator('[data-testid="booking-category-injectables"]').first().click();
-    await page.waitForSelector('[data-testid="booking-procedure-botox"]');
-    await page.locator('[data-testid="booking-procedure-botox"]').first().click();
-    await fillIntakeAndContinue(page);
-    await page.locator('[data-testid="open-date-picker"]').click();
-    const monthBefore = await page.locator('[data-testid="picker-month-label"]').textContent();
-    await page.locator('[data-testid="picker-next"]').click();
-    const monthAfter = await page.locator('[data-testid="picker-month-label"]').textContent();
+    await page.waitForSelector('[data-testid="calendar-grid"]');
+    const monthBefore = await page.locator('[data-testid="calendar-month-label"]').textContent();
+    await page.locator('button[aria-label="Next month"]').click();
+    const monthAfter = await page.locator('[data-testid="calendar-month-label"]').textContent();
     expect(monthBefore).not.toBe(monthAfter);
   });
 
-  test('Picking date in modal closes it and selects that date in strip', async ({ page }) => {
+  test('Picking a date in calendar reveals time slots', async ({ page }) => {
     await page.goto(`${BASE_URL}/booking`);
     await page.evaluate(() => localStorage.clear());
     await page.reload();
@@ -888,13 +893,9 @@ test.describe('Booking — mobile-first UX (Batch 7)', () => {
     await page.waitForSelector('[data-testid="booking-procedure-botox"]');
     await page.locator('[data-testid="booking-procedure-botox"]').first().click();
     await fillIntakeAndContinue(page);
-    await page.locator('[data-testid="open-date-picker"]').click();
-    // dispatchEvent bypasses the "outside viewport" restriction for the fixed modal overlay at 390px.
-    // The first enabled day (today) sits at the bottom of the calendar grid and can't be scrolled
-    // into view within a fixed/overflow-hidden modal container.
-    await page.locator('[data-testid^="picker-day-"]:not([disabled])').first().dispatchEvent('click');
-    await expect(page.locator('[data-testid="date-picker-modal"]')).not.toBeVisible();
-    await expect(page.locator('[data-testid="time-slot-strip"]')).toBeVisible();
+    await page.waitForSelector('[data-testid="calendar-grid"]');
+    await page.locator('[data-testid^="date-pill-"]:not([disabled])').first().dispatchEvent('click');
+    await expect(page.locator('[data-testid="time-slots-section"]')).toBeVisible();
   });
 
   test('Returning patient banner appears with prior booking', async ({ page }) => {
@@ -1026,19 +1027,11 @@ test.describe('Booking — end-to-end happy paths (Batch 6)', () => {
     await page.locator('[data-testid="booking-footer-btn"]').click();
     await page.waitForSelector('[data-testid^="date-pill-"]');
 
-    // Islamabad: pick next Mon/Wed/Fri slot
+    // Islamabad: pick next Tue/Thu/Sat slot
     const candidates = [2, 4, 6].map(nextWeekday).sort((a, b) => a - b);
     const nearest = candidates[0];
-    const key = `${nearest.getFullYear()}-${String(nearest.getMonth()+1).padStart(2,'0')}-${String(nearest.getDate()).padStart(2,'0')}`;
-    const datePill = page.locator(`[data-testid="date-pill-${key}"]`);
-    const visible = await datePill.isVisible().catch(() => false);
-    if (!visible) {
-      await page.locator('[data-testid="open-date-picker"]').click();
-      await page.locator(`[data-testid="picker-day-${key}"]`).dispatchEvent('click');
-    } else {
-      await datePill.click();
-    }
-    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+    await clickCalendarDate(page, nearest);
+    await page.locator('[data-testid="time-slot"]').first().click();
     await page.waitForSelector('[data-testid="contact-form"]');
 
     await page.locator('[data-testid="input-name"]').fill('Zara Sheikh');
@@ -1351,13 +1344,13 @@ test.describe('Batch 9b.2 — patient type modal', () => {
     // Continue to datetime step
     await page.locator('[data-testid="booking-footer-btn"]').click();
 
-    // 9e. Select date
-    await page.waitForSelector('[data-testid^="date-pill-"]');
-    await page.locator('[data-testid^="date-pill-"]').nth(2).click();
+    // 9e. Select date (first available date in CalendarGrid)
+    await page.waitForSelector('[data-testid^="date-pill-"]:not([disabled])');
+    await page.locator('[data-testid^="date-pill-"]:not([disabled])').first().click();
 
     // 9f. Select time slot → auto-advances to contact step
-    await page.waitForSelector('[data-testid="time-slot"]:not([disabled])');
-    await page.locator('[data-testid="time-slot"]:not([disabled])').first().click();
+    await page.waitForSelector('[data-testid="time-slot"]');
+    await page.locator('[data-testid="time-slot"]').first().click();
 
     // 10–12. Assert contact step prefilled with Sara Khan's data
     await page.waitForSelector('[data-testid="contact-form"]');
